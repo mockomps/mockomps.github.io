@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Live Mockomps Dataset</title>
+  <link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.min.css" />
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; margin: 2rem; }
+    h1 { margin-bottom: 1.5rem; }
+    #error { color: #b00; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Live Mockomps Dataset</h1>
+  <p>This table pulls fresh rows directly from the linked Google Sheet every time the page loads. If you submit a new response through the Google Form, refresh this page to see it appear.</p>
+
+  <table id="sheet" class="display" style="width:100%">
+    <thead>
+      <tr id="thead-row"></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div id="error" hidden></div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/2.0.0/js/dataTables.min.js"></script>
+  <script>
+    // === CONFIGURATION ======================================================
+    // Replace the placeholders below with the real values from your Sheet URL
+    // Example Sheet URL:
+    //   https://docs.google.com/spreadsheets/d/1AbCDefGhIJklMnOPqR_sTUVWXYZ1234567/edit#gid=0
+    // SHEET_ID  => 1AbCDefGhIJklMnOPqR_sTUVWXYZ1234567
+    // SHEET_NAME => the tab name that stores the form responses (often "Form Responses 1")
+    const SHEET_ID   = '1qx-Fots7e-50dDnsKbMDjv-a4bS62D-sqawVLDhZUfU';
+    const SHEET_NAME = 'FRankings';
+    // =========================================================================
+
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}&tqx=out:json`;
+
+    fetch(url)
+      .then(res => res.text())
+      .then(text => {
+        // The Visualization API wraps the JSON in a function call; strip it off.
+        const json = JSON.parse(text.substring(47).slice(0, -2));
+
+        // Extract column headers
+        const columns = json.table.cols.map(col => col.label || col.id);
+        const theadRow = document.getElementById('thead-row');
+        columns.forEach(h => {
+          const th = document.createElement('th');
+          th.textContent = h;
+          theadRow.appendChild(th);
+        });
+
+        // Extract rows
+        const dataRows = json.table.rows.map(r => r.c.map(cell => cell ? cell.v : ''));
+
+        // Populate tbody
+        const tbody = document.querySelector('#sheet tbody');
+        dataRows.forEach(rowArr => {
+          const tr = document.createElement('tr');
+          rowArr.forEach(cell => {
+            const td = document.createElement('td');
+            td.textContent = cell;
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+
+        // Initialise DataTables
+        new DataTable('#sheet', {
+          paging: true,
+          searching: true,
+          info: true,
+          responsive: true
+        });
+      })
+      .catch(err => {
+        document.getElementById('error').hidden = false;
+        document.getElementById('error').textContent = `Failed to fetch data: ${err}`;
+      });
+  </script>
+</body>
+</html>
