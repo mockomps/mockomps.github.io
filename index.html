@@ -122,7 +122,15 @@
                 const isQualis = currentRound === 'qualis';
                 const standings = isQualis ? appData.qStandings : appData.fRankings;
                 
-                const compStandings = standings.filter(s => (s.comp || s.final) === currentComp);
+                let compStandings;
+                if (isQualis) {
+                    // For Qualis, find where the 'comp' column matches the base name (e.g., "M01")
+                    compStandings = standings.filter(s => s.comp === currentComp);
+                } else {
+                    // For Finals, find where the 'final' column matches the base name plus "F" (e.g., "M01F")
+                    compStandings = standings.filter(s => s.final === `${currentComp}F`);
+                }
+                
                 compStandings.sort((a,b) => parseInt(a.place) - parseInt(b.place));
 
                 if (compStandings.length === 0) {
@@ -156,8 +164,8 @@
                         </div>`;
                     const finalRow = `
                         <div class="flex justify-around text-center mt-3 pt-3 border-t border-slate-100">
-                            <div><div class="text-xs text-slate-500">Tops</div><div class="font-medium text-sm">${standing.tops} (${standing.top_attempts})</div></div>
-                            <div><div class="text-xs text-slate-500">Zones</div><div class="font-medium text-sm">${standing.zones} (${standing.zone_attempts})</div></div>
+                            <div><div class="text-xs text-slate-500">Tops</div><div class="font-medium text-sm">${standing.tops} (${standing.top_attempts || '0'})</div></div>
+                            <div><div class="text-xs text-slate-500">Zones</div><div class="font-medium text-sm">${standing.zones} (${standing.zone_attempts || '0'})</div></div>
                         </div>`;
 
                     mobileHTML += `
@@ -235,9 +243,21 @@
                     const dataEntries = await Promise.all(dataPromises);
                     appData = Object.fromEntries(dataEntries);
 
+                    // --- CORRECTED LOGIC: Create a unified list of competition base names ---
                     const qComps = appData.qStandings.map(s => s.comp);
-                    const fComps = appData.fRankings.map(s => s.final);
-                    const allCompNames = [...new Set([...qComps, ...fComps])].sort();
+                    // For finals, remove the trailing "F" to get the base name
+                    const fComps = appData.fRankings.map(s => (s.final || '').replace(/F$/, ''));
+                    
+                    // Create a unique, sorted list of base competition names
+                    const allCompNames = [...new Set([...qComps, ...fComps])].sort((a, b) => {
+                        const numA = parseInt((a || '').match(/\d+/g));
+                        const numB = parseInt((b || '').match(/\d+/g));
+                        
+                        if (numA && numB && numA !== numB) {
+                            return numA - numB;
+                        }
+                        return (a || '').localeCompare(b || '');
+                    });
 
                     if (allCompNames.length === 0) {
                         throw new Error("No competitions found in the provided sheets.");
