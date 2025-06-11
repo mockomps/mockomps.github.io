@@ -112,9 +112,9 @@
             function renderHomePage() {
                 headerContent.innerHTML = `<div class="flex-1"></div><div class="flex-1 text-center"><h1 class="text-2xl font-bold text-gray-100">Mockomps</h1></div><div class="flex-1"></div>`;
                 mainContent.innerHTML = `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
-                        <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Schedule</button>
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
                         <button id="results-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Results</button>
+                        <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Schedule</button>
                     </div>`;
                 document.getElementById('schedule-btn').addEventListener('click', () => navigate('schedule'));
                 document.getElementById('results-btn').addEventListener('click', () => navigate('resultsHome'));
@@ -125,7 +125,7 @@
                     <div class="flex-1">
                          <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
-                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Competitions</h1>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Results</h1>
                     <div class="flex-1"></div>`; // Spacer
                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
 
@@ -134,7 +134,7 @@
                 const compDateMap = new Map(appData.comps.map(c => [c.comp, c.start]));
                 const allCompNames = [...new Set([...qComps, ...fComps])].sort((a, b) => new Date(compDateMap.get(b) || 0) - new Date(compDateMap.get(a) || 0));
 
-                let compGridHTML = '<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">';
+                let compGridHTML = '<div class="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">';
                 allCompNames.forEach(compName => {
                     compGridHTML += `<button data-comp="${compName}" class="comp-btn bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl">${compName}</button>`;
                 });
@@ -161,7 +161,7 @@
                 ];
                 events.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-                let scheduleHTML = '<div class="space-y-2">';
+                let scheduleHTML = '<div class="mt-4 space-y-2">';
                 let currentMonth = '';
                 
                 events.forEach(event => {
