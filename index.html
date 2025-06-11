@@ -75,6 +75,7 @@
 
             // --- Data Sources ---
             const GOOGLE_SHEET_URLS = {
+                comps: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=91525471&single=true&output=csv',
                 qStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=687301211&single=true&output=csv',
                 fRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1749256148&single=true&output=csv',
             };
@@ -124,11 +125,9 @@
                 
                 let compStandings;
                 if (isQualis) {
-                    // For Qualis, find where the 'comp' column matches the base name (e.g., "M01")
                     compStandings = standings.filter(s => s.comp === currentComp);
                 } else {
-                    // For Finals, find where the 'final' column matches the base name plus "F" (e.g., "M01F")
-                    compStandings = standings.filter(s => s.final === `${currentComp}F`);
+                    compStandings = standings.filter(s => (s.final || '').replace(/F$/, '') === currentComp);
                 }
                 
                 compStandings.sort((a,b) => parseInt(a.place) - parseInt(b.place));
@@ -243,20 +242,20 @@
                     const dataEntries = await Promise.all(dataPromises);
                     appData = Object.fromEntries(dataEntries);
 
-                    // --- CORRECTED LOGIC: Create a unified list of competition base names ---
+                    // --- NEW LOGIC: Use the Comps sheet for sorting ---
+                    // 1. Create a map of competition dates for quick lookup.
+                    const compDateMap = new Map(appData.comps.map(c => [c.comp, c.start]));
+
+                    // 2. Get the unique list of base competition names.
                     const qComps = appData.qStandings.map(s => s.comp);
-                    // For finals, remove the trailing "F" to get the base name
                     const fComps = appData.fRankings.map(s => (s.final || '').replace(/F$/, ''));
-                    
-                    // Create a unique, sorted list of base competition names
-                    const allCompNames = [...new Set([...qComps, ...fComps])].sort((a, b) => {
-                        const numA = parseInt((a || '').match(/\d+/g));
-                        const numB = parseInt((b || '').match(/\d+/g));
-                        
-                        if (numA && numB && numA !== numB) {
-                            return numA - numB;
-                        }
-                        return (a || '').localeCompare(b || '');
+                    const allCompNames = [...new Set([...qComps, ...fComps])];
+
+                    // 3. Sort the list of names based on the date from the map (most recent first).
+                    allCompNames.sort((a, b) => {
+                        const dateA = new Date(compDateMap.get(a) || 0);
+                        const dateB = new Date(compDateMap.get(b) || 0);
+                        return dateB - dateA; // Sort in descending order
                     });
 
                     if (allCompNames.length === 0) {
