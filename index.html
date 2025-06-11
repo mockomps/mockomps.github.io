@@ -14,12 +14,20 @@
 <body class="bg-gray-950 text-slate-300">
 
     <div id="app" class="container mx-auto p-4 max-w-7xl">
-        <!-- Header -->
-        <header class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4 mb-6">
-            <div id="header-content" class="flex items-center space-x-3">
-                <!-- Header content will be dynamically generated -->
+        
+        <div id="sticky-container" class="sticky top-0 z-10 bg-gray-950 pt-4">
+             <!-- Header -->
+            <header class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4 mb-4">
+                <div id="header-content" class="flex items-center justify-between">
+                    <!-- Header content will be dynamically generated -->
+                </div>
+            </header>
+             <!-- Round Selector Container - only shown on results page -->
+            <div id="controls-container" class="hidden mb-4 flex justify-center">
+                 <!-- Content will be rendered here for results page -->
             </div>
-        </header>
+        </div>
+
 
         <!-- Main Content Area -->
         <main id="main-content">
@@ -38,6 +46,8 @@
             const mainContent = document.getElementById('main-content');
             const indicator = document.getElementById('indicator');
             const headerContent = document.getElementById('header-content');
+            const controlsContainer = document.getElementById('controls-container');
+
 
             // --- App State ---
             let appData = {};
@@ -82,6 +92,9 @@
             function navigate(page, context = null) {
                 mainContent.innerHTML = ''; // Clear previous content
                 headerContent.innerHTML = ''; // Clear header
+                controlsContainer.innerHTML = ''; // Clear controls
+                controlsContainer.classList.add('hidden'); // Hide controls by default
+
 
                 if (page === 'home') {
                     renderHomePage();
@@ -97,7 +110,7 @@
 
             // --- Page Rendering Functions ---
             function renderHomePage() {
-                headerContent.innerHTML = `<i class="fas fa-mountain-sun text-3xl text-blue-400"></i><h1 class="text-2xl font-bold text-gray-100">Mockomps</h1>`;
+                headerContent.innerHTML = `<div class="flex-1"></div><div class="flex-1 text-center flex items-center justify-center space-x-3"><i class="fas fa-mountain-sun text-3xl text-blue-400"></i><h1 class="text-2xl font-bold text-gray-100">Mockomps</h1></div><div class="flex-1"></div>`;
                 mainContent.innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
                         <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Schedule</button>
@@ -185,14 +198,14 @@
                     <div class="flex-1"></div>`; // Spacer
                  document.getElementById('back-to-comps-btn').addEventListener('click', () => navigate('resultsHome'));
                 
-                 mainContent.innerHTML = `
-                    <div class="mb-6 flex justify-center">
-                        <div id="round-selector" class="flex space-x-1 bg-gray-800 p-1 rounded-md">
-                            <button data-round="qualis" class="round-btn bg-blue-600 text-white font-semibold py-1 px-4 rounded-md shadow-md">Qualis</button>
-                            <button data-round="finals" class="round-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Final</button>
-                        </div>
-                    </div>
-                    <div id="results-container" class="w-full"></div>`;
+                 controlsContainer.classList.remove('hidden');
+                 controlsContainer.innerHTML = `
+                    <div id="round-selector" class="flex space-x-1 bg-gray-800 p-1 rounded-md">
+                        <button data-round="qualis" class="round-btn bg-blue-600 text-white font-semibold py-1 px-4 rounded-md shadow-md">Qualis</button>
+                        <button data-round="finals" class="round-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Final</button>
+                    </div>`;
+
+                 mainContent.innerHTML = `<div id="results-container" class="w-full"></div>`;
 
                 currentRound = 'qualis';
                 renderResultsTable();
