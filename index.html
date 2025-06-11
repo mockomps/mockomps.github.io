@@ -56,6 +56,7 @@
             
             // --- Data Sources ---
             const GOOGLE_SHEET_URLS = {
+                climbers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=937478252&single=true&output=csv',
                 comps: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=91525471&single=true&output=csv',
                 qStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=687301211&single=true&output=csv',
                 fRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1749256148&single=true&output=csv',
@@ -102,6 +103,8 @@
                     renderResultsHomePage();
                 } else if (page === 'schedule') {
                     renderSchedulePage();
+                } else if (page === 'climbers') {
+                    renderClimbersPage();
                 } else if (page === 'resultsComp') {
                     currentComp = context;
                     renderResultsCompPage();
@@ -112,12 +115,14 @@
             function renderHomePage() {
                 headerContent.innerHTML = `<div class="flex-1"></div><div class="flex-1 text-center"><h1 class="text-2xl font-bold text-gray-100">Mockomps</h1></div><div class="flex-1"></div>`;
                 mainContent.innerHTML = `
-                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                         <button id="results-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Results</button>
                         <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Schedule</button>
+                        <button id="climbers-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Climbers</button>
                     </div>`;
                 document.getElementById('schedule-btn').addEventListener('click', () => navigate('schedule'));
                 document.getElementById('results-btn').addEventListener('click', () => navigate('resultsHome'));
+                document.getElementById('climbers-btn').addEventListener('click', () => navigate('climbers'));
             }
 
             function renderResultsHomePage() {
@@ -187,6 +192,27 @@
                 });
                 scheduleHTML += '</div>';
                 mainContent.innerHTML = scheduleHTML;
+            }
+            
+            function renderClimbersPage() {
+                 headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Climbers</h1>
+                    <div class="flex-1"></div>`; // Spacer
+                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                
+                const climbers = [...appData.climbers].sort((a, b) => a.name.localeCompare(b.name));
+                
+                let climberListHTML = '<div class="mt-4 space-y-2">';
+                climbers.forEach(climber => {
+                    if (climber.name) { // Ensure climber has a name
+                        climberListHTML += `<button disabled class="w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold opacity-50 cursor-not-allowed">${climber.name}</button>`;
+                    }
+                });
+                climberListHTML += '</div>';
+                mainContent.innerHTML = climberListHTML;
             }
 
             function renderResultsCompPage() {
