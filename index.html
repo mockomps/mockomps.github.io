@@ -115,7 +115,8 @@
                         currentMainCategory = mainCategoryText.toLowerCase().replace(/\s+/g, '_');
                     }
                     
-                    const subCategoryText = subHeader[i].trim().toLowerCase().replace(/%/g, 'pct');
+                    // FIXED: Correctly replaces '%' with '_pct' to create a valid key part.
+                    const subCategoryText = subHeader[i].trim().toLowerCase().replace('%', '_pct');
                     
                     if (i === 0) {
                         combinedHeader.push('climber'); // The first column is always 'climber'
