@@ -145,7 +145,8 @@
                     ...appData.qualis.map(q => ({ date: q.date, title: q.quali, type: 'Quali' })),
                     ...appData.finals.map(f => ({ date: f.date, title: f.final.replace(/F$/, ' Final'), type: 'Final' })),
                 ];
-                events.sort((a,b) => new Date(a.date) - new Date(b.date));
+                // Invert the sort order to be from most recent to least recent
+                events.sort((a,b) => new Date(b.date) - new Date(a.date));
 
                 let scheduleHTML = '<div class="space-y-4">';
                 let currentMonth = '';
