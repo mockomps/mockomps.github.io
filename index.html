@@ -180,8 +180,9 @@
 
                 headerContent.innerHTML = `<div class="flex-1"></div><div class="flex-1 text-center"><h1 class="text-2xl font-bold text-gray-100">Mockomps</h1></div><div class="flex-1"></div>`;
                 
+                // REMOVED mt-4 from the div below
                 mainContent.innerHTML = `
-                    <div class="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
                         <button id="results-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Results</button>
                         <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Schedule</button>
                         <button id="climbers-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Climbers</button>
@@ -202,8 +203,9 @@
                     <div class="flex-1"></div>`;
                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
 
+                // REMOVED mt-4 from the div below
                 mainContent.innerHTML = `
-                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                         <a href="https://forms.gle/hrDCyDAXzaKQ1gyX7" target="_blank" class="block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">New Climber Form</a>
                         <a href="https://forms.gle/uBJpWoj7mkNycZoJ8" target="_blank" class="block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Qualis Form</a>
                         <a href="https://forms.gle/C7vrjByfi4wnNa6x7" target="_blank" class="block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Finals Form</a>
@@ -224,7 +226,8 @@
                 const compDateMap = new Map(appData.comps.map(c => [c.comp, c.start]));
                 const allCompNames = [...new Set([...qComps, ...fComps])].sort((a, b) => new Date(compDateMap.get(b) || 0) - new Date(compDateMap.get(a) || 0));
 
-                let compGridHTML = '<div class="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">';
+                // REMOVED mt-4 from the div below
+                let compGridHTML = '<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">';
                 allCompNames.forEach(compName => {
                     compGridHTML += `<button data-comp="${compName}" class="comp-btn bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl">${compName}</button>`;
                 });
@@ -251,7 +254,8 @@
                 ];
                 events.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-                let scheduleHTML = '<div class="mt-4 space-y-2">';
+                // REMOVED mt-4 from the div below
+                let scheduleHTML = '<div class="space-y-2">';
                 let currentMonth = '';
                 
                 events.forEach(event => {
@@ -290,7 +294,8 @@
                 
                 const climbers = [...appData.climbers].sort((a, b) => a.name.localeCompare(b.name));
                 
-                let climberListHTML = '<div class="mt-4 space-y-2">';
+                // REMOVED mt-4 from the div below
+                let climberListHTML = '<div class="space-y-2">';
                 climbers.forEach(climber => {
                     if (climber.name) {
                         climberListHTML += `<button data-climber-name="${climber.name}" class="climber-btn w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold hover:bg-gray-800">${climber.name}</button>`;
@@ -327,7 +332,8 @@
                 const climberInfo = appData.climbers.find(c => c.name === climberName);
                 const climberStats = appData.climberStats.find(s => s.climber === climberName);
 
-                let profileHTML = '<div class="mt-4 space-y-4">';
+                // REMOVED mt-4 from the div below
+                let profileHTML = '<div class="space-y-4">';
 
                 if (climberInfo) {
                     let instaHTML = '';
@@ -414,7 +420,8 @@
                 // UPDATED: Added 'overflow-x-auto', 'whitespace-nowrap', and 'no-scrollbar' and removed 'flex-wrap'
                 controlsContainer.innerHTML = `<div id="round-selector" class="flex overflow-x-auto whitespace-nowrap no-scrollbar justify-start md:justify-center gap-1 bg-gray-800 p-1 rounded-md">${roundButtonsHTML}</div>`;
 
-                mainContent.innerHTML = `<div id="results-container" class="mt-4 w-full"></div>`;
+                // REMOVED mt-4 from the div below
+                mainContent.innerHTML = `<div id="results-container" class="w-full"></div>`;
 
                 currentRound = 'qualis'; 
                 renderResultsTable();
@@ -521,7 +528,7 @@
                     appData = Object.fromEntries(dataEntries);
                     
                     indicator.style.display = 'none';
-                    mainContent.style.display = 'block';
+                    // The main content is displayed by default, no need to change its style here
                     navigate('home');
                     
                 } catch (error) {
