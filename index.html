@@ -92,7 +92,7 @@
                 return data;
             }
 
-            // --- NEW: Special parser for the ClimberStats sheet with a two-row header ---
+            // --- Special parser for the ClimberStats sheet with a two-row header ---
             async function fetchAndParseClimberStats(url) {
                 const cacheBustUrl = `${url}&_=${new Date().getTime()}`;
                 const response = await fetch(cacheBustUrl);
@@ -115,7 +115,6 @@
                         currentMainCategory = mainCategoryText.toLowerCase().replace(/\s+/g, '_');
                     }
                     
-                    // FIXED: Correctly replaces '%' with '_pct' to create a valid key part.
                     const subCategoryText = subHeader[i].trim().toLowerCase().replace('%', '_pct');
                     
                     if (i === 0) {
@@ -270,7 +269,6 @@
                 });
             }
 
-            // --- REVAMPED Climber Profile Page ---
             function renderClimberProfilePage(climberName) {
                 headerContent.innerHTML = `
                     <div class="flex-1">
@@ -281,12 +279,10 @@
                 document.getElementById('back-to-climbers-btn').addEventListener('click', () => navigate('climbers'));
 
                 const climberInfo = appData.climbers.find(c => c.name === climberName);
-                // Find stats from the correctly parsed climberStats data
                 const climberStats = appData.climberStats.find(s => s.climber === climberName);
 
                 let profileHTML = '<div class="mt-4 space-y-4">';
 
-                // --- Climber Info Box ---
                 if (climberInfo) {
                     let instaHTML = '';
                     if (climberInfo.instagram && climberInfo.instagram !== 'N/A') {
@@ -305,7 +301,6 @@
                 }
 
                 if (climberStats) {
-                    // --- All-Time Stats Box ---
                     profileHTML += `
                         <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
                             <h3 class="text-lg font-bold text-gray-200 mb-3">All-Time Stats</h3>
@@ -318,7 +313,6 @@
                             </div>
                         </div>`;
 
-                    // --- Grade-Specific Stats Boxes ---
                     const createGradeStatBox = (grade, stats) => {
                         return `
                         <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
@@ -381,6 +375,7 @@
                 });
             }
             
+            // --- UPDATED: Results table with clickable names ---
             function renderResultsTable() {
                 const resultsContainer = document.getElementById('results-container');
                 const isQualis = currentRound === 'qualis';
@@ -407,24 +402,29 @@
                 for (const standing of compStandings) {
                     const isQualisTop8 = isQualis && parseInt(standing.place) <= 8;
                     const isFinalsTop3 = !isQualis && parseInt(standing.place) <= 3;
+                    let highlightClass = isQualisTop8 || isFinalsTop3 ? 'bg-sky-900/40' : '';
+                    
+                    const climberName = standing.climber || '-';
+                    const climberButton = `<button data-climber-name="${climberName}" class="profile-link-btn text-left hover:text-blue-400 transition-colors duration-150">${climberName}</button>`;
 
-                    let highlightClass = '';
-                    
-                    if (isQualisTop8 || isFinalsTop3) {
-                        highlightClass = 'bg-sky-900/40';
-                    }
-                    
                     const qualiStats = `<div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '-'}</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '-'}</span></div><div>Flashes <span class="block font-medium text-gray-200 text-sm">${standing.flashes || '-'}</span></div></div>`;
                     const finalStats = `<div class="flex justify-around items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '0'}(${standing.top_attempts || '0'})</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '0'}(${standing.zone_attempts || '0'})</span></div></div>`;
                     
-                    mobileHTML += `<div class="rounded-lg p-3 shadow-md border border-gray-800 ${highlightClass || 'bg-gray-900'}"><div class="flex justify-between items-center"><div class="flex items-center space-x-3"><span class="font-bold text-base text-gray-200 w-6">${standing.place||'-'}</span><span class="font-medium text-gray-100 text-sm">${standing.climber||'-'}</span></div>${isQualis?`<div class="font-bold text-blue-400 text-base">${standing.quali_points||'-'}</div>`:''}</div>${isQualis?qualiStats:finalStats}</div>`;
+                    mobileHTML += `<div class="rounded-lg p-3 shadow-md border border-gray-800 ${highlightClass || 'bg-gray-900'}"><div class="flex justify-between items-center"><div class="flex items-center space-x-3"><span class="font-bold text-base text-gray-200 w-6">${standing.place||'-'}</span><span class="font-medium text-gray-100 text-sm">${climberButton}</span></div>${isQualis?`<div class="font-bold text-blue-400 text-base">${standing.quali_points||'-'}</div>`:''}</div>${isQualis?qualiStats:finalStats}</div>`;
                     
-                    desktopHTML += `<tr class="border-b border-gray-800 last:border-b-0 hover:bg-gray-800/50 ${highlightClass}"><td class="p-3 font-bold text-gray-100">${standing.place||'-'}</td><td class="p-3 font-medium text-gray-200">${standing.climber||'-'}</td>${isQualis?`<td class="p-3 font-semibold text-blue-400 text-left">${standing.quali_points||'-'}</td><td class="p-3 text-left">${standing.flashes||'-'}</td><td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td>`:`<td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.top_attempts||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td><td class="p-3 text-left">${standing.zone_attempts||'-'}</td>`}</tr>`;
+                    desktopHTML += `<tr class="border-b border-gray-800 last:border-b-0 hover:bg-gray-800/50 ${highlightClass}"><td class="p-3 font-bold text-gray-100">${standing.place||'-'}</td><td class="p-3 font-medium text-gray-200">${climberButton}</td>${isQualis?`<td class="p-3 font-semibold text-blue-400 text-left">${standing.quali_points||'-'}</td><td class="p-3 text-left">${standing.flashes||'-'}</td><td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td>`:`<td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.top_attempts||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td><td class="p-3 text-left">${standing.zone_attempts||'-'}</td>`}</tr>`;
                 }
 
                 mobileHTML += '</div>';
                 desktopHTML += '</tbody></table></div>';
                 resultsContainer.innerHTML = mobileHTML + desktopHTML;
+                
+                // Add event listeners for the new profile link buttons
+                resultsContainer.querySelectorAll('.profile-link-btn').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        navigate('climberProfile', e.currentTarget.dataset.climberName);
+                    });
+                });
             }
 
             // --- Main Initialization (UPDATED) ---
