@@ -1,84 +1,451 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Live Mockomps Dataset</title>
-  <link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.min.css" />
-  <style>
-    body { font-family: Arial, Helvetica, sans-serif; margin: 2rem; }
-    h1 { margin-bottom: 1.5rem; }
-    #error { color: #b00; margin-top: 1rem; }
-  </style>
+    <meta charset="UTF-g">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mockomps | Climbing Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Style for the active nav link */
+        .nav-active {
+            color: #4f46e5; /* indigo-600 */
+            border-bottom: 2px solid #4f46e5;
+        }
+        /* Simple transition for content fade-in */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
 </head>
-<body>
-  <h1>Live Mockomps Dataset</h1>
-  <p>This table pulls fresh rows directly from the linked Google Sheet every time the page loads. If you submit a new response through the Google Form, refresh this page to see it appear.</p>
+<body class="bg-slate-50 text-slate-800">
 
-  <table id="sheet" class="display" style="width:100%">
-    <thead>
-      <tr id="thead-row"></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-  <div id="error" hidden></div>
+    <div id="app" class="container mx-auto p-4 max-w-7xl">
+        <!-- Header and Main Navigation -->
+        <header class="bg-white rounded-lg shadow-md p-4 mb-6">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-mountain-sun text-3xl text-indigo-600"></i>
+                    <h1 class="text-2xl font-bold text-slate-900 hidden sm:block">Mockomps</h1>
+                </div>
+                <nav class="flex items-center space-x-4 md:space-x-6 text-slate-600">
+                    <a href="#climbers" class="nav-link font-medium hover:text-indigo-600 transition-colors pb-1">Climbers</a>
+                    <a href="#schedule" class="nav-link font-medium hover:text-indigo-600 transition-colors pb-1">Schedule</a>
+                    <a href="#results" class="nav-link font-medium hover:text-indigo-600 transition-colors pb-1 nav-active">Results</a>
+                </nav>
+                 <!-- Links Dropdown -->
+                <div class="relative" id="links-menu-container">
+                    <button id="links-menu-button" class="flex items-center space-x-2 p-2 rounded-md hover:bg-slate-100 transition-colors">
+                        <i class="fas fa-link text-slate-600"></i>
+                        <span class="font-medium hidden md:inline">Links</span>
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                    <div id="links-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-1 hidden z-10">
+                        <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-indigo-500 hover:text-white">Qualis Form</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-indigo-500 hover:text-white">Final Form</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-indigo-500 hover:text-white">New Climber</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-indigo-500 hover:text-white">Instagram</a>
+                    </div>
+                </div>
+            </div>
+        </header>
 
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.datatables.net/2.0.0/js/dataTables.min.js"></script>
-  <script>
-    // === CONFIGURATION ======================================================
-    // Replace the placeholders below with the real values from your Sheet URL
-    // Example Sheet URL:
-    //   https://docs.google.com/spreadsheets/d/1AbCDefGhIJklMnOPqR_sTUVWXYZ1234567/edit#gid=0
-    // SHEET_ID  => 1AbCDefGhIJklMnOPqR_sTUVWXYZ1234567
-    // SHEET_NAME => the tab name that stores the form responses (often "Form Responses 1")
-    const SHEET_ID   = '1qx-Fots7e-50dDnsKbMDjv-a4bS62D-sqawVLDhZUfU';
-    const SHEET_NAME = 'FRankings';
-    // =========================================================================
+        <main id="main-content">
+            <!-- Climbers Section -->
+            <section id="climbers-section" class="content-section">
+                 <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-4">All Climbers</h2>
+                    <div id="climbers-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <!-- Climber cards will be inserted here -->
+                    </div>
+                 </div>
+            </section>
 
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}&tqx=out:json`;
+            <!-- Schedule Section -->
+            <section id="schedule-section" class="content-section">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-4">Competition Schedule</h2>
+                    <div id="schedule-list" class="space-y-4">
+                       <!-- Schedule items will be inserted here -->
+                    </div>
+                </div>
+            </section>
 
-    fetch(url)
-      .then(res => res.text())
-      .then(text => {
-        // The Visualization API wraps the JSON in a function call; strip it off.
-        const json = JSON.parse(text.substring(47).slice(0, -2));
+            <!-- Results Section -->
+            <section id="results-section" class="content-section">
+                <!-- Competition and Round Selection -->
+                <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+                     <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                        <div>
+                             <label for="comp-select" class="font-medium mr-2">Competition:</label>
+                             <select id="comp-select" class="p-2 border rounded-md bg-slate-50"></select>
+                        </div>
+                        <div id="round-selector" class="flex space-x-1 bg-slate-200 p-1 rounded-md">
+                             <button data-round="qualis" class="round-btn bg-white text-indigo-600 font-semibold py-1 px-4 rounded-md shadow">Qualis</button>
+                             <button data-round="finals" class="round-btn py-1 px-4 rounded-md font-semibold text-slate-600">Finals</button>
+                        </div>
+                     </div>
+                </div>
+                <!-- Results Table -->
+                <div id="results-container" class="bg-white p-4 sm:p-6 rounded-lg shadow-md overflow-x-auto">
+                   <!-- Results table will be inserted here -->
+                </div>
+            </section>
+        </main>
+        
+        <!-- Loading Indicator -->
+        <div id="loading-indicator" class="text-center p-10">
+            <i class="fas fa-spinner fa-spin text-4xl text-indigo-600"></i>
+            <p class="mt-4 text-lg font-medium">Loading Competition Data...</p>
+        </div>
 
-        // Extract column headers
-        const columns = json.table.cols.map(col => col.label || col.id);
-        const theadRow = document.getElementById('thead-row');
-        columns.forEach(h => {
-          const th = document.createElement('th');
-          th.textContent = h;
-          theadRow.appendChild(th);
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const mainContent = document.getElementById('main-content');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('.content-section');
+            const compSelect = document.getElementById('comp-select');
+            const roundSelector = document.getElementById('round-selector');
+            const linksMenuButton = document.getElementById('links-menu-button');
+            const linksDropdown = document.getElementById('links-dropdown');
+
+            // --- App State ---
+            let appData = {};
+            let currentCompId = null;
+            let currentRound = 'qualis'; // 'qualis' or 'finals'
+
+            // --- Google Sheets Published CSV URLs ---
+            // IMPORTANT: Replace these placeholders with your actual "Publish to the web" CSV URLs from Google Sheets.
+            const GOOGLE_SHEET_URLS = {
+                climbers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=937478252&single=true&output=csv',
+                climberStats: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=400895305&single=true&output=csv',
+                comps: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=91525471&single=true&output=csv',
+                qualis: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1964387699&single=true&output=csv',
+                finals: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=2138071685&single=true&output=csv',
+                qBoulders: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1513683934&single=true&output=csv',
+                fBoulders: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1522987637&single=true&output=csv',
+                qResults: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=36605401&single=true&output=csv',
+                fResults: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=129313170&single=true&output=csv',
+                qRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1437828732&single=true&output=csv',
+                fRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1749256148&single=true&output=csv',
+                cStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1940156851&single=true&output=csv',
+            };
+
+            // --- Utility Functions ---
+            /**
+             * Fetches and parses a CSV file from a given URL.
+             * @param {string} url - The URL of the CSV file.
+             * @returns {Promise<Array<Object>>} - A promise that resolves to an array of objects.
+             */
+            async function fetchAndParseCSV(url) {
+                try {
+                    // Add a cache-busting parameter to the URL to get the latest version
+                    const cacheBustUrl = `${url}&_=${new Date().getTime()}`;
+                    const response = await fetch(cacheBustUrl);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status} for url: ${url}`);
+                    }
+                    const text = await response.text();
+                    const lines = text.trim().split('\n');
+                    const header = lines[0].split(',').map(h => h.trim());
+                    const data = lines.slice(1).map(line => {
+                        const values = line.split(',').map(v => v.trim());
+                        return header.reduce((obj, nextKey, index) => {
+                            obj[nextKey] = values[index];
+                            return obj;
+                        }, {});
+                    });
+                    return data;
+                } catch (error) {
+                    console.error("Failed to fetch or parse CSV:", error);
+                    mainContent.innerHTML = `<div class="text-center p-10 bg-red-100 text-red-700 rounded-lg">
+                        <h2 class="font-bold text-xl">Error Loading Data</h2>
+                        <p>Could not load data from a Google Sheet.</p>
+                        <p class="mt-2 text-sm">Please ensure the URLs in the script are correct and that the sheets are "Published to the web" as CSVs.</p>
+                        </div>`;
+                    loadingIndicator.style.display = 'none';
+                    return []; // Return empty array on failure
+                }
+            }
+            
+             /**
+             * Loads all competition data from the Google Sheet URLs.
+             */
+            async function loadAllData() {
+                loadingIndicator.style.display = 'block';
+                mainContent.style.display = 'none';
+                
+                const dataPromises = Object.entries(GOOGLE_SHEET_URLS).map(([key, url]) =>
+                    fetchAndParseCSV(url).then(data => [key, data])
+                );
+
+                const dataEntries = await Promise.all(dataPromises);
+                appData = Object.fromEntries(dataEntries);
+
+                // Convert data into more useful maps for quick lookups
+                appData.climbersMap = new Map(appData.climbers.map(c => [c.id, c]));
+                appData.compsMap = new Map(appData.comps.map(c => [c.id, c]));
+
+                if (appData.comps && appData.comps.length > 0) {
+                    // Sort competitions by date, most recent first
+                    appData.comps.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    currentCompId = appData.comps[0].id;
+                }
+
+                loadingIndicator.style.display = 'none';
+                mainContent.style.display = 'block';
+
+                // Initial render
+                if (currentCompId) {
+                    populateCompSelect();
+                    navigateTo('results'); // Default to results view
+                } else if(mainContent.innerHTML === '') { // Only show if no error message is present
+                     mainContent.innerHTML = `<div class="text-center p-10 bg-yellow-100 text-yellow-700 rounded-lg"><h2 class="font-bold">No competition data found.</h2><p>Please check your Google Sheet URLs and ensure they contain data.</p></div>`;
+                }
+            }
+
+            // --- Rendering Functions ---
+
+            /**
+             * Renders the list of all climbers.
+             */
+            function renderClimbers() {
+                const climbersList = document.getElementById('climbers-list');
+                climbersList.innerHTML = '';
+                if (!appData.climbers) return;
+                const sortedClimbers = [...appData.climbers].sort((a, b) => a.name.localeCompare(b.name));
+
+                for (const climber of sortedClimbers) {
+                     const stats = appData.climberStats.find(s => s.climber_id === climber.id);
+                     const card = document.createElement('div');
+                     card.className = 'bg-slate-50 border border-slate-200 rounded-lg p-4 transition-transform hover:scale-105 hover:shadow-lg';
+                     card.innerHTML = `
+                        <h3 class="font-bold text-lg text-slate-900">${climber.name}</h3>
+                        <p class="text-sm text-slate-500">${climber.country} | Born: ${climber.year_of_birth}</p>
+                        ${stats ? `<div class="mt-2 pt-2 border-t border-slate-200 text-xs">
+                            <p>Comps: ${stats.comps_counted}</p>
+                            <p>Avg. Rank: ${parseFloat(stats.average_rank).toFixed(2)}</p>
+                           </div>` : ''}
+                     `;
+                     climbersList.appendChild(card);
+                }
+            }
+
+            /**
+             * Renders the competition schedule.
+             */
+            function renderSchedule() {
+                 const scheduleList = document.getElementById('schedule-list');
+                 scheduleList.innerHTML = '';
+                 if (!appData.comps) return;
+                 for (const comp of appData.comps) {
+                     const item = document.createElement('div');
+                     item.className = 'bg-slate-50 border border-slate-200 rounded-lg p-4 flex justify-between items-center';
+                     item.innerHTML = `
+                        <div>
+                            <h3 class="font-bold text-lg">${comp.name}</h3>
+                            <p class="text-sm text-slate-500">${new Date(comp.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                        </div>
+                        <button data-comp-id="${comp.id}" class="view-results-btn bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors">View Results</button>
+                     `;
+                     scheduleList.appendChild(item);
+                 }
+
+                 document.querySelectorAll('.view-results-btn').forEach(button => {
+                     button.addEventListener('click', (e) => {
+                         currentCompId = e.target.getAttribute('data-comp-id');
+                         populateCompSelect();
+                         navigateTo('results');
+                     });
+                 });
+            }
+
+
+            /**
+             * Populates the competition selector dropdown.
+             */
+            function populateCompSelect() {
+                compSelect.innerHTML = '';
+                if (!appData.comps) return;
+                for (const comp of appData.comps) {
+                    const option = document.createElement('option');
+                    option.value = comp.id;
+                    option.textContent = comp.name;
+                    if (comp.id === currentCompId) {
+                        option.selected = true;
+                    }
+                    compSelect.appendChild(option);
+                }
+            }
+
+            /**
+             * Renders the results table for the current competition and round.
+             */
+            function renderResults() {
+                if (!currentCompId || !appData.qRankings) return;
+
+                const isQualis = currentRound === 'qualis';
+                const rankings = isQualis ? appData.qRankings : appData.fRankings;
+                const boulders = isQualis ? appData.qBoulders : appData.fBoulders;
+                const results = isQualis ? appData.qResults : appData.fResults;
+                
+                const compRankings = rankings.filter(r => r.comp_id === currentCompId);
+                const compBoulders = boulders.filter(b => b.comp_id === currentCompId).sort((a,b) => a.name.localeCompare(b.name));
+                const compResults = results.filter(r => r.comp_id === currentCompId);
+
+                const tableContainer = document.getElementById('results-container');
+                if (compRankings.length === 0) {
+                     tableContainer.innerHTML = `<p class="text-center text-slate-500 py-8">No results available for this round.</p>`;
+                     return;
+                }
+
+                let tableHTML = `
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100">
+                                <th class="p-3 font-semibold text-sm">Rank</th>
+                                <th class="p-3 font-semibold text-sm">Climber</th>
+                                <th class="p-3 font-semibold text-sm text-center">Score</th>
+                                ${compBoulders.map(b => `<th class="p-3 font-semibold text-sm text-center">${b.name}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                compRankings.sort((a,b) => parseInt(a.rank) - parseInt(b.rank));
+
+                for (const standing of compRankings) {
+                    const climber = appData.climbersMap.get(standing.climber_id);
+                    if(!climber) continue;
+
+                    let climberResultsHTML = '';
+                    for (const boulder of compBoulders) {
+                        const result = compResults.find(r => r.climber_id === standing.climber_id && r.boulder === boulder.name);
+                        let resultText = '-';
+                        if (result) {
+                            const top = result.top === 'TRUE' ? `T` : '';
+                            const zone = result.zone === 'TRUE' ? `z` : '';
+                            const topAttempts = result.top_attempts || '';
+                            const zoneAttempts = result.zone_attempts || '';
+                            resultText = `${top}${zone}${topAttempts}${zoneAttempts}`;
+                        }
+                         climberResultsHTML += `<td class="p-3 text-center text-sm">${resultText || '-'}</td>`;
+                    }
+                    
+                    tableHTML += `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50">
+                            <td class="p-3 font-bold">${standing.rank}</td>
+                            <td class="p-3">
+                                <div class="font-medium">${climber.name}</div>
+                                <div class="text-xs text-slate-500">${climber.country}</div>
+                            </td>
+                            <td class="p-3 text-center font-semibold">${standing.score}</td>
+                            ${climberResultsHTML}
+                        </tr>
+                    `;
+                }
+
+                tableHTML += `</tbody></table>`;
+                tableContainer.innerHTML = tableHTML;
+            }
+
+            // --- Navigation & Event Handling ---
+            function navigateTo(pageId) {
+                contentSections.forEach(section => {
+                    section.style.display = section.id === `${pageId}-section` ? 'block' : 'none';
+                });
+
+                navLinks.forEach(link => {
+                    if (link.getAttribute('href') === `#${pageId}`) {
+                        link.classList.add('nav-active');
+                    } else {
+                        link.classList.remove('nav-active');
+                    }
+                });
+
+                if (pageId === 'climbers') renderClimbers();
+                if (pageId === 'schedule') renderSchedule();
+                if (pageId === 'results') renderResults();
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const pageId = e.target.getAttribute('href').substring(1);
+                    navigateTo(pageId);
+                    window.location.hash = pageId;
+                });
+            });
+
+            compSelect.addEventListener('change', (e) => {
+                currentCompId = e.target.value;
+                renderResults();
+            });
+
+            roundSelector.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    currentRound = e.target.getAttribute('data-round');
+                    roundSelector.querySelectorAll('button').forEach(btn => {
+                        btn.classList.toggle('bg-white', btn === e.target);
+                        btn.classList.toggle('text-indigo-600', btn === e.target);
+                        btn.classList.toggle('shadow', btn === e.target);
+                        btn.classList.toggle('text-slate-600', btn !== e.target);
+                    });
+                    renderResults();
+                }
+            });
+
+            linksMenuButton.addEventListener('click', () => {
+                linksDropdown.classList.toggle('hidden');
+            });
+
+            window.addEventListener('click', (e) => {
+                const container = document.getElementById('links-menu-container');
+                if (!container.contains(e.target)) {
+                    linksDropdown.classList.add('hidden');
+                }
+            });
+            
+            window.addEventListener('hashchange', () => {
+                const pageId = window.location.hash.substring(1) || 'results';
+                navigateTo(pageId);
+            });
+
+            function init() {
+                loadAllData();
+                const initialPage = window.location.hash.substring(1) || 'results';
+            }
+
+            init();
         });
-
-        // Extract rows
-        const dataRows = json.table.rows.map(r => r.c.map(cell => cell ? cell.v : ''));
-
-        // Populate tbody
-        const tbody = document.querySelector('#sheet tbody');
-        dataRows.forEach(rowArr => {
-          const tr = document.createElement('tr');
-          rowArr.forEach(cell => {
-            const td = document.createElement('td');
-            td.textContent = cell;
-            tr.appendChild(td);
-          });
-          tbody.appendChild(tr);
-        });
-
-        // Initialise DataTables
-        new DataTable('#sheet', {
-          paging: true,
-          searching: true,
-          info: true,
-          responsive: true
-        });
-      })
-      .catch(err => {
-        document.getElementById('error').hidden = false;
-        document.getElementById('error').textContent = `Failed to fetch data: ${err}`;
-      });
-  </script>
+    </script>
 </body>
 </html>
