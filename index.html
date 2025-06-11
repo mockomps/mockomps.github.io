@@ -9,6 +9,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        /* Custom CSS to hide the scrollbar but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
     </style>
 </head>
 <body class="bg-gray-950 text-slate-300">
@@ -61,7 +69,6 @@
                 climberStats: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=400895305&single=true&output=csv',
                 comps: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=91525471&single=true&output=csv',
                 qStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=687301211&single=true&output=csv',
-                // NEW: Sheet for individual qualification round rankings. Update the GID.
                 qRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1437828732&single=true&output=csv',
                 fRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1749256148&single=true&output=csv',
                 qualis: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1964387699&single=true&output=csv',
@@ -70,7 +77,6 @@
 
             // --- Utility Functions ---
 
-            // Generic parser for sheets with a single header row
             async function fetchAndParseSheet(url) {
                 const cacheBustUrl = `${url}&_=${new Date().getTime()}`;
                 const response = await fetch(cacheBustUrl);
@@ -95,7 +101,6 @@
                 return data;
             }
 
-            // --- Special parser for the ClimberStats sheet with a two-row header ---
             async function fetchAndParseClimberStats(url) {
                 const cacheBustUrl = `${url}&_=${new Date().getTime()}`;
                 const response = await fetch(cacheBustUrl);
@@ -104,14 +109,13 @@
                 if (text.trim().startsWith('<')) throw new Error(`Received an HTML page instead of CSV from ${url}`);
 
                 const lines = text.trim().split(/\r?\n/);
-                if (lines.length < 3) return []; // We need at least 2 header rows and 1 data row
+                if (lines.length < 3) return []; 
 
                 const mainHeader = lines[0].split(',');
                 const subHeader = lines[1].split(',');
                 const combinedHeader = [];
                 let currentMainCategory = '';
 
-                // Logic to combine the two header rows into unique keys
                 for (let i = 0; i < subHeader.length; i++) {
                     const mainCategoryText = mainHeader[i].trim();
                     if (mainCategoryText) {
@@ -121,13 +125,12 @@
                     const subCategoryText = subHeader[i].trim().toLowerCase().replace('%', '_pct');
                     
                     if (i === 0) {
-                        combinedHeader.push('climber'); // The first column is always 'climber'
+                        combinedHeader.push('climber');
                     } else {
                         combinedHeader.push(`${currentMainCategory}_${subCategoryText}`);
                     }
                 }
 
-                // Parse data rows using the new combined header
                 const data = lines.slice(2).map(line => {
                     if (line.trim() === '') return null;
                     const values = line.split(',').map(v => v.trim());
@@ -140,18 +143,17 @@
                 return data;
             }
             
-            // --- Navigation ---
             function navigate(page, context = null) {
-                mainContent.innerHTML = ''; // Clear previous content
-                headerContent.innerHTML = ''; // Clear header
-                controlsContainer.innerHTML = ''; // Clear controls
+                mainContent.innerHTML = ''; 
+                headerContent.innerHTML = '';
+                controlsContainer.innerHTML = '';
                 
                 headerContainer.style.backgroundColor = '';
                 headerContainer.style.border = '';
                 headerContainer.style.boxShadow = '';
                 headerContainer.classList.add('p-4', 'bg-gray-900', 'border-gray-800', 'rounded-lg', 'shadow-md');
 
-                controlsContainer.classList.add('hidden'); // Hide controls by default
+                controlsContainer.classList.add('hidden');
 
                 if (page === 'home') {
                     renderHomePage();
@@ -171,7 +173,6 @@
                 }
             }
 
-            // --- Page Rendering Functions ---
             function renderHomePage() {
                 headerContainer.style.backgroundColor = 'transparent';
                 headerContainer.style.border = 'none';
@@ -198,7 +199,7 @@
                          <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Forms</h1>
-                    <div class="flex-1"></div>`; // Spacer
+                    <div class="flex-1"></div>`;
                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
 
                 mainContent.innerHTML = `
@@ -215,7 +216,7 @@
                          <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Results</h1>
-                    <div class="flex-1"></div>`; // Spacer
+                    <div class="flex-1"></div>`; 
                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
 
                 const qComps = appData.qStandings.map(s => s.comp);
@@ -241,7 +242,7 @@
                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Schedule</h1>
-                    <div class="flex-1"></div>`; // Spacer
+                    <div class="flex-1"></div>`;
                  document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
 
                 const events = [
@@ -284,14 +285,14 @@
                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Climbers</h1>
-                    <div class="flex-1"></div>`; // Spacer
+                    <div class="flex-1"></div>`;
                  document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
                 
                 const climbers = [...appData.climbers].sort((a, b) => a.name.localeCompare(b.name));
                 
                 let climberListHTML = '<div class="mt-4 space-y-2">';
                 climbers.forEach(climber => {
-                    if (climber.name) { // Ensure climber has a name
+                    if (climber.name) {
                         climberListHTML += `<button data-climber-name="${climber.name}" class="climber-btn w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold hover:bg-gray-800">${climber.name}</button>`;
                     }
                 });
@@ -317,7 +318,7 @@
                         <button id="back-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">${climberName}</h1>
-                    <div class="flex-1"></div>`; // Spacer
+                    <div class="flex-1"></div>`;
                 
                 document.getElementById('back-btn').addEventListener('click', () => {
                     navigate(from.page, from.context);
@@ -392,41 +393,36 @@
                         <button id="back-to-comps-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">${currentComp}</h1>
-                    <div class="flex-1"></div>`; // Spacer
+                    <div class="flex-1"></div>`;
                  document.getElementById('back-to-comps-btn').addEventListener('click', () => navigate('resultsHome'));
                 
-                // Find all individual quali rounds for the current comp
                 const individualQualiRounds = [...new Set(appData.qRankings
                     .filter(r => r.quali && r.quali.startsWith(currentComp))
                     .map(r => r.quali)
                 )].sort();
 
-                // Build the buttons for the round selector
                 let roundButtonsHTML = '';
                 individualQualiRounds.forEach(roundName => {
-                    // Extract the short name (e.g., 'Q1' from 'M10Q1')
                     const shortName = roundName.replace(currentComp, '');
                     roundButtonsHTML += `<button data-round="${roundName}" class="round-btn text-gray-300 font-semibold py-1 px-4 rounded-md">${shortName}</button>`;
                 });
                 
-                // Add the overall Qualis and Final buttons
                 roundButtonsHTML += `<button data-round="qualis" class="round-btn bg-blue-600 text-white font-semibold py-1 px-4 rounded-md shadow-md">Qualis</button>`;
                 roundButtonsHTML += `<button data-round="finals" class="round-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Final</button>`;
                 
                 controlsContainer.classList.remove('hidden');
-                controlsContainer.innerHTML = `<div id="round-selector" class="flex flex-wrap justify-center gap-1 bg-gray-800 p-1 rounded-md">${roundButtonsHTML}</div>`;
+                // UPDATED: Added 'overflow-x-auto', 'whitespace-nowrap', and 'no-scrollbar' and removed 'flex-wrap'
+                controlsContainer.innerHTML = `<div id="round-selector" class="flex overflow-x-auto whitespace-nowrap no-scrollbar justify-start md:justify-center gap-1 bg-gray-800 p-1 rounded-md">${roundButtonsHTML}</div>`;
 
                 mainContent.innerHTML = `<div id="results-container" class="mt-4 w-full"></div>`;
 
-                currentRound = 'qualis'; // Default to overall Qualis view
+                currentRound = 'qualis'; 
                 renderResultsTable();
 
                 document.getElementById('round-selector').addEventListener('click', (e) => {
                     if (e.target.tagName === 'BUTTON' && e.target.dataset.round !== currentRound) {
-                        // Set the new current round
                         currentRound = e.target.dataset.round;
                         
-                        // Update button styles
                         document.querySelectorAll('.round-btn').forEach(btn => {
                             const isSelected = btn.dataset.round === currentRound;
                             btn.classList.toggle('bg-blue-600', isSelected);
@@ -435,7 +431,6 @@
                             btn.classList.toggle('text-gray-300', !isSelected);
                         });
 
-                        // Re-render the results table for the selected round
                         renderResultsTable();
                      }
                 });
@@ -449,22 +444,17 @@
                 let isFinals = currentRound === 'finals';
 
                 if (isFinals) {
-                    // Filter for Final results
                     compStandings = appData.fRankings.filter(s => (s.final || '').replace(/F$/, '') === currentComp);
                 } else if (isOverallQualis) {
-                    // Filter for overall Qualis results
                     compStandings = appData.qStandings.filter(s => s.comp === currentComp);
                 } else {
-                    // This must be an individual quali round (e.g., 'M10Q1')
                     compStandings = appData.qRankings.filter(s => s.quali === currentRound);
                 }
                 
-                // All quali rounds (overall or individual) are sorted by points. Finals are sorted by place.
                 if (isFinals) {
                     compStandings.sort((a,b) => parseInt(a.place) - parseInt(b.place));
                 } else {
                     compStandings.sort((a, b) => parseFloat(b.quali_points) - parseFloat(a.quali_points));
-                    // Assign place numbers after sorting
                     compStandings.forEach((s, i) => s.place = i + 1);
                 }
 
