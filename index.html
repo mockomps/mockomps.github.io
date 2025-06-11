@@ -16,28 +16,20 @@
     <div id="app" class="container mx-auto p-4 max-w-7xl">
         
         <div id="sticky-container" class="sticky top-0 z-10 bg-gray-950 pt-4 pb-4">
-             <!-- Header -->
-            <header class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+             <header class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
                 <div id="header-content" class="flex items-center justify-between">
-                    <!-- Header content will be dynamically generated -->
-                </div>
+                    </div>
             </header>
-             <!-- Round Selector Container - only shown on results page -->
-            <div id="controls-container" class="hidden mt-4 flex justify-center">
-                 <!-- Content will be rendered here for results page -->
-            </div>
+             <div id="controls-container" class="hidden mt-4 flex justify-center">
+                 </div>
         </div>
 
 
-        <!-- Main Content Area -->
         <main id="main-content">
-            <!-- Content will be rendered here by JavaScript -->
-        </main>
+            </main>
 
-        <!-- Loading / Error Indicator -->
         <div id="indicator" class="text-center p-10">
-            <!-- Content will be set by JavaScript -->
-        </div>
+            </div>
     </div>
 
     <script>
@@ -244,6 +236,7 @@
                 mainContent.innerHTML = scheduleHTML;
             }
             
+            // --- UPDATED Climbers Page ---
             function renderClimbersPage() {
                  headerContent.innerHTML = `
                     <div class="flex-1">
@@ -265,18 +258,32 @@
                 mainContent.innerHTML = climberListHTML;
                 
                 document.querySelectorAll('.climber-btn').forEach(btn => {
-                    btn.addEventListener('click', e => navigate('climberProfile', e.currentTarget.dataset.climberName));
+                    btn.addEventListener('click', e => {
+                        const climberName = e.currentTarget.dataset.climberName;
+                        // Navigate to profile with context on how to get back
+                        navigate('climberProfile', {
+                            climberName: climberName,
+                            from: { page: 'climbers' }
+                        });
+                    });
                 });
             }
 
-            function renderClimberProfilePage(climberName) {
+            // --- UPDATED Climber Profile Page ---
+            function renderClimberProfilePage(context) {
+                const { climberName, from } = context;
+
                 headerContent.innerHTML = `
                     <div class="flex-1">
-                        <button id="back-to-climbers-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                        <button id="back-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">${climberName}</h1>
                     <div class="flex-1"></div>`; // Spacer
-                document.getElementById('back-to-climbers-btn').addEventListener('click', () => navigate('climbers'));
+                
+                // The back button now navigates to the 'from' page stored in the context
+                document.getElementById('back-btn').addEventListener('click', () => {
+                    navigate(from.page, from.context);
+                });
 
                 const climberInfo = appData.climbers.find(c => c.name === climberName);
                 const climberStats = appData.climberStats.find(s => s.climber === climberName);
@@ -375,7 +382,7 @@
                 });
             }
             
-            // --- UPDATED: Results table with clickable names ---
+            // --- UPDATED Results table ---
             function renderResultsTable() {
                 const resultsContainer = document.getElementById('results-container');
                 const isQualis = currentRound === 'qualis';
@@ -422,7 +429,12 @@
                 // Add event listeners for the new profile link buttons
                 resultsContainer.querySelectorAll('.profile-link-btn').forEach(btn => {
                     btn.addEventListener('click', e => {
-                        navigate('climberProfile', e.currentTarget.dataset.climberName);
+                        const climberName = e.currentTarget.dataset.climberName;
+                        // Navigate to profile with context on how to get back to the results page
+                        navigate('climberProfile', {
+                            climberName: climberName,
+                            from: { page: 'resultsComp', context: currentComp }
+                        });
                     });
                 });
             }
