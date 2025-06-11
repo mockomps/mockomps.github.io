@@ -16,28 +16,20 @@
     <div id="app" class="container mx-auto p-4 max-w-7xl">
         
         <div id="sticky-container" class="sticky top-0 z-10 bg-gray-950 pt-4 pb-4">
-             <!-- Header -->
-            <header class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+             <header class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
                 <div id="header-content" class="flex items-center justify-between">
-                    <!-- Header content will be dynamically generated -->
-                </div>
+                    </div>
             </header>
-             <!-- Round Selector Container - only shown on results page -->
-            <div id="controls-container" class="hidden mt-4 flex justify-center">
-                 <!-- Content will be rendered here for results page -->
-            </div>
+             <div id="controls-container" class="hidden mt-4 flex justify-center">
+                 </div>
         </div>
 
 
-        <!-- Main Content Area -->
         <main id="main-content">
-            <!-- Content will be rendered here by JavaScript -->
-        </main>
+            </main>
 
-        <!-- Loading / Error Indicator -->
         <div id="indicator" class="text-center p-10">
-            <!-- Content will be set by JavaScript -->
-        </div>
+            </div>
     </div>
 
     <script>
@@ -55,6 +47,7 @@
             let currentRound = 'qualis';
             
             // --- Data Sources ---
+            // IMPORTANT: You must add the correct 'gid' for the 4 new sheets below.
             const GOOGLE_SHEET_URLS = {
                 climbers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=937478252&single=true&output=csv',
                 climberStats: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=400895305&single=true&output=csv',
@@ -63,6 +56,11 @@
                 fRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1749256148&single=true&output=csv',
                 qualis: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1964387699&single=true&output=csv',
                 finals: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=2138071685&single=true&output=csv',
+                // --- NEW SHEETS REQUIRED ---
+                qBoulders: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=122971234&single=true&output=csv',
+                qResults: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1114539823&single=true&output=csv',
+                fBoulders: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1498408967&single=true&output=csv',
+                fResults: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1622359218&single=true&output=csv'
             };
 
             // --- Utility Functions ---
@@ -88,6 +86,44 @@
                 }).filter(Boolean);
                 
                 return data;
+            }
+
+            // --- NEW: Stats Calculation Function ---
+            function calculateDetailedStats() {
+                const detailedStats = {};
+                const qBoulderGradeMap = new Map(appData.qBoulders.map(b => [b.boulder, b.grade]));
+                const fBoulderGradeMap = new Map(appData.fBoulders.map(b => [b.boulder, b.grade]));
+
+                appData.climbers.forEach(climber => {
+                    detailedStats[climber.name] = {
+                        g3: { boulders: 0, tops: 0, zones: 0, flashes: 0 },
+                        g4: { boulders: 0, tops: 0, zones: 0, flashes: 0 },
+                        g5: { boulders: 0, tops: 0, zones: 0, flashes: 0 },
+                        g6: { boulders: 0, tops: 0, zones: 0, flashes: 0 },
+                    };
+                });
+
+                const processResults = (results, gradeMap) => {
+                    results.forEach(result => {
+                        if (!detailedStats[result.climber]) return;
+
+                        const grade = gradeMap.get(result.boulder);
+                        if (!grade || ![`3`, `4`, `5`, `6`].includes(grade)) return;
+
+                        const gradeKey = `g${grade}`;
+                        const stats = detailedStats[result.climber][gradeKey];
+
+                        stats.boulders++;
+                        if (result.top === '1') stats.tops++;
+                        if (result.zone === '1') stats.zones++;
+                        if (result.flash === '1') stats.flashes++;
+                    });
+                };
+
+                processResults(appData.qResults, qBoulderGradeMap);
+                processResults(appData.fResults, fBoulderGradeMap);
+
+                appData.detailedClimberStats = detailedStats;
             }
             
             // --- Navigation ---
@@ -222,6 +258,7 @@
                 });
             }
 
+            // --- REVAMPED Climber Profile Page ---
             function renderClimberProfilePage(climberName) {
                 headerContent.innerHTML = `
                     <div class="flex-1">
@@ -233,6 +270,7 @@
 
                 const climberInfo = appData.climbers.find(c => c.name === climberName);
                 const climberStats = appData.climberStats.find(s => s.climber === climberName);
+                const detailedStats = appData.detailedClimberStats[climberName];
 
                 let profileHTML = '<div class="mt-4 space-y-4">';
 
@@ -254,19 +292,43 @@
                         </div>`;
                 }
 
-                // --- Climber Stats Box ---
+                // --- (FIXED) All-Time Stats Box ---
                 if (climberStats) {
                     profileHTML += `
                         <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
-                            <h3 class="text-lg font-bold text-gray-200 mb-2">All-Time Stats</h3>
+                            <h3 class="text-lg font-bold text-gray-200 mb-3">All-Time Stats</h3>
                             <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
-                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Qualis</div><div class="font-bold text-xl text-gray-100">${climberStats.q || '0'}</div></div>
-                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${climberStats.b || '0'}</div></div>
-                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${climberStats.f || '0'}</div></div>
-                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${climberStats.t || '0'}</div></div>
-                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Zones</div><div class="font-bold text-xl text-gray-100">${climberStats.z || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Qualis</div><div class="font-bold text-xl text-gray-100">${climberStats.qualis || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${climberStats.boulders || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${climberStats.flashes || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${climberStats.tops || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Zones</div><div class="font-bold text-xl text-gray-100">${climberStats.zones || '0'}</div></div>
                             </div>
                         </div>`;
+                }
+
+                // --- (NEW) Grade-Specific Stats Boxes ---
+                if(detailedStats) {
+                    const createGradeStatBox = (grade, stats) => {
+                        if (!stats) return '';
+                        return `
+                        <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+                            <h3 class="text-lg font-bold text-gray-200 mb-3">Grade ${grade} Stats</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${stats.boulders || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${stats.flashes || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${stats.tops || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Zones</div><div class="font-bold text-xl text-gray-100">${stats.zones || '0'}</div></div>
+                            </div>
+                        </div>`;
+                    };
+
+                    profileHTML += `<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">`;
+                    profileHTML += createGradeStatBox(3, detailedStats.g3);
+                    profileHTML += createGradeStatBox(4, detailedStats.g4);
+                    profileHTML += createGradeStatBox(5, detailedStats.g5);
+                    profileHTML += createGradeStatBox(6, detailedStats.g6);
+                    profileHTML += `</div>`;
                 }
                 
                 profileHTML += '</div>';
@@ -289,7 +351,7 @@
                         <button data-round="finals" class="round-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Final</button>
                     </div>`;
 
-                 mainContent.innerHTML = `<div id="results-container" class="w-full"></div>`;
+                 mainContent.innerHTML = `<div id="results-container" class="mt-4 w-full"></div>`;
 
                 currentRound = 'qualis';
                 renderResultsTable();
@@ -304,7 +366,7 @@
                             btn.classList.toggle('shadow-md');
                         });
                         renderResultsTable();
-                    }
+                     }
                 });
             }
             
@@ -344,7 +406,7 @@
                     const qualiStats = `<div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '-'}</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '-'}</span></div><div>Flashes <span class="block font-medium text-gray-200 text-sm">${standing.flashes || '-'}</span></div></div>`;
                     const finalStats = `<div class="flex justify-around items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '0'}(${standing.top_attempts || '0'})</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '0'}(${standing.zone_attempts || '0'})</span></div></div>`;
                     
-                    mobileHTML += `<div class="rounded-lg p-2 shadow-md border border-gray-800 ${highlightClass || 'bg-gray-900'}"><div class="flex justify-between items-center"><div class="flex items-center space-x-2"><span class="font-bold text-base text-gray-200 w-6">${standing.place||'-'}</span><span class="font-medium text-gray-100 text-sm">${standing.climber||'-'}</span></div>${isQualis?`<div class="font-bold text-blue-400 text-base">${standing.quali_points||'-'}</div>`:''}</div>${isQualis?qualiStats:finalStats}</div>`;
+                    mobileHTML += `<div class="rounded-lg p-3 shadow-md border border-gray-800 ${highlightClass || 'bg-gray-900'}"><div class="flex justify-between items-center"><div class="flex items-center space-x-3"><span class="font-bold text-base text-gray-200 w-6">${standing.place||'-'}</span><span class="font-medium text-gray-100 text-sm">${standing.climber||'-'}</span></div>${isQualis?`<div class="font-bold text-blue-400 text-base">${standing.quali_points||'-'}</div>`:''}</div>${isQualis?qualiStats:finalStats}</div>`;
                     
                     desktopHTML += `<tr class="border-b border-gray-800 last:border-b-0 hover:bg-gray-800/50 ${highlightClass}"><td class="p-3 font-bold text-gray-100">${standing.place||'-'}</td><td class="p-3 font-medium text-gray-200">${standing.climber||'-'}</td>${isQualis?`<td class="p-3 font-semibold text-blue-400 text-left">${standing.quali_points||'-'}</td><td class="p-3 text-left">${standing.flashes||'-'}</td><td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td>`:`<td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.top_attempts||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td><td class="p-3 text-left">${standing.zone_attempts||'-'}</td>`}</tr>`;
                 }
@@ -354,7 +416,7 @@
                 resultsContainer.innerHTML = mobileHTML + desktopHTML;
             }
 
-            // --- Main Initialization ---
+            // --- Main Initialization (UPDATED) ---
             async function init() {
                 indicator.innerHTML = `<i class="fas fa-spinner fa-spin text-4xl text-gray-400"></i><p class="mt-4 text-lg font-medium text-gray-300">Loading All Mockomps Data...</p>`;
                 
@@ -365,12 +427,16 @@
                     const dataEntries = await Promise.all(dataPromises);
                     appData = Object.fromEntries(dataEntries);
                     
+                    // NEW: Calculate detailed stats after data is fetched
+                    calculateDetailedStats();
+
                     indicator.style.display = 'none';
                     mainContent.style.display = 'block';
                     navigate('home');
                     
                 } catch (error) {
-                    indicator.innerHTML = `<div class="p-10 bg-red-900/50 border border-red-500/30 text-red-300 rounded-lg"><h2 class="font-bold text-xl text-red-200">Error Loading Data</h2><p class="mt-2 text-sm">${error.message}</p></div>`;
+                    console.error("Initialization Error:", error);
+                    indicator.innerHTML = `<div class="p-10 bg-red-900/50 border border-red-500/30 text-red-300 rounded-lg"><h2 class="font-bold text-xl text-red-200">Error Loading Data</h2><p class="mt-2 text-sm">${error.message}</p><p class="mt-2 text-xs">Please ensure all Google Sheet URLs are correct and published.</p></div>`;
                 }
             }
 
