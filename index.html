@@ -143,9 +143,14 @@
                 mainContent.innerHTML = ''; // Clear previous content
                 headerContent.innerHTML = ''; // Clear header
                 controlsContainer.innerHTML = ''; // Clear controls
-                headerContainer.style.display = 'block'; // Show header by default
-                controlsContainer.classList.add('hidden'); // Hide controls by default
+                
+                // Reset header styles to default on every navigation
+                headerContainer.style.backgroundColor = '';
+                headerContainer.style.border = '';
+                headerContainer.style.boxShadow = '';
+                headerContainer.classList.add('p-4');
 
+                controlsContainer.classList.add('hidden'); // Hide controls by default
 
                 if (page === 'home') {
                     renderHomePage();
@@ -167,10 +172,10 @@
 
             // --- Page Rendering Functions ---
             function renderHomePage() {
-                // Remove the border and shadow from the main header on the homepage
+                // Make the header container transparent specifically for the homepage
+                headerContainer.style.backgroundColor = 'transparent';
                 headerContainer.style.border = 'none';
                 headerContainer.style.boxShadow = 'none';
-                headerContainer.classList.remove('p-4'); // Remove padding for a cleaner look
 
                 headerContent.innerHTML = `<div class="flex-1"></div><div class="flex-1 text-center"><h1 class="text-2xl font-bold text-gray-100">Mockomps</h1></div><div class="flex-1"></div>`;
                 
@@ -187,12 +192,7 @@
                 document.getElementById('forms-btn').addEventListener('click', () => navigate('forms'));
             }
             
-            // --- NEW: Forms Page ---
             function renderFormsPage() {
-                headerContainer.style.border = ''; // Restore header styles
-                headerContainer.style.boxShadow = '';
-                headerContainer.classList.add('p-4');
-
                 headerContent.innerHTML = `
                     <div class="flex-1">
                          <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
@@ -210,10 +210,6 @@
             }
 
             function renderResultsHomePage() {
-                headerContainer.style.border = ''; // Restore header styles
-                headerContainer.style.boxShadow = '';
-                headerContainer.classList.add('p-4');
-
                 headerContent.innerHTML = `
                     <div class="flex-1">
                          <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
@@ -240,9 +236,6 @@
             }
             
             function renderSchedulePage() {
-                 headerContainer.style.border = ''; // Restore header styles
-                 headerContainer.style.boxShadow = '';
-                 headerContainer.classList.add('p-4');
                  headerContent.innerHTML = `
                     <div class="flex-1">
                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
@@ -286,9 +279,6 @@
             }
             
             function renderClimbersPage() {
-                 headerContainer.style.border = ''; // Restore header styles
-                 headerContainer.style.boxShadow = '';
-                 headerContainer.classList.add('p-4');
                  headerContent.innerHTML = `
                     <div class="flex-1">
                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
@@ -322,9 +312,6 @@
             function renderClimberProfilePage(context) {
                 const { climberName, from } = context;
 
-                headerContainer.style.border = ''; // Restore header styles
-                headerContainer.style.boxShadow = '';
-                headerContainer.classList.add('p-4');
                 headerContent.innerHTML = `
                     <div class="flex-1">
                         <button id="back-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
@@ -399,9 +386,6 @@
             }
 
             function renderResultsCompPage() {
-                 headerContainer.style.border = ''; // Restore header styles
-                 headerContainer.style.boxShadow = '';
-                 headerContainer.classList.add('p-4');
                  headerContent.innerHTML = `
                     <div class="flex-1">
                         <button id="back-to-comps-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
