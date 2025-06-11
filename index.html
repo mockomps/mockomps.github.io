@@ -1,153 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-g">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mockomps | Climbing Results</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Style for the active nav link */
-        .nav-active {
-            color: #4f46e5; /* indigo-600 */
-            border-bottom: 2px solid #4f46e5;
-        }
-        /* Simple transition for content fade-in */
-        .content-section {
-            display: none;
-            animation: fadeIn 0.5s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        /* Custom scrollbar for better aesthetics */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .nav-active { color: #4f46e5; border-bottom: 2px solid #4f46e5; }
+        .content-section { display: none; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
 
     <div id="app" class="container mx-auto p-4 max-w-7xl">
-        <!-- Header and Main Navigation -->
+        <!-- Header -->
         <header class="bg-white rounded-lg shadow-md p-4 mb-6">
             <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-2">
                     <i class="fas fa-mountain-sun text-3xl text-indigo-600"></i>
-                    <h1 class="text-2xl font-bold text-slate-900 hidden sm:block">Mockomps</h1>
-                </div>
-                <nav class="flex items-center space-x-4 md:space-x-6 text-slate-600">
-                    <a href="#climbers" class="nav-link font-medium hover:text-indigo-600 transition-colors pb-1">Climbers</a>
-                    <a href="#schedule" class="nav-link font-medium hover:text-indigo-600 transition-colors pb-1">Schedule</a>
-                    <a href="#results" class="nav-link font-medium hover:text-indigo-600 transition-colors pb-1 nav-active">Results</a>
-                </nav>
-                 <!-- Links Dropdown -->
-                <div class="relative" id="links-menu-container">
-                    <button id="links-menu-button" class="flex items-center space-x-2 p-2 rounded-md hover:bg-slate-100 transition-colors">
-                        <i class="fas fa-link text-slate-600"></i>
-                        <span class="font-medium hidden md:inline">Links</span>
-                        <i class="fas fa-chevron-down text-xs"></i>
-                    </button>
-                    <div id="links-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-1 hidden z-10">
-                        <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-indigo-500 hover:text-white">Qualis Form</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-indigo-500 hover:text-white">Final Form</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-indigo-500 hover:text-white">New Climber</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-indigo-500 hover:text-white">Instagram</a>
-                    </div>
+                    <h1 class="text-2xl font-bold text-slate-900">Mockomps Results</h1>
                 </div>
             </div>
         </header>
 
+        <!-- Main Content Area -->
         <main id="main-content">
-            <!-- This div will be populated by JavaScript -->
+            <!-- This will be populated by JS -->
         </main>
-        
+
         <!-- Loading Indicator -->
         <div id="loading-indicator" class="text-center p-10">
             <i class="fas fa-spinner fa-spin text-4xl text-indigo-600"></i>
             <p class="mt-4 text-lg font-medium">Loading Competition Data...</p>
         </div>
-
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- DOM Elements ---
             const mainContent = document.getElementById('main-content');
             const loadingIndicator = document.getElementById('loading-indicator');
             
-            // --- App State ---
             let appData = {};
             let currentCompId = null;
-            let currentRound = 'qualis'; // 'qualis' or 'finals'
+            let currentRound = 'qualis';
 
-            // --- Google Sheets Published CSV URLs ---
+            // --- Corrected list of required Google Sheet URLs ---
             const GOOGLE_SHEET_URLS = {
                 climbers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=937478252&single=true&output=csv',
-                climberStats: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=400895305&single=true&output=csv',
                 comps: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=91525471&single=true&output=csv',
-                qualis: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1964387699&single=true&output=csv',
-                finals: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=2138071685&single=true&output=csv',
-                qBoulders: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1513683934&single=true&output=csv',
-                fBoulders: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1522987637&single=true&output=csv',
-                qResults: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=36605401&single=true&output=csv',
-                fResults: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=129313170&single=true&output=csv',
-                qRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1437828732&single=true&output=csv',
+                qStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1437828732&single=true&output=csv', // Corrected to use QStandings
                 fRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1749256148&single=true&output=csv',
-                cStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1940156851&single=true&output=csv',
             };
 
-            // --- Utility Functions ---
             async function fetchAndParseCSV(key, url) {
                 try {
                     const cacheBustUrl = `${url}&_=${new Date().getTime()}`;
                     const response = await fetch(cacheBustUrl);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status} for sheet: ${key}`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status} for sheet: ${key}`);
                     const text = await response.text();
+                    if (text.trim().startsWith('<')) throw new Error(`Received HTML instead of CSV for sheet: ${key}.`);
                     
-                    // NEW: Check if the fetched content is an HTML page (like a login page) instead of a CSV.
-                    if (text.trim().startsWith('<') || text.trim().startsWith('<!DOCTYPE')) {
-                        throw new Error(`Received HTML instead of CSV for sheet: ${key}. Check its 'Publish to the web' settings.`);
-                    }
-
                     const lines = text.trim().split(/\r?\n/);
-                    if (lines.length < 2) return []; // Not enough data to parse
+                    if (lines.length < 2) return [];
                     
                     const header = lines[0].split(',').map(h => h.trim());
                     const data = lines.slice(1).map(line => {
-                        if (line.trim() === '') return null; // Skip empty lines
+                        if (line.trim() === '') return null;
                         const values = line.split(',').map(v => v.trim());
                         return header.reduce((obj, nextKey, index) => {
                             obj[nextKey] = values[index];
                             return obj;
                         }, {});
-                    }).filter(Boolean); // Filter out any null (empty) lines
+                    }).filter(Boolean);
                     return data;
                 } catch (error) {
-                    console.error("Failed to fetch or parse CSV:", error);
-                    // This will now throw the error up to the caller
+                    console.error("Fetch Error:", error);
                     throw error;
                 }
             }
-            
+
             async function loadAllData() {
                 loadingIndicator.style.display = 'block';
                 mainContent.style.display = 'none';
@@ -156,29 +91,22 @@
                     const dataPromises = Object.entries(GOOGLE_SHEET_URLS).map(([key, url]) =>
                         fetchAndParseCSV(key, url).then(data => [key, data])
                     );
-
                     const dataEntries = await Promise.all(dataPromises);
                     appData = Object.fromEntries(dataEntries);
 
-                    appData.climbersMap = new Map(appData.climbers.map(c => [c.id, c]));
-                    appData.compsMap = new Map(appData.comps.map(c => [c.id, c]));
-
-                    if (appData.comps && appData.comps.length > 0) {
-                        appData.comps.sort((a, b) => new Date(b.date) - new Date(a.date));
-                        currentCompId = appData.comps[0].id;
+                    if (!appData.climbers || !appData.comps || appData.comps.length === 0) {
+                        throw new Error("Essential data (Climbers or Comps) could not be loaded or is empty.");
                     }
+
+                    appData.climbersMap = new Map(appData.climbers.map(c => [c.id, c]));
+                    appData.comps.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    currentCompId = appData.comps[0].id;
                     
-                    // If we get here, data loading was successful
                     renderAppShell();
-                    navigateTo(window.location.hash.substring(1) || 'results');
+                    renderResults();
 
                 } catch (error) {
-                    // If any of the fetches failed, show an error message.
-                    mainContent.innerHTML = `<div class="text-center p-10 bg-red-100 text-red-700 rounded-lg">
-                        <h2 class="font-bold text-xl">Error Loading Data</h2>
-                        <p class="mt-2 text-sm">${error.message}</p>
-                        <p class="mt-2 text-sm">Please check that the Google Sheet is correctly "Published to the web" as a CSV and is accessible.</p>
-                    </div>`;
+                    mainContent.innerHTML = `<div class="text-center p-10 bg-red-100 text-red-700 rounded-lg"><h2 class="font-bold text-xl">Error Loading Data</h2><p class="mt-2 text-sm">${error.message}</p></div>`;
                 } finally {
                     loadingIndicator.style.display = 'none';
                     mainContent.style.display = 'block';
@@ -187,42 +115,31 @@
 
             function renderAppShell() {
                 mainContent.innerHTML = `
-                    <section id="climbers-section" class="content-section">
-                         <div class="bg-white p-6 rounded-lg shadow-md">
-                            <h2 class="text-2xl font-bold mb-4">All Climbers</h2>
-                            <div id="climbers-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                    <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+                         <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                            <div>
+                                 <label for="comp-select" class="font-medium mr-2">Competition:</label>
+                                 <select id="comp-select" class="p-2 border rounded-md bg-slate-50"></select>
+                            </div>
+                            <div id="round-selector" class="flex space-x-1 bg-slate-200 p-1 rounded-md">
+                                 <button data-round="qualis" class="round-btn bg-white text-indigo-600 font-semibold py-1 px-4 rounded-md shadow">Qualis</button>
+                                 <button data-round="finals" class="round-btn py-1 px-4 rounded-md font-semibold text-slate-600">Finals</button>
+                            </div>
                          </div>
-                    </section>
-                    <section id="schedule-section" class="content-section">
-                        <div class="bg-white p-6 rounded-lg shadow-md">
-                            <h2 class="text-2xl font-bold mb-4">Competition Schedule</h2>
-                            <div id="schedule-list" class="space-y-4"></div>
-                        </div>
-                    </section>
-                    <section id="results-section" class="content-section">
-                        <div class="bg-white p-4 rounded-lg shadow-md mb-6">
-                             <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-                                <div>
-                                     <label for="comp-select" class="font-medium mr-2">Competition:</label>
-                                     <select id="comp-select" class="p-2 border rounded-md bg-slate-50"></select>
-                                </div>
-                                <div id="round-selector" class="flex space-x-1 bg-slate-200 p-1 rounded-md">
-                                     <button data-round="qualis" class="round-btn bg-white text-indigo-600 font-semibold py-1 px-4 rounded-md shadow">Qualis</button>
-                                     <button data-round="finals" class="round-btn py-1 px-4 rounded-md font-semibold text-slate-600">Finals</button>
-                                </div>
-                             </div>
-                        </div>
-                        <div id="results-container" class="bg-white p-4 sm:p-6 rounded-lg shadow-md overflow-x-auto"></div>
-                    </section>
+                    </div>
+                    <div id="results-container" class="bg-white p-4 sm:p-6 rounded-lg shadow-md overflow-x-auto"></div>
                 `;
 
-                if (!currentCompId) {
-                    mainContent.innerHTML = `<div class="text-center p-10 bg-yellow-100 text-yellow-700 rounded-lg"><h2 class="font-bold">No competition data found.</h2><p>The 'Comps' sheet might be empty or could not be read.</p></div>`;
-                    return;
-                }
+                const compSelect = document.getElementById('comp-select');
+                appData.comps.forEach(comp => {
+                    const option = document.createElement('option');
+                    option.value = comp.id;
+                    option.textContent = comp.name;
+                    compSelect.appendChild(option);
+                });
+                compSelect.value = currentCompId;
 
-                // Add event listeners to the newly created elements
-                document.getElementById('comp-select').addEventListener('change', (e) => {
+                compSelect.addEventListener('change', (e) => {
                     currentCompId = e.target.value;
                     renderResults();
                 });
@@ -230,137 +147,68 @@
                 document.getElementById('round-selector').addEventListener('click', (e) => {
                     if (e.target.tagName === 'BUTTON') {
                         currentRound = e.target.getAttribute('data-round');
-                        document.getElementById('round-selector').querySelectorAll('button').forEach(btn => {
-                            btn.classList.toggle('bg-white', btn === e.target);
-                            btn.classList.toggle('text-indigo-600', btn === e.target);
-                            btn.classList.toggle('shadow', btn === e.target);
-                            btn.classList.toggle('text-slate-600', btn !== e.target);
+                        document.querySelectorAll('.round-btn').forEach(btn => {
+                            btn.classList.toggle('bg-white', btn.dataset.round === currentRound);
+                            btn.classList.toggle('text-indigo-600', btn.dataset.round === currentRound);
+                            btn.classList.toggle('shadow', btn.dataset.round === currentRound);
+                            btn.classList.toggle('text-slate-600', btn.dataset.round !== currentRound);
                         });
                         renderResults();
                     }
                 });
             }
 
-            // --- Rendering Functions ---
-            function renderClimbers() {
-                const climbersList = document.getElementById('climbers-list');
-                if (!climbersList) return;
-                climbersList.innerHTML = '';
-                const sortedClimbers = [...appData.climbers].sort((a, b) => a.name.localeCompare(b.name));
-                for (const climber of sortedClimbers) {
-                     const stats = appData.climberStats.find(s => s.climber_id === climber.id);
-                     const card = document.createElement('div');
-                     card.className = 'bg-slate-50 border border-slate-200 rounded-lg p-4 transition-transform hover:scale-105 hover:shadow-lg';
-                     card.innerHTML = `<h3 class="font-bold text-lg text-slate-900">${climber.name}</h3><p class="text-sm text-slate-500">${climber.country} | Born: ${climber.year_of_birth}</p>${stats ? `<div class="mt-2 pt-2 border-t border-slate-200 text-xs"><p>Comps: ${stats.comps_counted}</p><p>Avg. Rank: ${parseFloat(stats.average_rank).toFixed(2)}</p></div>` : ''}`;
-                     climbersList.appendChild(card);
-                }
-            }
-
-            function renderSchedule() {
-                 const scheduleList = document.getElementById('schedule-list');
-                 if (!scheduleList) return;
-                 scheduleList.innerHTML = '';
-                 for (const comp of appData.comps) {
-                     const item = document.createElement('div');
-                     item.className = 'bg-slate-50 border border-slate-200 rounded-lg p-4 flex justify-between items-center';
-                     item.innerHTML = `<div><h3 class="font-bold text-lg">${comp.name}</h3><p class="text-sm text-slate-500">${new Date(comp.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p></div><button data-comp-id="${comp.id}" class="view-results-btn bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors">View Results</button>`;
-                     scheduleList.appendChild(item);
-                 }
-                 document.querySelectorAll('.view-results-btn').forEach(button => {
-                     button.addEventListener('click', (e) => {
-                         currentCompId = e.target.getAttribute('data-comp-id');
-                         populateCompSelect();
-                         navigateTo('results');
-                     });
-                 });
-            }
-
-            function populateCompSelect() {
-                const compSelect = document.getElementById('comp-select');
-                if (!compSelect) return;
-                compSelect.innerHTML = '';
-                for (const comp of appData.comps) {
-                    const option = document.createElement('option');
-                    option.value = comp.id;
-                    option.textContent = comp.name;
-                    if (comp.id === currentCompId) option.selected = true;
-                    compSelect.appendChild(option);
-                }
-            }
-
             function renderResults() {
                 const tableContainer = document.getElementById('results-container');
-                if (!tableContainer || !currentCompId || !appData.qRankings) return;
                 const isQualis = currentRound === 'qualis';
-                const rankings = isQualis ? appData.qRankings : appData.fRankings;
-                const boulders = isQualis ? appData.qBoulders : appData.fBoulders;
-                const results = isQualis ? appData.qResults : appData.fResults;
-                const compRankings = rankings.filter(r => r.comp_id === currentCompId);
-                const compBoulders = boulders.filter(b => b.comp_id === currentCompId).sort((a,b) => a.name.localeCompare(b.name));
-                const compResults = results.filter(r => r.comp_id === currentCompId);
+                
+                // *** CORRECTED LOGIC: Use qStandings for Qualis, fRankings for Finals ***
+                const standings = isQualis ? appData.qStandings : appData.fRankings;
 
-                if (compRankings.length === 0) {
-                     tableContainer.innerHTML = `<p class="text-center text-slate-500 py-8">No results available for this round.</p>`;
-                     return;
+                if (!standings) {
+                    tableContainer.innerHTML = `<p class="text-center text-slate-500 py-8">Could not load results for this round.</p>`;
+                    return;
                 }
-                let tableHTML = `<table class="w-full text-left border-collapse"><thead><tr class="bg-slate-100"><th class="p-3 font-semibold text-sm">Rank</th><th class="p-3 font-semibold text-sm">Climber</th><th class="p-3 font-semibold text-sm text-center">Score</th>${compBoulders.map(b => `<th class="p-3 font-semibold text-sm text-center">${b.name}</th>`).join('')}</tr></thead><tbody>`;
-                compRankings.sort((a,b) => parseInt(a.rank) - parseInt(b.rank));
-                for (const standing of compRankings) {
+                
+                const compStandings = standings.filter(s => s.comp_id === currentCompId);
+
+                if (compStandings.length === 0) {
+                    tableContainer.innerHTML = `<p class="text-center text-slate-500 py-8">No results available for this round.</p>`;
+                    return;
+                }
+
+                compStandings.sort((a,b) => parseInt(a.rank) - parseInt(b.rank));
+
+                let tableHTML = `
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100">
+                                <th class="p-3 font-semibold text-sm">Rank</th>
+                                <th class="p-3 font-semibold text-sm">Climber</th>
+                                <th class="p-3 font-semibold text-sm text-center">Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+                for (const standing of compStandings) {
                     const climber = appData.climbersMap.get(standing.climber_id);
-                    if(!climber) continue;
-                    let climberResultsHTML = '';
-                    for (const boulder of compBoulders) {
-                        const result = compResults.find(r => r.climber_id === standing.climber_id && r.boulder === boulder.name);
-                        let resultText = result ? `${result.top === 'TRUE' ? `T` : ''}${result.zone === 'TRUE' ? `z` : ''}${result.top_attempts || ''}${result.zone_attempts || ''}` : '-';
-                        climberResultsHTML += `<td class="p-3 text-center text-sm">${resultText || '-'}</td>`;
-                    }
-                    tableHTML += `<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="p-3 font-bold">${standing.rank}</td><td class="p-3"><div class="font-medium">${climber.name}</div><div class="text-xs text-slate-500">${climber.country}</div></td><td class="p-3 text-center font-semibold">${standing.score}</td>${climberResultsHTML}</tr>`;
+                    if (!climber) continue;
+
+                    tableHTML += `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50">
+                            <td class="p-3 font-bold">${standing.rank}</td>
+                            <td class="p-3">
+                                <div class="font-medium">${climber.name}</div>
+                                <div class="text-xs text-slate-500">${climber.country}</div>
+                            </td>
+                            <td class="p-3 text-center font-semibold">${standing.score}</td>
+                        </tr>
+                    `;
                 }
+
                 tableHTML += `</tbody></table>`;
                 tableContainer.innerHTML = tableHTML;
             }
-
-            // --- Navigation & Event Handling ---
-            function navigateTo(pageId) {
-                document.querySelectorAll('.content-section').forEach(section => {
-                    section.style.display = section.id === `${pageId}-section` ? 'block' : 'none';
-                });
-                document.querySelectorAll('.nav-link').forEach(link => {
-                    link.classList.toggle('nav-active', link.getAttribute('href') === `#${pageId}`);
-                });
-
-                if (pageId === 'climbers') renderClimbers();
-                if (pageId === 'schedule') renderSchedule();
-                if (pageId === 'results') {
-                    populateCompSelect();
-                    renderResults();
-                }
-            }
-            
-            // Listeners for the main nav links (must be attached outside the dynamic shell)
-             document.querySelectorAll('.nav-link').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const pageId = e.target.getAttribute('href').substring(1);
-                    navigateTo(pageId);
-                    window.location.hash = pageId;
-                });
-            });
-            
-            // Listener for dropdown
-            const linksMenuButton = document.getElementById('links-menu-button');
-            const linksDropdown = document.getElementById('links-dropdown');
-            linksMenuButton.addEventListener('click', () => linksDropdown.classList.toggle('hidden'));
-            window.addEventListener('click', (e) => {
-                if (!document.getElementById('links-menu-container').contains(e.target)) {
-                    linksDropdown.classList.add('hidden');
-                }
-            });
-            
-            window.addEventListener('hashchange', () => {
-                const pageId = window.location.hash.substring(1) || 'results';
-                navigateTo(pageId);
-            });
 
             loadAllData();
         });
