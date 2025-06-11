@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mockomps | Results & Schedule</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-950 text-slate-300">
+
+    <div id="app" class="container mx-auto p-4 max-w-7xl">
+        
+        <div id="sticky-container" class="sticky top-0 z-10 bg-gray-950 pt-4 pb-4">
+             <!-- Header -->
+            <header class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+                <div id="header-content" class="flex items-center justify-between">
+                    <!-- Header content will be dynamically generated -->
+                </div>
+            </header>
+             <!-- Round Selector Container - only shown on results page -->
+            <div id="controls-container" class="hidden mt-4 flex justify-center">
+                 <!-- Content will be rendered here for results page -->
+            </div>
+        </div>
+
+
+        <!-- Main Content Area -->
+        <main id="main-content">
+            <!-- Content will be rendered here by JavaScript -->
+        </main>
+
+        <!-- Loading / Error Indicator -->
+        <div id="indicator" class="text-center p-10">
+            <!-- Content will be set by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const mainContent = document.getElementById('main-content');
+            const indicator = document.getElementById('indicator');
+            const headerContent = document.getElementById('header-content');
+            const controlsContainer = document.getElementById('controls-container');
+
+
+            // --- App State ---
+            let appData = {};
+            let currentComp = null;
+            let currentRound = 'qualis';
+            
+            // --- Data Sources ---
+            const GOOGLE_SHEET_URLS = {
+                climbers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=937478252&single=true&output=csv',
+                climberStats: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=400895305&single=true&output=csv',
+                comps: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=91525471&single=true&output=csv',
+                qStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=687301211&single=true&output=csv',
+                fRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1749256148&single=true&output=csv',
+                qualis: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1964387699&single=true&output=csv',
+                finals: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=2138071685&single=true&output=csv',
+            };
+
+            // --- Utility Functions ---
+            async function fetchAndParseSheet(url) {
+                const cacheBustUrl = `${url}&_=${new Date().getTime()}`;
+                const response = await fetch(cacheBustUrl);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const text = await response.text();
+                if (text.trim().startsWith('<')) throw new Error(`Received an HTML page instead of CSV data.`);
+                
+                const lines = text.trim().split(/\r?\n/);
+                if (lines.length < 2) return [];
+                
+                const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[\s-]+/g, '_'));
+                
+                const data = lines.slice(1).map(line => {
+                    if (line.trim() === '') return null;
+                    const values = line.split(',').map(v => v.trim());
+                    return header.reduce((obj, nextKey, index) => {
+                        obj[nextKey] = values[index];
+                        return obj;
+                    }, {});
+                }).filter(Boolean);
+                
+                return data;
+            }
+            
+            // --- Navigation ---
+            function navigate(page, context = null) {
+                mainContent.innerHTML = ''; // Clear previous content
+                headerContent.innerHTML = ''; // Clear header
+                controlsContainer.innerHTML = ''; // Clear controls
+                controlsContainer.classList.add('hidden'); // Hide controls by default
+
+
+                if (page === 'home') {
+                    renderHomePage();
+                } else if (page === 'resultsHome') {
+                    renderResultsHomePage();
+                } else if (page === 'schedule') {
+                    renderSchedulePage();
+                } else if (page === 'climbers') {
+                    renderClimbersPage();
+                } else if (page === 'climberProfile') {
+                    renderClimberProfilePage(context);
+                } else if (page === 'resultsComp') {
+                    currentComp = context;
+                    renderResultsCompPage();
+                }
+            }
+
+            // --- Page Rendering Functions ---
+            function renderHomePage() {
+                headerContent.innerHTML = `<div class="flex-1"></div><div class="flex-1 text-center"><h1 class="text-2xl font-bold text-gray-100">Mockomps</h1></div><div class="flex-1"></div>`;
+                mainContent.innerHTML = `
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                        <button id="results-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Results</button>
+                        <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Schedule</button>
+                        <button id="climbers-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Climbers</button>
+                    </div>`;
+                document.getElementById('schedule-btn').addEventListener('click', () => navigate('schedule'));
+                document.getElementById('results-btn').addEventListener('click', () => navigate('resultsHome'));
+                document.getElementById('climbers-btn').addEventListener('click', () => navigate('climbers'));
+            }
+
+            function renderResultsHomePage() {
+                headerContent.innerHTML = `
+                    <div class="flex-1">
+                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Results</h1>
+                    <div class="flex-1"></div>`; // Spacer
+                document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+
+                const qComps = appData.qStandings.map(s => s.comp);
+                const fComps = appData.fRankings.map(s => (s.final || '').replace(/F$/, ''));
+                const compDateMap = new Map(appData.comps.map(c => [c.comp, c.start]));
+                const allCompNames = [...new Set([...qComps, ...fComps])].sort((a, b) => new Date(compDateMap.get(b) || 0) - new Date(compDateMap.get(a) || 0));
+
+                let compGridHTML = '<div class="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">';
+                allCompNames.forEach(compName => {
+                    compGridHTML += `<button data-comp="${compName}" class="comp-btn bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl">${compName}</button>`;
+                });
+                compGridHTML += '</div>';
+                mainContent.innerHTML = compGridHTML;
+
+                document.querySelectorAll('.comp-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => navigate('resultsComp', e.target.dataset.comp));
+                });
+            }
+            
+            function renderSchedulePage() {
+                 headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Schedule</h1>
+                    <div class="flex-1"></div>`; // Spacer
+                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+
+                const events = [
+                    ...appData.qualis.map(q => ({ date: q.date, title: q.quali, type: 'Quali' })),
+                    ...appData.finals.map(f => ({ date: f.date, title: f.final, type: 'Final' })),
+                ];
+                events.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+                let scheduleHTML = '<div class="mt-4 space-y-2">';
+                let currentMonth = '';
+                
+                events.forEach(event => {
+                    const eventDate = new Date(event.date);
+                    const month = eventDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+                    
+                    if (month !== currentMonth) {
+                        currentMonth = month;
+                        scheduleHTML += `<h2 class="text-lg font-bold text-gray-300 mt-5 mb-1 border-b border-gray-700 pb-1">${month}</h2>`;
+                    }
+
+                    scheduleHTML += `
+                        <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm flex items-center space-x-3">
+                            <div class="text-center w-14">
+                                <div class="font-bold text-lg text-gray-200">${eventDate.getDate()}</div>
+                                <div class="text-xs text-gray-400">${eventDate.toLocaleString('default', { weekday: 'short' })}</div>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-sm text-gray-100">${event.title}</p>
+                                <p class="text-xs ${event.type === 'Final' ? 'text-red-500' : 'text-gray-400'}">${event.type}</p>
+                            </div>
+                        </div>`;
+                });
+                scheduleHTML += '</div>';
+                mainContent.innerHTML = scheduleHTML;
+            }
+            
+            function renderClimbersPage() {
+                 headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Climbers</h1>
+                    <div class="flex-1"></div>`; // Spacer
+                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                
+                const climbers = [...appData.climbers].sort((a, b) => a.name.localeCompare(b.name));
+                
+                let climberListHTML = '<div class="mt-4 space-y-2">';
+                climbers.forEach(climber => {
+                    if (climber.name) { // Ensure climber has a name
+                        climberListHTML += `<button data-climber-name="${climber.name}" class="climber-btn w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold hover:bg-gray-800">${climber.name}</button>`;
+                    }
+                });
+                climberListHTML += '</div>';
+                mainContent.innerHTML = climberListHTML;
+                
+                document.querySelectorAll('.climber-btn').forEach(btn => {
+                    btn.addEventListener('click', e => navigate('climberProfile', e.currentTarget.dataset.climberName));
+                });
+            }
+
+            function renderClimberProfilePage(climberName) {
+                headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="back-to-climbers-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">${climberName}</h1>
+                    <div class="flex-1"></div>`; // Spacer
+                document.getElementById('back-to-climbers-btn').addEventListener('click', () => navigate('climbers'));
+
+                const climberInfo = appData.climbers.find(c => c.name === climberName);
+                const climberStats = appData.climberStats.find(s => s.climber === climberName);
+
+                let profileHTML = '<div class="mt-4 space-y-4">';
+
+                // --- Climber Info Box ---
+                if (climberInfo) {
+                    let instaHTML = '';
+                    if (climberInfo.instagram) {
+                        const handle = climberInfo.instagram.replace(/^@/, '');
+                        instaHTML = `<a href="https://instagram.com/${handle}" target="_blank" class="text-blue-400 hover:underline">@${handle}</a>`;
+                    }
+                     profileHTML += `
+                        <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+                            <h2 class="text-xl font-bold text-gray-100 mb-2">${climberInfo.name}</h2>
+                            <div class="text-sm space-y-1 text-gray-300">
+                                <p><span class="font-semibold text-gray-400">Country:</span> ${climberInfo.country || 'N/A'}</p>
+                                <p><span class="font-semibold text-gray-400">Born:</span> ${climberInfo.date_of_birth || 'N/A'}</p>
+                                <p><span class="font-semibold text-gray-400">Instagram:</span> ${instaHTML || 'N/A'}</p>
+                            </div>
+                        </div>`;
+                }
+
+                // --- Climber Stats Box ---
+                if (climberStats) {
+                    profileHTML += `
+                        <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+                            <h3 class="text-lg font-bold text-gray-200 mb-2">All-Time Stats</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Qualis</div><div class="font-bold text-xl text-gray-100">${climberStats.q || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${climberStats.b || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${climberStats.f || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${climberStats.t || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Zones</div><div class="font-bold text-xl text-gray-100">${climberStats.z || '0'}</div></div>
+                            </div>
+                        </div>`;
+                }
+                
+                profileHTML += '</div>';
+                mainContent.innerHTML = profileHTML;
+            }
+
+            function renderResultsCompPage() {
+                 headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="back-to-comps-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">${currentComp}</h1>
+                    <div class="flex-1"></div>`; // Spacer
+                 document.getElementById('back-to-comps-btn').addEventListener('click', () => navigate('resultsHome'));
+                
+                 controlsContainer.classList.remove('hidden');
+                 controlsContainer.innerHTML = `
+                    <div id="round-selector" class="flex space-x-1 bg-gray-800 p-1 rounded-md">
+                        <button data-round="qualis" class="round-btn bg-blue-600 text-white font-semibold py-1 px-4 rounded-md shadow-md">Qualis</button>
+                        <button data-round="finals" class="round-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Final</button>
+                    </div>`;
+
+                 mainContent.innerHTML = `<div id="results-container" class="w-full"></div>`;
+
+                currentRound = 'qualis';
+                renderResultsTable();
+
+                document.getElementById('round-selector').addEventListener('click', (e) => {
+                     if (e.target.tagName === 'BUTTON' && e.target.dataset.round !== currentRound) {
+                        currentRound = e.target.dataset.round;
+                        document.querySelectorAll('.round-btn').forEach(btn => {
+                            btn.classList.toggle('bg-blue-600');
+                            btn.classList.toggle('text-white');
+                            btn.classList.toggle('text-gray-300');
+                            btn.classList.toggle('shadow-md');
+                        });
+                        renderResultsTable();
+                    }
+                });
+            }
+            
+            function renderResultsTable() {
+                const resultsContainer = document.getElementById('results-container');
+                const isQualis = currentRound === 'qualis';
+                const standings = isQualis ? appData.qStandings : appData.fRankings;
+                
+                let compStandings = isQualis
+                    ? standings.filter(s => s.comp === currentComp)
+                    : standings.filter(s => (s.final || '').replace(/F$/, '') === currentComp);
+                
+                compStandings.sort((a,b) => parseInt(a.place) - parseInt(b.place));
+
+                if (compStandings.length === 0) {
+                    resultsContainer.innerHTML = `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No results available for this round.</div>`;
+                    return;
+                }
+                
+                const headers = isQualis 
+                    ? ['Place', 'Climber', 'Quali Points', 'Flashes', 'Tops', 'Zones']
+                    : ['Place', 'Climber', 'Tops', 'Top Attempts', 'Zones', 'Zone Attempts'];
+
+                let mobileHTML = '<div class="md:hidden space-y-2">';
+                let desktopHTML = `<div class="hidden md:block bg-gray-900 border border-gray-800 p-4 sm:p-6 rounded-lg shadow-md"><table class="w-full border-collapse"><thead><tr class="border-b border-gray-800">${headers.map(h => `<th class="p-3 font-semibold text-sm text-left text-gray-400">${h}</th>`).join('')}</tr></thead><tbody>`;
+                
+                for (const standing of compStandings) {
+                    const isQualisTop8 = isQualis && parseInt(standing.place) <= 8;
+                    const isFinalsTop3 = !isQualis && parseInt(standing.place) <= 3;
+
+                    let highlightClass = '';
+                    
+                    if (isQualisTop8 || isFinalsTop3) {
+                        highlightClass = 'bg-sky-900/40';
+                    }
+                    
+                    const qualiStats = `<div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '-'}</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '-'}</span></div><div>Flashes <span class="block font-medium text-gray-200 text-sm">${standing.flashes || '-'}</span></div></div>`;
+                    const finalStats = `<div class="flex justify-around items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '0'}(${standing.top_attempts || '0'})</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '0'}(${standing.zone_attempts || '0'})</span></div></div>`;
+                    
+                    mobileHTML += `<div class="rounded-lg p-2 shadow-md border border-gray-800 ${highlightClass || 'bg-gray-900'}"><div class="flex justify-between items-center"><div class="flex items-center space-x-2"><span class="font-bold text-base text-gray-200 w-6">${standing.place||'-'}</span><span class="font-medium text-gray-100 text-sm">${standing.climber||'-'}</span></div>${isQualis?`<div class="font-bold text-blue-400 text-base">${standing.quali_points||'-'}</div>`:''}</div>${isQualis?qualiStats:finalStats}</div>`;
+                    
+                    desktopHTML += `<tr class="border-b border-gray-800 last:border-b-0 hover:bg-gray-800/50 ${highlightClass}"><td class="p-3 font-bold text-gray-100">${standing.place||'-'}</td><td class="p-3 font-medium text-gray-200">${standing.climber||'-'}</td>${isQualis?`<td class="p-3 font-semibold text-blue-400 text-left">${standing.quali_points||'-'}</td><td class="p-3 text-left">${standing.flashes||'-'}</td><td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td>`:`<td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.top_attempts||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td><td class="p-3 text-left">${standing.zone_attempts||'-'}</td>`}</tr>`;
+                }
+
+                mobileHTML += '</div>';
+                desktopHTML += '</tbody></table></div>';
+                resultsContainer.innerHTML = mobileHTML + desktopHTML;
+            }
+
+            // --- Main Initialization ---
+            async function init() {
+                indicator.innerHTML = `<i class="fas fa-spinner fa-spin text-4xl text-gray-400"></i><p class="mt-4 text-lg font-medium text-gray-300">Loading All Mockomps Data...</p>`;
+                
+                try {
+                    const dataPromises = Object.entries(GOOGLE_SHEET_URLS).map(([key, url]) =>
+                        fetchAndParseSheet(url).then(data => [key, data])
+                    );
+                    const dataEntries = await Promise.all(dataPromises);
+                    appData = Object.fromEntries(dataEntries);
+                    
+                    indicator.style.display = 'none';
+                    mainContent.style.display = 'block';
+                    navigate('home');
+                    
+                } catch (error) {
+                    indicator.innerHTML = `<div class="p-10 bg-red-900/50 border border-red-500/30 text-red-300 rounded-lg"><h2 class="font-bold text-xl text-red-200">Error Loading Data</h2><p class="mt-2 text-sm">${error.message}</p></div>`;
+                }
+            }
+
+            init();
+        });
+    </script>
+</body>
+</html>
