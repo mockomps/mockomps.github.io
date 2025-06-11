@@ -57,6 +57,7 @@
             // --- Data Sources ---
             const GOOGLE_SHEET_URLS = {
                 climbers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=937478252&single=true&output=csv',
+                climberStats: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=400895305&single=true&output=csv',
                 comps: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=91525471&single=true&output=csv',
                 qStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=687301211&single=true&output=csv',
                 fRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1749256148&single=true&output=csv',
@@ -105,6 +106,8 @@
                     renderSchedulePage();
                 } else if (page === 'climbers') {
                     renderClimbersPage();
+                } else if (page === 'climberProfile') {
+                    renderClimberProfilePage(context);
                 } else if (page === 'resultsComp') {
                     currentComp = context;
                     renderResultsCompPage();
@@ -208,11 +211,66 @@
                 let climberListHTML = '<div class="mt-4 space-y-2">';
                 climbers.forEach(climber => {
                     if (climber.name) { // Ensure climber has a name
-                        climberListHTML += `<button disabled class="w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold opacity-50 cursor-not-allowed">${climber.name}</button>`;
+                        climberListHTML += `<button data-climber-name="${climber.name}" class="climber-btn w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold hover:bg-gray-800">${climber.name}</button>`;
                     }
                 });
                 climberListHTML += '</div>';
                 mainContent.innerHTML = climberListHTML;
+                
+                document.querySelectorAll('.climber-btn').forEach(btn => {
+                    btn.addEventListener('click', e => navigate('climberProfile', e.currentTarget.dataset.climberName));
+                });
+            }
+
+            function renderClimberProfilePage(climberName) {
+                headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="back-to-climbers-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">${climberName}</h1>
+                    <div class="flex-1"></div>`; // Spacer
+                document.getElementById('back-to-climbers-btn').addEventListener('click', () => navigate('climbers'));
+
+                const climberInfo = appData.climbers.find(c => c.name === climberName);
+                const climberStats = appData.climberStats.find(s => s.climber === climberName);
+
+                let profileHTML = '<div class="mt-4 space-y-4">';
+
+                // --- Climber Info Box ---
+                if (climberInfo) {
+                    let instaHTML = '';
+                    if (climberInfo.instagram) {
+                        const handle = climberInfo.instagram.replace(/^@/, '');
+                        instaHTML = `<a href="https://instagram.com/${handle}" target="_blank" class="text-blue-400 hover:underline">@${handle}</a>`;
+                    }
+                     profileHTML += `
+                        <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+                            <h2 class="text-xl font-bold text-gray-100 mb-2">${climberInfo.name}</h2>
+                            <div class="text-sm space-y-1 text-gray-300">
+                                <p><span class="font-semibold text-gray-400">Country:</span> ${climberInfo.country || 'N/A'}</p>
+                                <p><span class="font-semibold text-gray-400">Born:</span> ${climberInfo.date_of_birth || 'N/A'}</p>
+                                <p><span class="font-semibold text-gray-400">Instagram:</span> ${instaHTML || 'N/A'}</p>
+                            </div>
+                        </div>`;
+                }
+
+                // --- Climber Stats Box ---
+                if (climberStats) {
+                    profileHTML += `
+                        <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+                            <h3 class="text-lg font-bold text-gray-200 mb-2">All-Time Stats</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Qualis</div><div class="font-bold text-xl text-gray-100">${climberStats.q || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${climberStats.b || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${climberStats.f || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${climberStats.t || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Zones</div><div class="font-bold text-xl text-gray-100">${climberStats.z || '0'}</div></div>
+                            </div>
+                        </div>`;
+                }
+                
+                profileHTML += '</div>';
+                mainContent.innerHTML = profileHTML;
             }
 
             function renderResultsCompPage() {
