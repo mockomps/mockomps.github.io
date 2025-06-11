@@ -31,14 +31,14 @@
                 </div>
             </header>
              <!-- Round Selector Container - only shown on results page -->
-            <div id="controls-container" class="hidden justify-center">
+            <div id="controls-container" class="hidden mt-4 flex justify-center">
                  <!-- Content will be rendered here for results page -->
             </div>
         </div>
 
 
-        <!-- Main Content Area - UPDATED: Added mt-4 for consistent spacing -->
-        <main id="main-content" class="mt-4">
+        <!-- Main Content Area -->
+        <main id="main-content">
             <!-- Content will be rendered here by JavaScript -->
         </main>
 
@@ -180,9 +180,8 @@
 
                 headerContent.innerHTML = `<div class="flex-1"></div><div class="flex-1 text-center"><h1 class="text-2xl font-bold text-gray-100">Mockomps</h1></div><div class="flex-1"></div>`;
                 
-                // REMOVED mt-4 from this div
                 mainContent.innerHTML = `
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                    <div class="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
                         <button id="results-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Results</button>
                         <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Schedule</button>
                         <button id="climbers-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Climbers</button>
@@ -203,9 +202,8 @@
                     <div class="flex-1"></div>`;
                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
 
-                // REMOVED mt-4 from this div
                 mainContent.innerHTML = `
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                         <a href="https://forms.gle/hrDCyDAXzaKQ1gyX7" target="_blank" class="block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">New Climber Form</a>
                         <a href="https://forms.gle/uBJpWoj7mkNycZoJ8" target="_blank" class="block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Qualis Form</a>
                         <a href="https://forms.gle/C7vrjByfi4wnNa6x7" target="_blank" class="block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Finals Form</a>
@@ -226,8 +224,7 @@
                 const compDateMap = new Map(appData.comps.map(c => [c.comp, c.start]));
                 const allCompNames = [...new Set([...qComps, ...fComps])].sort((a, b) => new Date(compDateMap.get(b) || 0) - new Date(compDateMap.get(a) || 0));
 
-                // REMOVED mt-4 from this div
-                let compGridHTML = '<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">';
+                let compGridHTML = '<div class="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">';
                 allCompNames.forEach(compName => {
                     compGridHTML += `<button data-comp="${compName}" class="comp-btn bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl">${compName}</button>`;
                 });
@@ -254,8 +251,7 @@
                 ];
                 events.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-                // REMOVED mt-4 from this div
-                let scheduleHTML = '<div class="space-y-2">';
+                let scheduleHTML = '<div class="mt-4 space-y-2">';
                 let currentMonth = '';
                 
                 events.forEach(event => {
@@ -294,8 +290,7 @@
                 
                 const climbers = [...appData.climbers].sort((a, b) => a.name.localeCompare(b.name));
                 
-                // REMOVED mt-4 from this div
-                let climberListHTML = '<div class="space-y-2">';
+                let climberListHTML = '<div class="mt-4 space-y-2">';
                 climbers.forEach(climber => {
                     if (climber.name) {
                         climberListHTML += `<button data-climber-name="${climber.name}" class="climber-btn w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold hover:bg-gray-800">${climber.name}</button>`;
@@ -332,8 +327,7 @@
                 const climberInfo = appData.climbers.find(c => c.name === climberName);
                 const climberStats = appData.climberStats.find(s => s.climber === climberName);
 
-                // REMOVED mt-4 from this div
-                let profileHTML = '<div class="space-y-4">';
+                let profileHTML = '<div class="mt-4 space-y-4">';
 
                 if (climberInfo) {
                     let instaHTML = '';
@@ -392,6 +386,7 @@
                 mainContent.innerHTML = profileHTML;
             }
 
+            // --- UPDATED: Comp Results Page ---
             function renderResultsCompPage() {
                  headerContent.innerHTML = `
                     <div class="flex-1">
@@ -416,10 +411,10 @@
                 roundButtonsHTML += `<button data-round="finals" class="round-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Final</button>`;
                 
                 controlsContainer.classList.remove('hidden');
-                controlsContainer.innerHTML = `<div id="round-selector" class="flex overflow-x-auto whitespace-nowrap no-scrollbar justify-start md:justify-center gap-1 bg-gray-800 p-1 rounded-md mt-4">${roundButtonsHTML}</div>`;
+                // UPDATED: Added 'overflow-x-auto', 'whitespace-nowrap', and 'no-scrollbar' and removed 'flex-wrap'
+                controlsContainer.innerHTML = `<div id="round-selector" class="flex overflow-x-auto whitespace-nowrap no-scrollbar justify-start md:justify-center gap-1 bg-gray-800 p-1 rounded-md">${roundButtonsHTML}</div>`;
 
-                // REMOVED mt-4 from this div
-                mainContent.innerHTML = `<div id="results-container" class="w-full"></div>`;
+                mainContent.innerHTML = `<div id="results-container" class="mt-4 w-full"></div>`;
 
                 currentRound = 'qualis'; 
                 renderResultsTable();
@@ -441,6 +436,7 @@
                 });
             }
             
+            // --- UPDATED: Results table logic ---
             function renderResultsTable() {
                 const resultsContainer = document.getElementById('results-container');
                 let compStandings = [];
