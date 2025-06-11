@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mockomps | Quali Standings</title>
+    <title>Mockomps | Results</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,21 +18,34 @@
         <header class="bg-white rounded-lg shadow-md p-4 mb-6">
             <div class="flex items-center space-x-3">
                 <i class="fas fa-mountain-sun text-3xl text-indigo-600"></i>
-                <h1 class="text-2xl font-bold text-slate-900">Qualification Standings</h1>
+                <h1 id="header-title" class="text-2xl font-bold text-slate-900">Competitions</h1>
             </div>
         </header>
 
-        <!-- Main Content: Controls and Table -->
-        <main id="main-content" class="hidden">
-            <!-- Competition Selector -->
-            <div class="bg-white p-4 rounded-lg shadow-md mb-6">
-                 <label for="comp-select" class="font-medium mr-2">Select Competition:</label>
-                 <select id="comp-select" class="p-2 border rounded-md bg-slate-100 w-full md:w-auto"></select>
+        <!-- Main Content Area -->
+        <main id="main-content">
+            <!-- Home Page: Competition Selection -->
+            <div id="home-page">
+                <div id="comp-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <!-- Competition buttons will be rendered here -->
+                </div>
             </div>
 
-            <!-- Results Wrapper for Desktop and Mobile -->
-            <div id="results-container" class="w-full">
-                <!-- Content will be rendered here by JavaScript -->
+            <!-- Results Page: Shown after a comp is selected -->
+            <div id="results-page" class="hidden">
+                <div class="bg-white p-4 rounded-lg shadow-md mb-6 flex justify-between items-center">
+                    <button id="back-button" class="flex items-center space-x-2 text-slate-600 hover:text-indigo-600 font-medium">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Back</span>
+                    </button>
+                    <div id="round-selector" class="flex space-x-1 bg-slate-200 p-1 rounded-md">
+                         <button data-round="qualis" class="round-btn bg-white text-indigo-600 font-semibold py-1 px-4 rounded-md shadow">Qualis</button>
+                         <button data-round="finals" class="round-btn py-1 px-4 rounded-md font-semibold text-slate-600">Finals</button>
+                    </div>
+                </div>
+                <div id="results-container" class="w-full">
+                    <!-- Results table will be rendered here -->
+                </div>
             </div>
         </main>
 
@@ -47,27 +60,32 @@
             // --- DOM Elements ---
             const mainContent = document.getElementById('main-content');
             const indicator = document.getElementById('indicator');
-            const compSelect = document.getElementById('comp-select');
+            const headerTitle = document.getElementById('header-title');
+            const homePage = document.getElementById('home-page');
+            const resultsPage = document.getElementById('results-page');
+            const compGrid = document.getElementById('comp-grid');
+            const backButton = document.getElementById('back-button');
+            const roundSelector = document.getElementById('round-selector');
             const resultsContainer = document.getElementById('results-container');
 
             // --- App State ---
-            let allStandings = [];
+            let appData = {};
             let currentComp = null;
+            let currentRound = 'qualis';
 
-            // --- Data Source ---
-            const QSTANDINGS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=687301211&single=true&output=csv';
+            // --- Data Sources ---
+            const GOOGLE_SHEET_URLS = {
+                qStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=687301211&single=true&output=csv',
+                fRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1749256148&single=true&output=csv',
+            };
 
             // --- Utility Functions ---
-
-            /**
-             * Fetches and parses the QStandings CSV from Google Sheets.
-             */
-            async function fetchAndParseStandings(url) {
+            async function fetchAndParseSheet(url) {
                 const cacheBustUrl = `${url}&_=${new Date().getTime()}`;
                 const response = await fetch(cacheBustUrl);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const text = await response.text();
-                if (text.trim().startsWith('<')) throw new Error(`Received an HTML page instead of CSV data. Please check the 'Publish to the web' settings in Google Sheets.`);
+                if (text.trim().startsWith('<')) throw new Error(`Received an HTML page instead of CSV data.`);
                 
                 const lines = text.trim().split(/\r?\n/);
                 if (lines.length < 2) return [];
@@ -85,23 +103,37 @@
                 
                 return data;
             }
-
-            /**
-             * Renders the results with a responsive design:
-             * - A card-based layout for mobile screens.
-             * - A traditional table for desktop screens.
-             */
-            function renderTable() {
-                if (!currentComp) return;
-
-                const compStandings = allStandings.filter(s => s.comp === currentComp);
+            
+            // --- Rendering Functions ---
+            function renderHomePage(competitions) {
+                compGrid.innerHTML = '';
+                competitions.forEach(compName => {
+                    const button = document.createElement('button');
+                    button.className = 'bg-white p-6 rounded-lg shadow-md hover:shadow-xl hover:bg-indigo-500 hover:text-white transition-all duration-200 text-slate-700 font-bold text-xl';
+                    button.textContent = compName;
+                    button.addEventListener('click', () => {
+                        navigateToResults(compName);
+                    });
+                    compGrid.appendChild(button);
+                });
+            }
+            
+            function renderResultsTable() {
+                const isQualis = currentRound === 'qualis';
+                const standings = isQualis ? appData.qStandings : appData.fRankings;
+                
+                const compStandings = standings.filter(s => (s.comp || s.final) === currentComp);
                 compStandings.sort((a,b) => parseInt(a.place) - parseInt(b.place));
 
                 if (compStandings.length === 0) {
-                    resultsContainer.innerHTML = `<div class="bg-white p-6 rounded-lg shadow-md text-center text-slate-500">No results available for this competition.</div>`;
+                    resultsContainer.innerHTML = `<div class="bg-white p-6 rounded-lg shadow-md text-center text-slate-500">No results available for this round.</div>`;
                     return;
                 }
                 
+                const headers = isQualis 
+                    ? ['Place', 'Climber', 'Quali Points', 'Flashes', 'Tops', 'Zones']
+                    : ['Place', 'Climber', 'Tops', 'Top Attempts', 'Zones', 'Zone Attempts'];
+
                 // --- Mobile View (Card-based) ---
                 let mobileHTML = '<div class="md:hidden space-y-3">';
                 // --- Desktop View (Table-based) ---
@@ -110,18 +142,24 @@
                         <table class="w-full border-collapse">
                             <thead>
                                 <tr>
-                                    <th class="p-3 font-semibold text-sm text-left">Place</th>
-                                    <th class="p-3 font-semibold text-sm text-left">Climber</th>
-                                    <th class="p-3 font-semibold text-sm text-center">Quali Points</th>
-                                    <th class="p-3 font-semibold text-sm text-center">Flashes</th>
-                                    <th class="p-3 font-semibold text-sm text-center">Tops</th>
-                                    <th class="p-3 font-semibold text-sm text-center">Zones</th>
+                                    ${headers.map(h => `<th class="p-3 font-semibold text-sm text-left">${h}</th>`).join('')}
                                 </tr>
                             </thead>
                             <tbody>`;
-
+                
                 for (const standing of compStandings) {
-                    // --- Build HTML for Mobile Card ---
+                    const qualiRow = `
+                        <div class="flex justify-around text-center mt-3 pt-3 border-t border-slate-100">
+                            <div><div class="text-xs text-slate-500">Flashes</div><div class="font-medium text-sm">${standing.flashes || '-'}</div></div>
+                            <div><div class="text-xs text-slate-500">Tops</div><div class="font-medium text-sm">${standing.tops || '-'}</div></div>
+                            <div><div class="text-xs text-slate-500">Zones</div><div class="font-medium text-sm">${standing.zones || '-'}</div></div>
+                        </div>`;
+                    const finalRow = `
+                        <div class="flex justify-around text-center mt-3 pt-3 border-t border-slate-100">
+                            <div><div class="text-xs text-slate-500">Tops</div><div class="font-medium text-sm">${standing.tops} (${standing.top_attempts})</div></div>
+                            <div><div class="text-xs text-slate-500">Zones</div><div class="font-medium text-sm">${standing.zones} (${standing.zone_attempts})</div></div>
+                        </div>`;
+
                     mobileHTML += `
                         <div class="bg-white rounded-lg p-3 shadow border border-slate-200">
                             <div class="flex justify-between items-start">
@@ -129,80 +167,104 @@
                                     <span class="font-bold text-lg text-slate-700 w-6">${standing.place || '-'}</span>
                                     <span class="font-medium text-slate-800">${standing.climber || '-'}</span>
                                 </div>
-                                <div class="font-bold text-indigo-600 text-lg">${standing.quali_points || '-'}</div>
+                                ${isQualis ? `<div class="font-bold text-indigo-600 text-lg">${standing.quali_points || '-'}</div>` : ''}
                             </div>
-                            <div class="flex justify-around text-center mt-3 pt-3 border-t border-slate-100">
-                                <div>
-                                    <div class="text-xs text-slate-500">Flashes</div>
-                                    <div class="font-medium text-sm">${standing.flashes || '-'}</div>
-                                </div>
-                                <div>
-                                    <div class="text-xs text-slate-500">Tops</div>
-                                    <div class="font-medium text-sm">${standing.tops || '-'}</div>
-                                </div>
-                                <div>
-                                    <div class="text-xs text-slate-500">Zones</div>
-                                    <div class="font-medium text-sm">${standing.zones || '-'}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    // --- Build HTML for Desktop Row ---
+                            ${isQualis ? qualiRow : finalRow}
+                        </div>`;
+                    
                     desktopHTML += `
                         <tr class="border-b border-slate-100 last:border-b-0 hover:bg-slate-50">
                             <td class="p-3 font-bold text-slate-800">${standing.place || '-'}</td>
                             <td class="p-3 font-medium text-slate-800">${standing.climber || '-'}</td>
-                            <td class="p-3 font-semibold text-indigo-600 text-center">${standing.quali_points || '-'}</td>
-                            <td class="p-3 text-center">${standing.flashes || '-'}</td>
-                            <td class="p-3 text-center">${standing.tops || '-'}</td>
-                            <td class="p-3 text-center">${standing.zones || '-'}</td>
-                        </tr>
-                    `;
+                            ${isQualis ? `
+                            <td class="p-3 font-semibold text-indigo-600 text-left">${standing.quali_points || '-'}</td>
+                            <td class="p-3 text-left">${standing.flashes || '-'}</td>
+                            <td class="p-3 text-left">${standing.tops || '-'}</td>
+                            <td class="p-3 text-left">${standing.zones || '-'}</td>
+                            ` : `
+                            <td class="p-3 text-left">${standing.tops || '-'}</td>
+                            <td class="p-3 text-left">${standing.top_attempts || '-'}</td>
+                            <td class="p-3 text-left">${standing.zones || '-'}</td>
+                            <td class="p-3 text-left">${standing.zone_attempts || '-'}</td>
+                            `}
+                        </tr>`;
                 }
 
                 mobileHTML += '</div>';
                 desktopHTML += '</tbody></table></div>';
-
                 resultsContainer.innerHTML = mobileHTML + desktopHTML;
             }
             
+            // --- Navigation ---
+            function navigateToResults(compName) {
+                currentComp = compName;
+                currentRound = 'qualis'; // Default to qualis when selecting a new comp
+                
+                headerTitle.textContent = compName;
+                homePage.classList.add('hidden');
+                resultsPage.classList.remove('hidden');
+
+                // Reset round selector style
+                roundSelector.querySelectorAll('button').forEach(btn => {
+                    const isQualis = btn.dataset.round === 'qualis';
+                    btn.classList.toggle('bg-white', isQualis);
+                    btn.classList.toggle('text-indigo-600', isQualis);
+                    btn.classList.toggle('shadow', isQualis);
+                    btn.classList.toggle('text-slate-600', !isQualis);
+                });
+
+                renderResultsTable();
+            }
+
+            function navigateToHome() {
+                headerTitle.textContent = 'Competitions';
+                resultsPage.classList.add('hidden');
+                homePage.classList.remove('hidden');
+                currentComp = null;
+            }
+
+            // --- Main Initialization ---
             async function init() {
-                indicator.innerHTML = `<i class="fas fa-spinner fa-spin text-4xl text-indigo-600"></i><p class="mt-4 text-lg font-medium">Loading Standings...</p>`;
+                mainContent.classList.add('hidden');
+                indicator.innerHTML = `<i class="fas fa-spinner fa-spin text-4xl text-indigo-600"></i><p class="mt-4 text-lg font-medium">Loading All Results...</p>`;
                 
                 try {
-                    allStandings = await fetchAndParseStandings(QSTANDINGS_URL);
+                    const dataPromises = Object.entries(GOOGLE_SHEET_URLS).map(([key, url]) =>
+                        fetchAndParseSheet(url).then(data => [key, data])
+                    );
+                    const dataEntries = await Promise.all(dataPromises);
+                    appData = Object.fromEntries(dataEntries);
 
-                    if (allStandings.length === 0) {
-                        throw new Error("The QStandings sheet appears to be empty or could not be read.");
+                    const qComps = appData.qStandings.map(s => s.comp);
+                    const fComps = appData.fRankings.map(s => s.final);
+                    const allCompNames = [...new Set([...qComps, ...fComps])].sort();
+
+                    if (allCompNames.length === 0) {
+                        throw new Error("No competitions found in the provided sheets.");
                     }
 
-                    const compNames = [...new Set(allStandings.map(s => s.comp))];
-                    
-                    compSelect.innerHTML = '';
-                    compNames.forEach(name => {
-                        const option = document.createElement('option');
-                        option.value = name;
-                        option.textContent = name;
-                        compSelect.appendChild(option);
-                    });
-                    
-                    currentComp = compNames[0];
-                    compSelect.value = currentComp;
+                    renderHomePage(allCompNames);
 
-                    compSelect.addEventListener('change', (e) => {
-                        currentComp = e.target.value;
-                        renderTable();
+                    // Add event listeners for navigation
+                    backButton.addEventListener('click', navigateToHome);
+                    roundSelector.addEventListener('click', (e) => {
+                        if (e.target.tagName === 'BUTTON' && e.target.dataset.round !== currentRound) {
+                            currentRound = e.target.dataset.round;
+                            roundSelector.querySelectorAll('button').forEach(btn => {
+                                btn.classList.toggle('bg-white');
+                                btn.classList.toggle('text-indigo-600');
+                                btn.classList.toggle('shadow');
+                                btn.classList.toggle('text-slate-600');
+                            });
+                            renderResultsTable();
+                        }
                     });
 
                     indicator.style.display = 'none';
-                    mainContent.style.display = 'block';
+                    mainContent.classList.remove('hidden');
                     
-                    renderTable();
-
                 } catch (error) {
                     indicator.innerHTML = `<div class="p-10 bg-red-100 text-red-700 rounded-lg"><h2 class="font-bold text-xl">Error Loading Data</h2><p class="mt-2 text-sm">${error.message}</p></div>`;
-                    indicator.style.display = 'block';
                 }
             }
 
