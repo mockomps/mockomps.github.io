@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mockomps | Climbing Results</title>
+    <title>Mockomps | Quali Standings</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .nav-active { color: #4f46e5; border-bottom: 2px solid #4f46e5; }
-        .content-section { display: none; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -19,200 +16,178 @@
     <div id="app" class="container mx-auto p-4 max-w-7xl">
         <!-- Header -->
         <header class="bg-white rounded-lg shadow-md p-4 mb-6">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-mountain-sun text-3xl text-indigo-600"></i>
-                    <h1 class="text-2xl font-bold text-slate-900">Mockomps Results</h1>
-                </div>
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-mountain-sun text-3xl text-indigo-600"></i>
+                <h1 class="text-2xl font-bold text-slate-900">Qualification Standings</h1>
             </div>
         </header>
 
-        <!-- Main Content Area -->
-        <main id="main-content">
-            <!-- This will be populated by JS -->
+        <!-- Main Content: Controls and Table -->
+        <main id="main-content" class="hidden">
+            <!-- Competition Selector -->
+            <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+                 <label for="comp-select" class="font-medium mr-2">Select Competition:</label>
+                 <select id="comp-select" class="p-2 border rounded-md bg-slate-100 w-full md:w-auto"></select>
+            </div>
+
+            <!-- Results Table -->
+            <div id="results-container" class="bg-white p-4 sm:p-6 rounded-lg shadow-md overflow-x-auto">
+                <!-- Table will be rendered here by JavaScript -->
+            </div>
         </main>
 
-        <!-- Loading Indicator -->
-        <div id="loading-indicator" class="text-center p-10">
-            <i class="fas fa-spinner fa-spin text-4xl text-indigo-600"></i>
-            <p class="mt-4 text-lg font-medium">Loading Competition Data...</p>
+        <!-- Loading / Error Indicator -->
+        <div id="indicator" class="text-center p-10">
+            <!-- Content will be set by JavaScript -->
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
             const mainContent = document.getElementById('main-content');
-            const loadingIndicator = document.getElementById('loading-indicator');
-            
-            let appData = {};
-            let currentCompId = null;
-            let currentRound = 'qualis';
+            const indicator = document.getElementById('indicator');
+            const compSelect = document.getElementById('comp-select');
+            const resultsContainer = document.getElementById('results-container');
 
-            // --- Corrected list of required Google Sheet URLs ---
-            const GOOGLE_SHEET_URLS = {
-                climbers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=937478252&single=true&output=csv',
-                comps: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=91525471&single=true&output=csv',
-                qStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1437828732&single=true&output=csv', // Corrected to use QStandings
-                fRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1749256148&single=true&output=csv',
-            };
+            // --- App State ---
+            let allStandings = [];
+            let currentComp = null;
 
-            async function fetchAndParseCSV(key, url) {
-                try {
-                    const cacheBustUrl = `${url}&_=${new Date().getTime()}`;
-                    const response = await fetch(cacheBustUrl);
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status} for sheet: ${key}`);
-                    const text = await response.text();
-                    if (text.trim().startsWith('<')) throw new Error(`Received HTML instead of CSV for sheet: ${key}.`);
-                    
-                    const lines = text.trim().split(/\r?\n/);
-                    if (lines.length < 2) return [];
-                    
-                    // *** FIX: Standardize headers to be lowercase and use underscores ***
-                    // This makes parsing immune to capitalization or spacing issues in the Sheet headers.
-                    const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[\s-]+/g, '_'));
-                    
-                    const data = lines.slice(1).map(line => {
-                        if (line.trim() === '') return null;
-                        const values = line.split(',').map(v => v.trim());
-                        return header.reduce((obj, nextKey, index) => {
-                            obj[nextKey] = values[index];
-                            return obj;
-                        }, {});
-                    }).filter(Boolean);
-                    return data;
-                } catch (error) {
-                    console.error("Fetch Error:", error);
-                    throw error;
-                }
+            // --- Data Source ---
+            // The only sheet we need for this version
+            const QSTANDINGS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pubhtml?gid=687301211&single=true';
+
+            // --- Utility Functions ---
+
+            /**
+             * Fetches and parses the QStandings CSV from Google Sheets.
+             * Standardizes headers to be lowercase with underscores.
+             */
+            async function fetchAndParseStandings(url) {
+                const cacheBustUrl = `${url}&_=${new Date().getTime()}`;
+                const response = await fetch(cacheBustUrl);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const text = await response.text();
+                if (text.trim().startsWith('<')) throw new Error(`Received an HTML page instead of CSV data. Please check the 'Publish to the web' settings in Google Sheets.`);
+                
+                const lines = text.trim().split(/\r?\n/);
+                if (lines.length < 2) return []; // No data rows
+                
+                const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[\s-]+/g, '_'));
+                
+                const data = lines.slice(1).map(line => {
+                    if (line.trim() === '') return null;
+                    const values = line.split(',').map(v => v.trim());
+                    return header.reduce((obj, nextKey, index) => {
+                        obj[nextKey] = values[index];
+                        return obj;
+                    }, {});
+                }).filter(Boolean);
+                
+                return data;
             }
 
-            async function loadAllData() {
-                loadingIndicator.style.display = 'block';
-                mainContent.style.display = 'none';
+            /**
+             * Renders the results table for the currently selected competition.
+             */
+            function renderTable() {
+                if (!currentComp) return;
+
+                // Filter the main data array for the selected competition
+                const compStandings = allStandings.filter(s => s.comp === currentComp);
                 
-                try {
-                    const dataPromises = Object.entries(GOOGLE_SHEET_URLS).map(([key, url]) =>
-                        fetchAndParseCSV(key, url).then(data => [key, data])
-                    );
-                    const dataEntries = await Promise.all(dataPromises);
-                    appData = Object.fromEntries(dataEntries);
-
-                    if (!appData.climbers || !appData.comps || appData.comps.length === 0) {
-                        throw new Error("Essential data (Climbers or Comps) could not be loaded or is empty.");
-                    }
-
-                    appData.climbersMap = new Map(appData.climbers.map(c => [c.id, c]));
-                    appData.comps.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    currentCompId = appData.comps[0].id;
-                    
-                    renderAppShell();
-                    renderResults();
-
-                } catch (error) {
-                    mainContent.innerHTML = `<div class="text-center p-10 bg-red-100 text-red-700 rounded-lg"><h2 class="font-bold text-xl">Error Loading Data</h2><p class="mt-2 text-sm">${error.message}</p></div>`;
-                } finally {
-                    loadingIndicator.style.display = 'none';
-                    mainContent.style.display = 'block';
-                }
-            }
-
-            function renderAppShell() {
-                mainContent.innerHTML = `
-                    <div class="bg-white p-4 rounded-lg shadow-md mb-6">
-                         <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-                            <div>
-                                 <label for="comp-select" class="font-medium mr-2">Competition:</label>
-                                 <select id="comp-select" class="p-2 border rounded-md bg-slate-50"></select>
-                            </div>
-                            <div id="round-selector" class="flex space-x-1 bg-slate-200 p-1 rounded-md">
-                                 <button data-round="qualis" class="round-btn bg-white text-indigo-600 font-semibold py-1 px-4 rounded-md shadow">Qualis</button>
-                                 <button data-round="finals" class="round-btn py-1 px-4 rounded-md font-semibold text-slate-600">Finals</button>
-                            </div>
-                         </div>
-                    </div>
-                    <div id="results-container" class="bg-white p-4 sm:p-6 rounded-lg shadow-md overflow-x-auto"></div>
-                `;
-
-                const compSelect = document.getElementById('comp-select');
-                appData.comps.forEach(comp => {
-                    const option = document.createElement('option');
-                    option.value = comp.id;
-                    option.textContent = comp.name;
-                    compSelect.appendChild(option);
-                });
-                compSelect.value = currentCompId;
-
-                compSelect.addEventListener('change', (e) => {
-                    currentCompId = e.target.value;
-                    renderResults();
-                });
-
-                document.getElementById('round-selector').addEventListener('click', (e) => {
-                    if (e.target.tagName === 'BUTTON') {
-                        currentRound = e.target.getAttribute('data-round');
-                        document.querySelectorAll('.round-btn').forEach(btn => {
-                            btn.classList.toggle('bg-white', btn.dataset.round === currentRound);
-                            btn.classList.toggle('text-indigo-600', btn.dataset.round === currentRound);
-                            btn.classList.toggle('shadow', btn.dataset.round === currentRound);
-                            btn.classList.toggle('text-slate-600', btn.dataset.round !== currentRound);
-                        });
-                        renderResults();
-                    }
-                });
-            }
-
-            function renderResults() {
-                const tableContainer = document.getElementById('results-container');
-                const isQualis = currentRound === 'qualis';
-                
-                const standings = isQualis ? appData.qStandings : appData.fRankings;
-
-                if (!standings) {
-                    tableContainer.innerHTML = `<p class="text-center text-slate-500 py-8">Could not load results for this round.</p>`;
-                    return;
-                }
-                
-                const compStandings = standings.filter(s => s.comp_id === currentCompId);
+                // Sort by place
+                compStandings.sort((a,b) => parseInt(a.place) - parseInt(b.place));
 
                 if (compStandings.length === 0) {
-                    tableContainer.innerHTML = `<p class="text-center text-slate-500 py-8">No results available for this round.</p>`;
+                    resultsContainer.innerHTML = `<p class="text-center text-slate-500 py-8">No results available for this competition.</p>`;
                     return;
                 }
 
-                compStandings.sort((a,b) => parseInt(a.rank) - parseInt(b.rank));
-
+                // Build the table HTML dynamically
                 let tableHTML = `
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-100">
-                                <th class="p-3 font-semibold text-sm">Rank</th>
+                                <th class="p-3 font-semibold text-sm">Place</th>
                                 <th class="p-3 font-semibold text-sm">Climber</th>
-                                <th class="p-3 font-semibold text-sm text-center">Score</th>
+                                <th class="p-3 font-semibold text-sm text-center">Quali Points</th>
+                                <th class="p-3 font-semibold text-sm text-center">Flashes</th>
+                                <th class="p-3 font-semibold text-sm text-center">Tops</th>
+                                <th class="p-3 font-semibold text-sm text-center">Zones</th>
                             </tr>
                         </thead>
                         <tbody>`;
 
                 for (const standing of compStandings) {
-                    const climber = appData.climbersMap.get(standing.climber_id);
-                    if (!climber) continue;
-
                     tableHTML += `
                         <tr class="border-b border-slate-100 hover:bg-slate-50">
-                            <td class="p-3 font-bold">${standing.rank}</td>
-                            <td class="p-3">
-                                <div class="font-medium">${climber.name}</div>
-                                <div class="text-xs text-slate-500">${climber.country}</div>
-                            </td>
-                            <td class="p-3 text-center font-semibold">${standing.score}</td>
+                            <td class="p-3 font-bold">${standing.place || '-'}</td>
+                            <td class="p-3 font-medium">${standing.climber || '-'}</td>
+                            <td class="p-3 text-center font-semibold text-indigo-600">${standing.quali_points || '-'}</td>
+                            <td class="p-3 text-center">${standing.flashes || '-'}</td>
+                            <td class="p-3 text-center">${standing.tops || '-'}</td>
+                            <td class="p-3 text-center">${standing.zones || '-'}</td>
                         </tr>
                     `;
                 }
 
                 tableHTML += `</tbody></table>`;
-                tableContainer.innerHTML = tableHTML;
+                resultsContainer.innerHTML = tableHTML;
             }
 
-            loadAllData();
+            /**
+             * Main initialization function to load data and set up the page.
+             */
+            async function init() {
+                indicator.innerHTML = `<i class="fas fa-spinner fa-spin text-4xl text-indigo-600"></i><p class="mt-4 text-lg font-medium">Loading Standings...</p>`;
+                
+                try {
+                    allStandings = await fetchAndParseStandings(QSTANDINGS_URL);
+
+                    if (allStandings.length === 0) {
+                        throw new Error("The QStandings sheet appears to be empty or could not be read.");
+                    }
+
+                    // Get a unique list of competition names from the data
+                    const compNames = [...new Set(allStandings.map(s => s.comp))];
+
+                    // Populate the dropdown
+                    compSelect.innerHTML = '';
+                    compNames.forEach(name => {
+                        const option = document.createElement('option');
+                        option.value = name;
+                        option.textContent = name;
+                        compSelect.appendChild(option);
+                    });
+
+                    // Set the initial state
+                    currentComp = compNames[0];
+                    compSelect.value = currentComp;
+
+                    // Add event listener for when the user changes selection
+                    compSelect.addEventListener('change', (e) => {
+                        currentComp = e.target.value;
+                        renderTable();
+                    });
+
+                    // Hide loading indicator and show the main content
+                    indicator.style.display = 'none';
+                    mainContent.style.display = 'block';
+
+                    // Render the initial table view
+                    renderTable();
+
+                } catch (error) {
+                    // Display any errors that occurred during setup
+                    indicator.innerHTML = `<div class="p-10 bg-red-100 text-red-700 rounded-lg"><h2 class="font-bold text-xl">Error Loading Data</h2><p class="mt-2 text-sm">${error.message}</p></div>`;
+                    indicator.style.display = 'block';
+                }
+            }
+
+            // Start the application
+            init();
         });
     </script>
 </body>
