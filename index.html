@@ -67,7 +67,10 @@
                     const lines = text.trim().split(/\r?\n/);
                     if (lines.length < 2) return [];
                     
-                    const header = lines[0].split(',').map(h => h.trim());
+                    // *** FIX: Standardize headers to be lowercase and use underscores ***
+                    // This makes parsing immune to capitalization or spacing issues in the Sheet headers.
+                    const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[\s-]+/g, '_'));
+                    
                     const data = lines.slice(1).map(line => {
                         if (line.trim() === '') return null;
                         const values = line.split(',').map(v => v.trim());
@@ -162,7 +165,6 @@
                 const tableContainer = document.getElementById('results-container');
                 const isQualis = currentRound === 'qualis';
                 
-                // *** CORRECTED LOGIC: Use qStandings for Qualis, fRankings for Finals ***
                 const standings = isQualis ? appData.qStandings : appData.fRankings;
 
                 if (!standings) {
