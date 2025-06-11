@@ -66,58 +66,13 @@
             };
 
             // --- Utility Functions ---
-            
-            function parseClimberStats(text) {
-                const lines = text.trim().split(/\r?\n/);
-                if (lines.length < 3) return [];
-
-                const topHeader = lines[0].split(',').map(h => h.trim());
-                const subHeader = lines[1].split(',').map(h => h.trim());
-                
-                const finalHeaders = [];
-                let currentPrefix = '';
-
-                for (let i = 0; i < subHeader.length; i++) {
-                    if (topHeader[i]) {
-                        currentPrefix = topHeader[i].toLowerCase().replace(/[\s-]+/g, '_');
-                    }
-                    
-                    let suffix = subHeader[i].toLowerCase().replace(/%/g, 'percent').replace(/[\s-]+/g, '_');
-                    
-                    let finalHeader;
-                    if (currentPrefix === 'climber') {
-                        finalHeader = 'climber';
-                    } else if (currentPrefix && suffix) {
-                        finalHeader = `${currentPrefix}_${suffix}`;
-                    } else {
-                        finalHeader = `column_${i}`;
-                    }
-                    finalHeaders.push(finalHeader);
-                }
-
-                const data = lines.slice(2).map(line => {
-                    if (line.trim() === '') return null;
-                    const values = line.split(',').map(v => v.trim());
-                    return finalHeaders.reduce((obj, key, index) => {
-                        obj[key] = values[index];
-                        return obj;
-                    }, {});
-                }).filter(Boolean);
-
-                return data;
-            }
-
-            async function fetchAndParseSheet(key, url) {
+            async function fetchAndParseSheet(url) {
                 const cacheBustUrl = `${url}&_=${new Date().getTime()}`;
                 const response = await fetch(cacheBustUrl);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status} for ${key}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const text = await response.text();
-                if (text.trim().startsWith('<')) throw new Error(`Received an HTML page for ${key}. Check 'Publish to the web' settings.`);
+                if (text.trim().startsWith('<')) throw new Error(`Received an HTML page instead of CSV data.`);
                 
-                if (key === 'climberStats') {
-                    return parseClimberStats(text);
-                }
-
                 const lines = text.trim().split(/\r?\n/);
                 if (lines.length < 2) return [];
                 
@@ -137,17 +92,23 @@
             
             // --- Navigation ---
             function navigate(page, context = null) {
-                mainContent.innerHTML = '';
-                headerContent.innerHTML = '';
-                controlsContainer.innerHTML = '';
-                controlsContainer.classList.add('hidden');
+                mainContent.innerHTML = ''; // Clear previous content
+                headerContent.innerHTML = ''; // Clear header
+                controlsContainer.innerHTML = ''; // Clear controls
+                controlsContainer.classList.add('hidden'); // Hide controls by default
 
-                if (page === 'home') renderHomePage();
-                else if (page === 'resultsHome') renderResultsHomePage();
-                else if (page === 'schedule') renderSchedulePage();
-                else if (page === 'climbers') renderClimbersPage();
-                else if (page === 'climberProfile') renderClimberProfilePage(context);
-                else if (page === 'resultsComp') {
+
+                if (page === 'home') {
+                    renderHomePage();
+                } else if (page === 'resultsHome') {
+                    renderResultsHomePage();
+                } else if (page === 'schedule') {
+                    renderSchedulePage();
+                } else if (page === 'climbers') {
+                    renderClimbersPage();
+                } else if (page === 'climberProfile') {
+                    renderClimberProfilePage(context);
+                } else if (page === 'resultsComp') {
                     currentComp = context;
                     renderResultsCompPage();
                 }
@@ -173,7 +134,7 @@
                          <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Results</h1>
-                    <div class="flex-1"></div>`;
+                    <div class="flex-1"></div>`; // Spacer
                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
 
                 const qComps = appData.qStandings.map(s => s.comp);
@@ -199,7 +160,7 @@
                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Schedule</h1>
-                    <div class="flex-1"></div>`;
+                    <div class="flex-1"></div>`; // Spacer
                  document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
 
                 const events = [
@@ -242,19 +203,14 @@
                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Climbers</h1>
-                    <div class="flex-1"></div>`;
+                    <div class="flex-1"></div>`; // Spacer
                  document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
                 
-                if (!appData.climbers || appData.climbers.length === 0) {
-                     mainContent.innerHTML = `<div class="mt-4 bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No climber data found. Please check the 'Climbers' sheet.</div>`;
-                     return;
-                }
-
-                const climbers = [...appData.climbers].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                const climbers = [...appData.climbers].sort((a, b) => a.name.localeCompare(b.name));
                 
                 let climberListHTML = '<div class="mt-4 space-y-2">';
                 climbers.forEach(climber => {
-                    if (climber.name && climber.name.trim() !== '') {
+                    if (climber.name) { // Ensure climber has a name
                         climberListHTML += `<button data-climber-name="${climber.name}" class="climber-btn w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold hover:bg-gray-800">${climber.name}</button>`;
                     }
                 });
@@ -272,7 +228,7 @@
                         <button id="back-to-climbers-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">${climberName}</h1>
-                    <div class="flex-1"></div>`;
+                    <div class="flex-1"></div>`; // Spacer
                 document.getElementById('back-to-climbers-btn').addEventListener('click', () => navigate('climbers'));
 
                 const climberInfo = appData.climbers.find(c => c.name === climberName);
@@ -298,38 +254,19 @@
                         </div>`;
                 }
 
-                // --- Climber Stats Boxes ---
+                // --- Climber Stats Box ---
                 if (climberStats) {
-                    const gradeStatBox = (grade, stats) => {
-                        return `
-                            <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
-                                <h3 class="text-lg font-bold text-gray-200 mb-2">Grade ${grade}</h3>
-                                <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center">
-                                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-lg text-gray-100">${stats.b || '0'}</div></div>
-                                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-lg text-gray-100">${stats.f || '0'}</div></div>
-                                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-lg text-gray-100">${stats.t || '0'}</div></div>
-                                    <div class="bg-gray-800/50 p-2 rounded-md col-span-1 sm:col-span-1"><div class="text-xs text-gray-400">Flash %</div><div class="font-bold text-lg text-gray-100">${stats.f_percent || '0%'}</div></div>
-                                    <div class="bg-gray-800/50 p-2 rounded-md col-span-2 sm:col-span-1"><div class="text-xs text-gray-400">Top %</div><div class="font-bold text-lg text-gray-100">${stats.t_percent || '0%'}</div></div>
-                                </div>
-                            </div>`;
-                    };
-
                     profileHTML += `
                         <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
                             <h3 class="text-lg font-bold text-gray-200 mb-2">All-Time Stats</h3>
                             <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
-                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Qualis</div><div class="font-bold text-xl text-gray-100">${climberStats.all_time_q || '0'}</div></div>
-                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${climberStats.all_time_b || '0'}</div></div>
-                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${climberStats.all_time_f || '0'}</div></div>
-                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${climberStats.all_time_t || '0'}</div></div>
-                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Zones</div><div class="font-bold text-xl text-gray-100">${climberStats.all_time_z || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Qualis</div><div class="font-bold text-xl text-gray-100">${climberStats.q || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${climberStats.b || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${climberStats.f || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${climberStats.t || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Zones</div><div class="font-bold text-xl text-gray-100">${climberStats.z || '0'}</div></div>
                             </div>
                         </div>`;
-
-                    profileHTML += gradeStatBox(3, { b: climberStats.grade_3_b, f: climberStats.grade_3_f, t: climberStats.grade_3_t, f_percent: climberStats.grade_3_f_percent, t_percent: climberStats.grade_3_t_percent });
-                    profileHTML += gradeStatBox(4, { b: climberStats.grade_4_b, f: climberStats.grade_4_f, t: climberStats.grade_4_t, f_percent: climberStats.grade_4_f_percent, t_percent: climberStats.grade_4_t_percent });
-                    profileHTML += gradeStatBox(5, { b: climberStats.grade_5_b, f: climberStats.grade_5_f, t: climberStats.grade_5_t, f_percent: climberStats.grade_5_f_percent, t_percent: climberStats.grade_5_t_percent });
-                    profileHTML += gradeStatBox(6, { b: climberStats.grade_6_b, f: climberStats.grade_6_f, t: climberStats.grade_6_t, f_percent: climberStats.grade_6_f_percent, t_percent: climberStats.grade_6_t_percent });
                 }
                 
                 profileHTML += '</div>';
@@ -423,7 +360,7 @@
                 
                 try {
                     const dataPromises = Object.entries(GOOGLE_SHEET_URLS).map(([key, url]) =>
-                        fetchAndParseSheet(key, url)
+                        fetchAndParseSheet(url).then(data => [key, data])
                     );
                     const dataEntries = await Promise.all(dataPromises);
                     appData = Object.fromEntries(dataEntries);
