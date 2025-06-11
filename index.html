@@ -67,13 +67,9 @@
 
             // --- Utility Functions ---
             
-            /**
-             * A specialized parser for the ClimberStats sheet with its complex 2-row header.
-             * It creates unique property names like 'all_time_q', 'grade_3_b', 'grade_4_f_percent'.
-             */
             function parseClimberStats(text) {
                 const lines = text.trim().split(/\r?\n/);
-                if (lines.length < 3) return []; // Need at least 2 header rows and 1 data row
+                if (lines.length < 3) return [];
 
                 const topHeader = lines[0].split(',').map(h => h.trim());
                 const subHeader = lines[1].split(',').map(h => h.trim());
@@ -82,12 +78,10 @@
                 let currentPrefix = '';
 
                 for (let i = 0; i < subHeader.length; i++) {
-                    // Update prefix if top header cell is not empty
                     if (topHeader[i]) {
                         currentPrefix = topHeader[i].toLowerCase().replace(/[\s-]+/g, '_');
                     }
                     
-                    // Sanitize sub-header to create the suffix
                     let suffix = subHeader[i].toLowerCase().replace(/%/g, 'percent').replace(/[\s-]+/g, '_');
                     
                     let finalHeader;
@@ -96,7 +90,7 @@
                     } else if (currentPrefix && suffix) {
                         finalHeader = `${currentPrefix}_${suffix}`;
                     } else {
-                        finalHeader = `column_${i}`; // Fallback for empty headers
+                        finalHeader = `column_${i}`;
                     }
                     finalHeaders.push(finalHeader);
                 }
@@ -120,12 +114,10 @@
                 const text = await response.text();
                 if (text.trim().startsWith('<')) throw new Error(`Received an HTML page for ${key}. Check 'Publish to the web' settings.`);
                 
-                // Use the specialized parser for the climberStats sheet
                 if (key === 'climberStats') {
                     return parseClimberStats(text);
                 }
 
-                // Standard parser for all other sheets
                 const lines = text.trim().split(/\r?\n/);
                 if (lines.length < 2) return [];
                 
@@ -253,11 +245,16 @@
                     <div class="flex-1"></div>`;
                  document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
                 
-                const climbers = [...appData.climbers].sort((a, b) => a.name.localeCompare(b.name));
+                if (!appData.climbers || appData.climbers.length === 0) {
+                     mainContent.innerHTML = `<div class="mt-4 bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No climber data found. Please check the 'Climbers' sheet is published and has data.</div>`;
+                     return;
+                }
+
+                const climbers = [...appData.climbers].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                 
                 let climberListHTML = '<div class="mt-4 space-y-2">';
                 climbers.forEach(climber => {
-                    if (climber.name) {
+                    if (climber.name && climber.name.trim() !== '') {
                         climberListHTML += `<button data-climber-name="${climber.name}" class="climber-btn w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold hover:bg-gray-800">${climber.name}</button>`;
                     }
                 });
