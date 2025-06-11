@@ -64,6 +64,7 @@
             let appData = {};
             let currentComp = null;
             let currentRound = 'qualis';
+            let currentLeaderboard = 'qualis';
             
             // --- Data Sources (Simplified) ---
             const GOOGLE_SHEET_URLS = {
@@ -75,6 +76,8 @@
                 fRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1749256148&single=true&output=csv',
                 qualis: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1964387699&single=true&output=csv',
                 finals: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=2138071685&single=true&output=csv',
+                qLeaderboard: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1921578576&single=true&output=csv',
+                cStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1940156851&single=true&output=csv'
             };
 
             // --- Utility Functions ---
@@ -172,6 +175,8 @@
                     renderResultsCompPage(context);
                 } else if (page === 'forms') {
                     renderFormsPage();
+                } else if (page === 'leaderboards') {
+                    renderLeaderboardsPage();
                 }
             }
 
@@ -183,15 +188,17 @@
                 headerContent.innerHTML = `<div class="flex-1"></div><div class="flex-1 text-center"><h1 class="text-2xl font-bold text-gray-100">Mockomps</h1></div><div class="flex-1"></div>`;
                 
                 mainContent.innerHTML = `
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 text-center">
                         <button id="results-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Results</button>
                         <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Schedule</button>
                         <button id="climbers-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Climbers</button>
+                        <button id="leaderboards-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Leaderboards</button>
                         <button id="forms-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Forms</button>
                     </div>`;
                 document.getElementById('schedule-btn').addEventListener('click', () => navigate('schedule'));
                 document.getElementById('results-btn').addEventListener('click', () => navigate('resultsHome'));
                 document.getElementById('climbers-btn').addEventListener('click', () => navigate('climbers'));
+                document.getElementById('leaderboards-btn').addEventListener('click', () => navigate('leaderboards'));
                 document.getElementById('forms-btn').addEventListener('click', () => navigate('forms'));
             }
             
@@ -274,7 +281,6 @@
 
                     if (allResultCompNames.has(compName)) {
                         const round = event.type === 'Final' ? 'finals' : event.title;
-                        // Changed text color to gray-100 (white) and hover to blue-400
                         titleHTML = `<button data-comp="${compName}" data-round="${round}" class="schedule-comp-link text-left font-semibold text-sm text-gray-100 hover:text-blue-400">${event.title}</button>`;
                     } else {
                         titleHTML = `<p class="font-semibold text-sm text-gray-100">${event.title}</p>`;
@@ -288,7 +294,6 @@
                             </div>
                             <div>
                                 ${titleHTML}
-                                <!-- Changed "Final" color from red to cyan -->
                                 <p class="text-xs ${event.type === 'Final' ? 'text-cyan-400' : 'text-gray-400'}">${event.type}</p>
                             </div>
                         </div>`;
@@ -537,11 +542,145 @@
                 });
             }
 
+            function renderLeaderboardsPage() {
+                headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Leaderboards</h1>
+                    <div class="flex-1"></div>`;
+                document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+
+                controlsContainer.classList.remove('hidden');
+                controlsContainer.innerHTML = `<div id="leaderboard-selector" class="flex justify-center gap-1 bg-gray-800 p-1 rounded-md">
+                    <button data-leaderboard="qualis" class="leaderboard-btn bg-blue-600 text-white font-semibold py-1 px-4 rounded-md shadow-md">Qualis</button>
+                    <button data-leaderboard="finals" class="leaderboard-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Finals</button>
+                </div>`;
+                
+                mainContent.innerHTML = `<div id="leaderboard-container" class="w-full"></div>`;
+
+                currentLeaderboard = 'qualis';
+                renderLeaderboardTable(currentLeaderboard);
+
+                document.getElementById('leaderboard-selector').addEventListener('click', e => {
+                    if (e.target.tagName === 'BUTTON' && e.target.dataset.leaderboard !== currentLeaderboard) {
+                        currentLeaderboard = e.target.dataset.leaderboard;
+
+                        document.querySelectorAll('.leaderboard-btn').forEach(btn => {
+                            const isSelected = btn.dataset.leaderboard === currentLeaderboard;
+                            btn.classList.toggle('bg-blue-600', isSelected);
+                            btn.classList.toggle('text-white', isSelected);
+                            btn.classList.toggle('shadow-md', isSelected);
+                            btn.classList.toggle('text-gray-300', !isSelected);
+                        });
+
+                        renderLeaderboardTable(currentLeaderboard);
+                    }
+                });
+            }
+
+            function renderLeaderboardTable(leaderboardType) {
+                const container = document.getElementById('leaderboard-container');
+                let data, headers;
+
+                if (leaderboardType === 'qualis') {
+                    data = [...appData.qLeaderboard].sort((a, b) => parseInt(a.place) - parseInt(b.place));
+                    headers = ['Circuit', 'Place', 'Climber', 'Quali Points', 'Tops', 'Zones', 'Flashes', '# Qualis'];
+                } else {
+                    data = [...appData.cStandings].sort((a, b) => parseInt(a.place) - parseInt(b.place));
+                    headers = ['Circuit', 'Place', 'Climber', 'Circuit Points', '1st', '2nd', '3rd', 'Finals', 'Flashes'];
+                }
+
+                if (data.length === 0) {
+                    container.innerHTML = `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No leaderboard data available.</div>`;
+                    return;
+                }
+
+                let mobileHTML = '<div class="md:hidden space-y-2">';
+                let desktopHTML = `<div class="hidden md:block bg-gray-900 border border-gray-800 p-4 sm:p-6 rounded-lg shadow-md"><table class="w-full border-collapse"><thead><tr class="border-b border-gray-800">${headers.map(h => `<th class="p-3 font-semibold text-sm text-left text-gray-400">${h}</th>`).join('')}</tr></thead><tbody>`;
+
+                for (const entry of data) {
+                    const climberName = entry.climber || '-';
+                    const climberButton = `<button data-climber-name="${climberName}" class="profile-link-btn text-left hover:text-blue-400 transition-colors duration-150">${climberName}</button>`;
+
+                    if (leaderboardType === 'qualis') {
+                        mobileHTML += `<div class="rounded-lg p-3 shadow-md border border-gray-800 bg-gray-900">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-3">
+                                    <span class="font-bold text-base text-gray-200 w-6">${entry.place}</span>
+                                    <span class="font-medium text-gray-100 text-sm">${climberButton}</span>
+                                </div>
+                                <div class="font-bold text-blue-400 text-base">${entry.quali_points}</div>
+                            </div>
+                            <div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700">
+                                <div>Tops <span class="block font-medium text-gray-200 text-sm">${entry.tops}</span></div>
+                                <div>Zones <span class="block font-medium text-gray-200 text-sm">${entry.zones}</span></div>
+                                <div>Flashes <span class="block font-medium text-gray-200 text-sm">${entry.flashes}</span></div>
+                                <div># Qualis <span class="block font-medium text-gray-200 text-sm">${entry.number_of_qualis}</span></div>
+                            </div>
+                        </div>`;
+                        desktopHTML += `<tr class="border-b border-gray-800 last:border-b-0 hover:bg-gray-800/50">
+                            <td class="p-3">${entry.circuit}</td>
+                            <td class="p-3 font-bold text-gray-100">${entry.place}</td>
+                            <td class="p-3 font-medium text-gray-200">${climberButton}</td>
+                            <td class="p-3 font-semibold text-blue-400">${entry.quali_points}</td>
+                            <td class="p-3">${entry.tops}</td>
+                            <td class="p-3">${entry.zones}</td>
+                            <td class="p-3">${entry.flashes}</td>
+                            <td class="p-3">${entry.number_of_qualis}</td>
+                        </tr>`;
+                    } else { // Finals
+                        mobileHTML += `<div class="rounded-lg p-3 shadow-md border border-gray-800 bg-gray-900">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-3">
+                                    <span class="font-bold text-base text-gray-200 w-6">${entry.place}</span>
+                                    <span class="font-medium text-gray-100 text-sm">${climberButton}</span>
+                                </div>
+                                <div class="font-bold text-blue-400 text-base">${entry.circuit_points}</div>
+                            </div>
+                             <div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700">
+                                <div>1st <span class="block font-medium text-gray-200 text-sm">${entry['1st']}</span></div>
+                                <div>2nd <span class="block font-medium text-gray-200 text-sm">${entry['2nd']}</span></div>
+                                <div>3rd <span class="block font-medium text-gray-200 text-sm">${entry['3rd']}</span></div>
+                                <div>Finals <span class="block font-medium text-gray-200 text-sm">${entry.finals}</span></div>
+                                <div>Flashes <span class="block font-medium text-gray-200 text-sm">${entry.flashes}</span></div>
+                            </div>
+                        </div>`;
+                        desktopHTML += `<tr class="border-b border-gray-800 last:border-b-0 hover:bg-gray-800/50">
+                            <td class="p-3">${entry.circuit}</td>
+                            <td class="p-3 font-bold text-gray-100">${entry.place}</td>
+                            <td class="p-3 font-medium text-gray-200">${climberButton}</td>
+                            <td class="p-3 font-semibold text-blue-400">${entry.circuit_points}</td>
+                            <td class="p-3">${entry['1st']}</td>
+                            <td class="p-3">${entry['2nd']}</td>
+                            <td class="p-3">${entry['3rd']}</td>
+                            <td class="p-3">${entry.finals}</td>
+                            <td class="p-3">${entry.flashes}</td>
+                        </tr>`;
+                    }
+                }
+
+                mobileHTML += '</div>';
+                desktopHTML += '</tbody></table></div>';
+                container.innerHTML = mobileHTML + desktopHTML;
+
+                container.querySelectorAll('.profile-link-btn').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const climberName = e.currentTarget.dataset.climberName;
+                        navigate('climberProfile', {
+                            climberName: climberName,
+                            from: { page: 'leaderboards' }
+                        });
+                    });
+                });
+            }
+
             async function init() {
                 indicator.innerHTML = `<i class="fas fa-spinner fa-spin text-4xl text-gray-400"></i><p class="mt-4 text-lg font-medium text-gray-300">Loading All Mockomps Data...</p>`;
                 
                 try {
                     const dataPromises = Object.entries(GOOGLE_SHEET_URLS).map(([key, url]) => {
+                        // Use a general parsing function for all sheets now
                         if (key === 'climberStats') {
                             return fetchAndParseClimberStats(url).then(data => [key, data]);
                         }
