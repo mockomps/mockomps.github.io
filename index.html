@@ -145,7 +145,6 @@
                     ...appData.qualis.map(q => ({ date: q.date, title: q.quali, type: 'Quali' })),
                     ...appData.finals.map(f => ({ date: f.date, title: f.final, type: 'Final' })),
                 ];
-                // Invert the sort order to be from most recent to least recent
                 events.sort((a,b) => new Date(b.date) - new Date(a.date));
 
                 let scheduleHTML = '<div class="space-y-4">';
@@ -232,10 +231,15 @@
                 let desktopHTML = `<div class="hidden md:block bg-white p-4 sm:p-6 rounded-lg shadow-md"><table class="w-full border-collapse"><thead><tr>${headers.map(h => `<th class="p-3 font-semibold text-sm text-left">${h}</th>`).join('')}</tr></thead><tbody>`;
                 
                 for (const standing of compStandings) {
+                    const isTop8 = isQualis && parseInt(standing.place) <= 8;
+                    const highlightClass = isTop8 ? 'bg-indigo-50' : 'bg-white';
+                    
                     const qualiStats = `<div class="flex justify-around text-center mt-3 pt-3 border-t border-slate-100"><div><div class="text-xs text-slate-500">Flashes</div><div class="font-medium text-sm">${standing.flashes || '-'}</div></div><div><div class="text-xs text-slate-500">Tops</div><div class="font-medium text-sm">${standing.tops || '-'}</div></div><div><div class="text-xs text-slate-500">Zones</div><div class="font-medium text-sm">${standing.zones || '-'}</div></div></div>`;
                     const finalStats = `<div class="flex justify-around text-center mt-3 pt-3 border-t border-slate-100"><div><div class="text-xs text-slate-500">Tops</div><div class="font-medium text-sm">${standing.tops} (${standing.top_attempts || '0'})</div></div><div><div class="text-xs text-slate-500">Zones</div><div class="font-medium text-sm">${standing.zones} (${standing.zone_attempts || '0'})</div></div></div>`;
-                    mobileHTML += `<div class="bg-white rounded-lg p-3 shadow border border-slate-200"><div class="flex justify-between items-start"><div class="flex items-center space-x-3"><span class="font-bold text-lg text-slate-700 w-6">${standing.place||'-'}</span><span class="font-medium text-slate-800">${standing.climber||'-'}</span></div>${isQualis?`<div class="font-bold text-indigo-600 text-lg">${standing.quali_points||'-'}</div>`:''}</div>${isQualis?qualiStats:finalStats}</div>`;
-                    desktopHTML += `<tr class="border-b border-slate-100 last:border-b-0 hover:bg-slate-50"><td class="p-3 font-bold text-slate-800">${standing.place||'-'}</td><td class="p-3 font-medium text-slate-800">${standing.climber||'-'}</td>${isQualis?`<td class="p-3 font-semibold text-indigo-600 text-left">${standing.quali_points||'-'}</td><td class="p-3 text-left">${standing.flashes||'-'}</td><td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td>`:`<td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.top_attempts||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td><td class="p-3 text-left">${standing.zone_attempts||'-'}</td>`}</tr>`;
+                    
+                    mobileHTML += `<div class="${highlightClass} rounded-lg p-3 shadow border border-slate-200"><div class="flex justify-between items-start"><div class="flex items-center space-x-3"><span class="font-bold text-lg text-slate-700 w-6">${standing.place||'-'}</span><span class="font-medium text-slate-800">${standing.climber||'-'}</span></div>${isQualis?`<div class="font-bold text-indigo-600 text-lg">${standing.quali_points||'-'}</div>`:''}</div>${isQualis?qualiStats:finalStats}</div>`;
+                    
+                    desktopHTML += `<tr class="border-b border-slate-100 last:border-b-0 hover:bg-slate-100 ${isTop8 ? 'bg-indigo-50' : ''}"><td class="p-3 font-bold text-slate-800">${standing.place||'-'}</td><td class="p-3 font-medium text-slate-800">${standing.climber||'-'}</td>${isQualis?`<td class="p-3 font-semibold text-indigo-600 text-left">${standing.quali_points||'-'}</td><td class="p-3 text-left">${standing.flashes||'-'}</td><td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td>`:`<td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.top_attempts||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td><td class="p-3 text-left">${standing.zone_attempts||'-'}</td>`}</tr>`;
                 }
 
                 mobileHTML += '</div>';
