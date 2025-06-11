@@ -254,12 +254,12 @@
                     let highlightClass = '';
                     
                     if (isQualisTop8) {
-                        highlightClass = 'bg-gray-800/50';
+                        highlightClass = 'bg-sky-900/40';
                     } else if (isFinalsTop3) {
-                        highlightClass = 'bg-blue-600/20';
+                        highlightClass = 'bg-sky-900/40';
                     }
                     
-                    const qualiStats = `<div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Flashes <span class="block font-medium text-gray-200 text-sm">${standing.flashes || '-'}</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '-'}</span></div><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '-'}</span></div></div>`;
+                    const qualiStats = `<div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '-'}</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '-'}</span></div><div>Flashes <span class="block font-medium text-gray-200 text-sm">${standing.flashes || '-'}</span></div></div>`;
                     const finalStats = `<div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '0'}(${standing.top_attempts || '0'})</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '0'}(${standing.zone_attempts || '0'})</span></div></div>`;
                     
                     mobileHTML += `<div class="rounded-lg p-2 shadow-md border border-gray-800 ${highlightClass || 'bg-gray-900'}"><div class="flex justify-between items-center"><div class="flex items-center space-x-2"><span class="font-bold text-base text-gray-200 w-6">${standing.place||'-'}</span><span class="font-medium text-gray-100 text-sm">${standing.climber||'-'}</span></div>${isQualis?`<div class="font-bold text-blue-400 text-base">${standing.quali_points||'-'}</div>`:''}</div>${isQualis?qualiStats:finalStats}</div>`;
