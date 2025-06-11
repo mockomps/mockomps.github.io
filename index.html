@@ -189,11 +189,11 @@
                 
                 mainContent.innerHTML = `
                     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 text-center">
-                        <button id="results-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Results</button>
-                        <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Schedule</button>
-                        <button id="climbers-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Climbers</button>
-                        <button id="leaderboards-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Leaderboards</button>
-                        <button id="forms-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl md:text-2xl">Forms</button>
+                        <button id="results-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl">Results</button>
+                        <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl">Schedule</button>
+                        <button id="climbers-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl">Climbers</button>
+                        <button id="leaderboards-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl">Leaderboards</button>
+                        <button id="forms-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl">Forms</button>
                     </div>`;
                 document.getElementById('schedule-btn').addEventListener('click', () => navigate('schedule'));
                 document.getElementById('results-btn').addEventListener('click', () => navigate('resultsHome'));
@@ -638,7 +638,7 @@
                                 </div>
                                 <div class="font-bold text-blue-400 text-base">${entry.circuit_points}</div>
                             </div>
-                             <div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700">
+                             <div class="flex flex-wrap justify-around items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700 gap-x-4 gap-y-2">
                                 <div>1st <span class="block font-medium text-gray-200 text-sm">${entry['1st']}</span></div>
                                 <div>2nd <span class="block font-medium text-gray-200 text-sm">${entry['2nd']}</span></div>
                                 <div>3rd <span class="block font-medium text-gray-200 text-sm">${entry['3rd']}</span></div>
