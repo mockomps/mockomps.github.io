@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
         /* Custom CSS to hide the scrollbar but keep functionality */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
@@ -971,8 +971,12 @@
                     const dataEntries = await Promise.all(dataPromises);
                     appData = Object.fromEntries(dataEntries);
                     
-                    // Data loaded, hide indicator and show the main app content and header
-                    indicator.style.display = 'none';
+                    // --- FIX ---
+                    // Remove the indicator from the DOM instead of just hiding it.
+                    // This prevents mobile browsers from incorrectly calculating page height.
+                    indicator.remove(); 
+                    
+                    // Data loaded, show the main app content and header
                     stickyContainer.classList.remove('hidden');
                     mainContent.classList.remove('hidden');
 
