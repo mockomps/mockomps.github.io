@@ -85,7 +85,7 @@
 
             // --- Utility Functions ---
 
-            async function fetchAndParseSheet(url) {
+            async function fetchAndParseSheet(url, isChartData = false) {
                 const cacheBustUrl = `${url}&_=${new Date().getTime()}`;
                 const response = await fetch(cacheBustUrl);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -95,7 +95,13 @@
                 const lines = text.trim().split(/\r?\n/);
                 if (lines.length < 2) return [];
                 
-                const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/\s/g, '').replace(/%/g, '_pct').replace(/#/g, 'number_of_'));
+                // Corrected header parsing logic
+                const header = lines[0].split(',').map(h => 
+                    h.trim().toLowerCase()
+                    .replace(/ %/g, '_pct') // Handles "Top %" -> "top_pct"
+                    .replace(/[\s-]+/g, '_') // Handles "Quali Points" -> "quali_points"
+                    .replace(/# /g, 'number_of_') // Handles "# Qualis"
+                );
                 
                 const data = lines.slice(1).map(line => {
                     if (line.trim() === '') return null;
@@ -540,11 +546,12 @@
 
                 const comps = [...new Set(appData.perCompGradeStats.map(d => d.comp))].sort();
 
-                const createChart = (canvasId, statType, title) => {
+                const createChart = (canvasId, statKey, title) => {
+                    const isMobile = window.innerWidth <= 768;
                     const datasets = Object.keys(gradeColors).map(grade => {
                         const data = comps.map(comp => {
                             const record = climberData.find(d => d.comp === comp && d.grade === grade);
-                            return record ? parseFloat(record[statType]) : null;
+                            return record ? parseFloat(record[statKey]) : null;
                         });
                         return {
                             label: `Grade ${grade}`,
@@ -554,8 +561,8 @@
                             fill: false,
                             tension: 0.1,
                             spanGaps: true,
-                            borderWidth: 2,
-                            pointRadius: 3
+                            borderWidth: isMobile ? 1.5 : 2,
+                            pointRadius: isMobile ? 2 : 3,
                         };
                     });
 
@@ -568,15 +575,19 @@
                         options: {
                             responsive: true,
                             maintainAspectRatio: true,
+                            layout: {
+                                padding: { top: isMobile ? 10 : 0 }
+                            },
                             plugins: {
-                                title: { display: true, text: title, color: '#e2e8f0', font: { size: 14 } },
+                                title: { display: true, text: title, color: '#e2e8f0', font: { size: isMobile ? 14 : 16 }, padding: { top: 0, bottom: isMobile ? 5 : 10 } },
                                 legend: { display: false }
                             },
                             scales: {
                                 y: {
-                                    display: false,
+                                    display: !isMobile,
                                     beginAtZero: true,
                                     max: 100,
+                                    ticks: { color: '#94a3b8', callback: value => value + '%' },
                                     grid: { color: 'rgba(55, 65, 81, 0.5)' }
                                 },
                                 x: {
