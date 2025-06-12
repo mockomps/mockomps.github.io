@@ -18,6 +18,10 @@
             -ms-overflow-style: none;  /* IE and Edge */
             scrollbar-width: none;  /* Firefox */
         }
+        /* Prevents horizontal scroll on a child from affecting the parent page scroll */
+        .h-scroll {
+            overscroll-behavior-x: contain;
+        }
     </style>
 </head>
 <body class="bg-gray-950 text-slate-300">
@@ -408,7 +412,7 @@
                 controlsContainer.classList.remove('hidden');
                 // Standardized control container
                 controlsContainer.innerHTML = `<div class="flex justify-center">
-                    <div id="climber-profile-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar scroll-x-fast">
+                    <div id="climber-profile-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
                         <button data-tab="profile" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Profile</button>
                         <button data-tab="progress" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Progress</button>
                         <button data-tab="history" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">History</button>
@@ -711,7 +715,7 @@
                 controlsContainer.classList.remove('hidden');
                 // Standardized control container
                  controlsContainer.innerHTML = `<div class="flex justify-center">
-                    <div id="round-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar scroll-x-fast">
+                    <div id="round-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
                         ${roundButtonsHTML}
                     </div>
                  </div>`;
@@ -825,7 +829,7 @@
                 controlsContainer.classList.remove('hidden');
                 // Standardized control container
                 controlsContainer.innerHTML = `<div class="flex justify-center">
-                    <div id="leaderboard-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar scroll-x-fast">
+                    <div id="leaderboard-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
                         <button data-leaderboard="qualis" class="leaderboard-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Qualis</button>
                         <button data-leaderboard="finals" class="leaderboard-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Finals</button>
                     </div>
