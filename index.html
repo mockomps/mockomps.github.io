@@ -33,7 +33,7 @@
                 </div>
             </header>
              <!-- Round Selector Container - only shown on results page -->
-            <div id="controls-container" class="hidden mt-4 flex justify-center">
+            <div id="controls-container" class="hidden mt-4">
                  <!-- Content will be rendered here for results page -->
             </div>
         </div>
@@ -406,10 +406,13 @@
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 controlsContainer.classList.remove('hidden');
-                controlsContainer.innerHTML = `<div id="climber-profile-selector" class="flex justify-center gap-1 bg-gray-800 p-1 rounded-md">
-                    <button data-tab="profile" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Profile</button>
-                    <button data-tab="progress" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Progress</button>
-                    <button data-tab="history" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">History</button>
+                // BUG FIX: Wrap the selector in a centering div and use inline-flex to make it shrink-to-fit
+                controlsContainer.innerHTML = `<div class="flex justify-center">
+                    <div id="climber-profile-selector" class="inline-flex gap-1 bg-gray-800 p-1 rounded-md">
+                        <button data-tab="profile" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Profile</button>
+                        <button data-tab="progress" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Progress</button>
+                        <button data-tab="history" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">History</button>
+                    </div>
                 </div>`;
                 
                 mainContent.innerHTML = `<div id="climber-tab-content"></div>`;
@@ -706,9 +709,11 @@
                 roundButtonsHTML += `<button data-round="finals" class="round-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Final</button>`;
                 
                 controlsContainer.classList.remove('hidden');
-                // BUG FIX: Removed justify-start and md:justify-center. The parent handles centering.
-                // This allows overflow scrolling to work correctly on mobile.
-                controlsContainer.innerHTML = `<div id="round-selector" class="flex overflow-x-auto whitespace-nowrap no-scrollbar gap-1 bg-gray-800 p-1 rounded-md">${roundButtonsHTML}</div>`;
+                // BUG FIX: Simplified the container to a single flex div that scrolls.
+                // It aligns left on mobile (to enable scrolling from the start) and centers on larger screens when there's no overflow.
+                controlsContainer.innerHTML = `<div id="round-selector" class="flex items-center overflow-x-auto whitespace-nowrap no-scrollbar justify-start md:justify-center gap-1 bg-gray-800 p-1 rounded-md">
+                    ${roundButtonsHTML}
+                </div>`;
 
                 mainContent.innerHTML = `<div id="results-container" class="w-full"></div>`;
                 
