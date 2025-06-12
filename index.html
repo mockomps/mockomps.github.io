@@ -28,30 +28,21 @@
 
     <div id="app" class="container mx-auto p-4 max-w-7xl">
         
-        <!-- Header is hidden by default, shown after data loads -->
         <div id="sticky-container" class="sticky top-0 z-10 bg-gray-950 pt-4 pb-4 hidden">
-             <!-- Header -->
-            <header id="header-container" class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+             <header id="header-container" class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
                 <div id="header-content" class="flex items-center justify-between">
-                    <!-- Header content will be dynamically generated -->
-                </div>
+                    </div>
             </header>
-             <!-- Round Selector Container - only shown on results page -->
-            <div id="controls-container" class="hidden mt-4">
-                 <!-- Content will be rendered here for results page -->
-            </div>
+             <div id="controls-container" class="hidden mt-4">
+                 </div>
         </div>
 
 
-        <!-- Main Content Area, hidden until data loads -->
         <main id="main-content" class="hidden">
-            <!-- Content will be rendered here by JavaScript -->
-        </main>
+            </main>
 
-        <!-- Loading / Error Indicator - centered on the screen -->
         <div id="indicator" class="flex flex-col items-center justify-center min-h-screen -mt-20">
-            <!-- Content will be set by JavaScript -->
-        </div>
+            </div>
     </div>
 
     <script>
@@ -862,7 +853,7 @@
                     </div>
                     <div class="flex-1 text-center">
                         <h1 class="text-2xl font-bold text-gray-100">${climberName}</h1>
-                        <h2 class="text-sm font-medium text-gray-400">${qualiName}</h2>
+                        <h2 class="text-sm font-medium text-gray-400 mt-1">${qualiName}</h2>
                     </div>
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
@@ -890,12 +881,11 @@
                 let resultsHTML = '<div class="space-y-3">';
                 qualiBoulders.forEach(boulder => {
                     const result = climberResults[boulder.name.toLowerCase()] || 'Nothing';
-                    // Corrected to use 'grade' for the grade number, and 'a' for the room.
                     const grade = boulder.grade || '';
                     const room = boulder.a || '';
 
                     resultsHTML += `
-                        <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm flex items-center justify-between space-x-4">
+                        <div class="bg-gray-900 border border-gray-800 px-4 py-3 rounded-lg shadow-sm flex items-center justify-between space-x-4">
                             <div class="flex items-center space-x-4">
                                 <div class="font-bold text-xl text-gray-200 w-8 text-center">${boulder.name}</div>
                                 <div>
@@ -923,7 +913,7 @@
                     </div>
                     <div class="flex-1 text-center">
                         <h1 class="text-2xl font-bold text-gray-100">${climberName}</h1>
-                        <h2 class="text-sm font-medium text-gray-400">${compName} Qualis</h2>
+                        <h2 class="text-sm font-medium text-gray-400 mt-1">${compName} Qualis</h2>
                     </div>
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
@@ -967,7 +957,7 @@
                             const room = boulder.a || '';
 
                             resultsHTML += `
-                                <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm flex items-center justify-between space-x-4">
+                                <div class="bg-gray-900 border border-gray-800 px-4 py-3 rounded-lg shadow-sm flex items-center justify-between space-x-4">
                                     <div class="flex items-center space-x-4">
                                         <div class="font-bold text-xl text-gray-200 w-8 text-center">${boulder.name}</div>
                                         <div>
@@ -984,7 +974,7 @@
                         resultsHTML += '</div>';
                         finalHTML += resultsHTML;
                     } else {
-                        finalHTML += `<div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-center text-gray-400">No results found for this round.</div>`;
+                        finalHTML += `<div class="bg-gray-900 border border-gray-800 px-4 py-3 rounded-lg shadow-sm text-center text-gray-400">No results found for this round.</div>`;
                     }
                     finalHTML += `</div>`;
                 });
