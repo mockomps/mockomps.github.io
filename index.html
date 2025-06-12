@@ -406,9 +406,9 @@
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 controlsContainer.classList.remove('hidden');
-                // BUG FIX: Wrap the selector in a centering div and use inline-flex to make it shrink-to-fit
+                // Standardized control container
                 controlsContainer.innerHTML = `<div class="flex justify-center">
-                    <div id="climber-profile-selector" class="inline-flex gap-1 bg-gray-800 p-1 rounded-md">
+                    <div id="climber-profile-selector" class="inline-flex overflow-x-auto whitespace-nowrap no-scrollbar gap-1 bg-gray-800 p-1 rounded-md">
                         <button data-tab="profile" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Profile</button>
                         <button data-tab="progress" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Progress</button>
                         <button data-tab="history" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">History</button>
@@ -709,10 +709,11 @@
                 roundButtonsHTML += `<button data-round="finals" class="round-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Final</button>`;
                 
                 controlsContainer.classList.remove('hidden');
-                // BUG FIX: Simplified the container to a single flex div that scrolls.
-                // It aligns left on mobile (to enable scrolling from the start) and centers on larger screens when there's no overflow.
-                controlsContainer.innerHTML = `<div id="round-selector" class="flex items-center overflow-x-auto whitespace-nowrap no-scrollbar justify-start md:justify-center gap-1 bg-gray-800 p-1 rounded-md">
-                    ${roundButtonsHTML}
+                // Standardized control container
+                controlsContainer.innerHTML = `<div class="flex justify-center">
+                    <div id="round-selector" class="inline-flex overflow-x-auto whitespace-nowrap no-scrollbar gap-1 bg-gray-800 p-1 rounded-md">
+                        ${roundButtonsHTML}
+                    </div>
                 </div>`;
 
                 mainContent.innerHTML = `<div id="results-container" class="w-full"></div>`;
@@ -822,28 +823,34 @@
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 controlsContainer.classList.remove('hidden');
-                controlsContainer.innerHTML = `<div id="leaderboard-selector" class="flex justify-center gap-1 bg-gray-800 p-1 rounded-md">
-                    <button data-leaderboard="qualis" class="leaderboard-btn bg-blue-600 text-white font-semibold py-1 px-4 rounded-md shadow-md">Qualis</button>
-                    <button data-leaderboard="finals" class="leaderboard-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Finals</button>
+                // Standardized control container
+                controlsContainer.innerHTML = `<div class="flex justify-center">
+                    <div id="leaderboard-selector" class="inline-flex overflow-x-auto whitespace-nowrap no-scrollbar gap-1 bg-gray-800 p-1 rounded-md">
+                        <button data-leaderboard="qualis" class="leaderboard-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Qualis</button>
+                        <button data-leaderboard="finals" class="leaderboard-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Finals</button>
+                    </div>
                 </div>`;
                 
                 mainContent.innerHTML = `<div id="leaderboard-container" class="w-full"></div>`;
+                
+                function setActiveLeaderboardButton() {
+                    document.querySelectorAll('.leaderboard-btn').forEach(btn => {
+                        const isSelected = btn.dataset.leaderboard === currentLeaderboard;
+                        btn.classList.toggle('bg-blue-600', isSelected);
+                        btn.classList.toggle('text-white', isSelected);
+                        btn.classList.toggle('shadow-md', isSelected);
+                        btn.classList.toggle('text-gray-300', !isSelected);
+                    });
+                }
 
                 currentLeaderboard = 'qualis';
+                setActiveLeaderboardButton();
                 renderLeaderboardTable(currentLeaderboard);
 
                 document.getElementById('leaderboard-selector').addEventListener('click', e => {
                     if (e.target.tagName === 'BUTTON' && e.target.dataset.leaderboard !== currentLeaderboard) {
                         currentLeaderboard = e.target.dataset.leaderboard;
-
-                        document.querySelectorAll('.leaderboard-btn').forEach(btn => {
-                            const isSelected = btn.dataset.leaderboard === currentLeaderboard;
-                            btn.classList.toggle('bg-blue-600', isSelected);
-                            btn.classList.toggle('text-white', isSelected);
-                            btn.classList.toggle('shadow-md', isSelected);
-                            btn.classList.toggle('text-gray-300', !isSelected);
-                        });
-
+                        setActiveLeaderboardButton();
                         renderLeaderboardTable(currentLeaderboard);
                     }
                 });
