@@ -389,7 +389,7 @@
                     <button data-tab="history" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">History</button>
                 </div>`;
                 
-                mainContent.innerHTML = `<div id="climber-tab-content" class="mt-4"></div>`;
+                mainContent.innerHTML = `<div id="climber-tab-content"></div>`;
 
                 renderClimberTabContent(climberName);
 
@@ -490,45 +490,53 @@
             }
 
             function getOrdinal(n) {
-                if (isNaN(n)) return n;
+                if (isNaN(n) || n === null || n === '') return n;
+                const num = parseInt(n, 10);
+                if (isNaN(num)) return n;
                 const s = ["th", "st", "nd", "rd"];
-                const v = n % 100;
-                return n + (s[(v - 20) % 10] || s[v] || s[0]);
+                const v = num % 100;
+                return num + (s[(v - 20) % 10] || s[v] || s[0]);
             }
 
             function renderClimberProfile_HistoryTab(container, climberName) {
                 const compDateMap = new Map(appData.comps.map(c => [c.comp, new Date(c.start)]));
-                let history = [];
+                const historyByComp = {};
 
                 appData.qStandings
                     .filter(s => s.climber === climberName)
                     .forEach(s => {
-                        history.push({
-                            date: compDateMap.get(s.comp) || new Date(0),
-                            text: `<strong>${s.comp}:</strong> ${getOrdinal(s.place)} place in Qualis`
-                        });
+                        if (!historyByComp[s.comp]) {
+                            historyByComp[s.comp] = { date: compDateMap.get(s.comp) || new Date(0), results: [] };
+                        }
+                        historyByComp[s.comp].results.push(`<span class="text-gray-400 font-semibold">Qualis</span> <strong class="text-white">${getOrdinal(s.place)} place</strong>`);
                     });
 
                 appData.fRankings
                     .filter(s => s.climber === climberName)
                     .forEach(s => {
                         const compName = (s.final || '').replace(/F$/, '');
-                        history.push({
-                            date: compDateMap.get(compName) || new Date(0),
-                            text: `<strong>${compName}:</strong> ${getOrdinal(s.place)} place in Finals`
-                        });
+                        if (!historyByComp[compName]) {
+                            historyByComp[compName] = { date: compDateMap.get(compName) || new Date(0), results: [] };
+                        }
+                        historyByComp[compName].results.push(`<span class="text-cyan-400 font-semibold">Finals</span> <strong class="text-white">${getOrdinal(s.place)} place</strong>`);
                     });
+                
+                const sortedHistory = Object.entries(historyByComp).sort(([, a], [, b]) => b.date - a.date);
 
-                history.sort((a, b) => b.date - a.date);
-
-                if (history.length === 0) {
+                if (sortedHistory.length === 0) {
                     container.innerHTML = `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No competition history found.</div>`;
                     return;
                 }
 
-                let historyHTML = '<div class="space-y-2">';
-                history.forEach(item => {
-                    historyHTML += `<div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold">${item.text}</div>`;
+                let historyHTML = '<div class="space-y-4">';
+                sortedHistory.forEach(([compName, data]) => {
+                    historyHTML += `<div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm">
+                        <h3 class="font-bold text-lg text-gray-100 mb-2">${compName}</h3>
+                        <div class="space-y-1 text-gray-200">`;
+                    data.results.forEach(resultText => {
+                        historyHTML += `<p>${resultText}</p>`;
+                    });
+                    historyHTML += `</div></div>`;
                 });
                 historyHTML += '</div>';
                 container.innerHTML = historyHTML;
