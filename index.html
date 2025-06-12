@@ -65,6 +65,7 @@
             let currentComp = null;
             let currentRound = 'qualis';
             let currentLeaderboard = 'qualis';
+            let currentClimberTab = 'profile';
             
             // --- Data Sources (Simplified) ---
             const GOOGLE_SHEET_URLS = {
@@ -321,7 +322,7 @@
 
                 mainContent.innerHTML = `
                     <div class="mb-4">
-                        <input type="text" id="climber-search" placeholder="Search for a climber..." class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                        <input type="text" id="climber-search" placeholder="Search for a climber..." class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-gray-700">
                     </div>
                     <div id="climber-list-container" class="space-y-2"></div>
                 `;
@@ -364,8 +365,11 @@
                 });
             }
 
+            // --- New Climber Profile Functions ---
+
             function renderClimberProfilePage(context) {
                 const { climberName, from } = context;
+                currentClimberTab = 'profile'; // Reset to default tab
 
                 headerContent.innerHTML = `
                     <div class="flex-1">
@@ -378,6 +382,47 @@
                     navigate(from.page, from.context);
                 });
 
+                controlsContainer.classList.remove('hidden');
+                controlsContainer.innerHTML = `<div id="climber-profile-selector" class="flex justify-center gap-1 bg-gray-800 p-1 rounded-md">
+                    <button data-tab="profile" class="climber-tab-btn bg-blue-600 text-white font-semibold py-1 px-4 rounded-md shadow-md">Profile</button>
+                    <button data-tab="progress" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Progress</button>
+                    <button data-tab="history" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">History</button>
+                </div>`;
+                
+                mainContent.innerHTML = `<div id="climber-tab-content" class="mt-4"></div>`;
+
+                renderClimberTabContent(climberName);
+
+                document.getElementById('climber-profile-selector').addEventListener('click', e => {
+                    if (e.target.tagName === 'BUTTON' && e.target.dataset.tab !== currentClimberTab) {
+                        currentClimberTab = e.target.dataset.tab;
+
+                        document.querySelectorAll('.climber-tab-btn').forEach(btn => {
+                            const isSelected = btn.dataset.tab === currentClimberTab;
+                            btn.classList.toggle('bg-blue-600', isSelected);
+                            btn.classList.toggle('text-white', isSelected);
+                            btn.classList.toggle('shadow-md', isSelected);
+                            btn.classList.toggle('text-gray-300', !isSelected);
+                        });
+
+                        renderClimberTabContent(climberName);
+                    }
+                });
+            }
+
+            function renderClimberTabContent(climberName) {
+                const container = document.getElementById('climber-tab-content');
+                container.innerHTML = '';
+                if (currentClimberTab === 'profile') {
+                    renderClimberProfile_ProfileTab(container, climberName);
+                } else if (currentClimberTab === 'progress') {
+                    renderClimberProfile_ProgressTab(container, climberName);
+                } else if (currentClimberTab === 'history') {
+                    renderClimberProfile_HistoryTab(container, climberName);
+                }
+            }
+
+            function renderClimberProfile_ProfileTab(container, climberName) {
                 const climberInfo = appData.climbers.find(c => c.name === climberName);
                 const climberStats = appData.climberStats.find(s => s.climber === climberName);
 
@@ -389,7 +434,7 @@
                         const handle = climberInfo.instagram.replace(/^@/, '');
                         instaHTML = `<a href="https://instagram.com/${handle}" target="_blank" class="text-blue-400 hover:underline">@${handle}</a>`;
                     }
-                     profileHTML += `
+                    profileHTML += `
                         <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
                             <h2 class="text-xl font-bold text-gray-100 mb-2">${climberInfo.name}</h2>
                             <div class="text-sm space-y-1 text-gray-300">
@@ -432,13 +477,65 @@
                     profileHTML += createGradeStatBox(5, climberStats);
                     profileHTML += createGradeStatBox(6, climberStats);
                     profileHTML += `</div>`;
-                } else {
-                    profileHTML += `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No detailed stats available for this climber.</div>`;
+                } else if (!climberInfo) {
+                    profileHTML += `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No profile information available for this climber.</div>`;
                 }
                 
                 profileHTML += '</div>';
-                mainContent.innerHTML = profileHTML;
+                container.innerHTML = profileHTML;
             }
+
+            function renderClimberProfile_ProgressTab(container, climberName) {
+                container.innerHTML = `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">Progress data will be available soon.</div>`;
+            }
+
+            function getOrdinal(n) {
+                if (isNaN(n)) return n;
+                const s = ["th", "st", "nd", "rd"];
+                const v = n % 100;
+                return n + (s[(v - 20) % 10] || s[v] || s[0]);
+            }
+
+            function renderClimberProfile_HistoryTab(container, climberName) {
+                const compDateMap = new Map(appData.comps.map(c => [c.comp, new Date(c.start)]));
+                let history = [];
+
+                appData.qStandings
+                    .filter(s => s.climber === climberName)
+                    .forEach(s => {
+                        history.push({
+                            date: compDateMap.get(s.comp) || new Date(0),
+                            text: `<strong>${s.comp}:</strong> ${getOrdinal(s.place)} place in Qualis`
+                        });
+                    });
+
+                appData.fRankings
+                    .filter(s => s.climber === climberName)
+                    .forEach(s => {
+                        const compName = (s.final || '').replace(/F$/, '');
+                        history.push({
+                            date: compDateMap.get(compName) || new Date(0),
+                            text: `<strong>${compName}:</strong> ${getOrdinal(s.place)} place in Finals`
+                        });
+                    });
+
+                history.sort((a, b) => b.date - a.date);
+
+                if (history.length === 0) {
+                    container.innerHTML = `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No competition history found.</div>`;
+                    return;
+                }
+
+                let historyHTML = '<div class="space-y-2">';
+                history.forEach(item => {
+                    historyHTML += `<div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold">${item.text}</div>`;
+                });
+                historyHTML += '</div>';
+                container.innerHTML = historyHTML;
+            }
+
+
+            // --- Results & Leaderboards ---
 
             function renderResultsCompPage(context) {
                 const pageContext = context;
@@ -608,7 +705,7 @@
 
                 if (leaderboardType === 'qualis') {
                     data = [...appData.qLeaderboard].sort((a, b) => parseInt(a.place) - parseInt(b.place));
-                    headers = ['Circuit', 'Place', 'Climber', 'Quali Points', 'Tops', 'Zones', 'Flashes', '# Qualis'];
+                    headers = ['Circuit', 'Place', 'Climber', 'Quali Points', 'Tops', 'Zones', 'Flashes', 'Qualis'];
                 } else {
                     data = [...appData.cStandings].sort((a, b) => parseInt(a.place) - parseInt(b.place));
                     headers = ['Circuit', 'Place', 'Climber', 'Circuit Points', '1st', '2nd', '3rd', 'Finals', 'Flashes'];
@@ -639,7 +736,7 @@
                                 <div>Tops <span class="block font-medium text-gray-200 text-sm">${entry.tops}</span></div>
                                 <div>Zones <span class="block font-medium text-gray-200 text-sm">${entry.zones}</span></div>
                                 <div>Flashes <span class="block font-medium text-gray-200 text-sm">${entry.flashes}</span></div>
-                                <div># Qualis <span class="block font-medium text-gray-200 text-sm">${entry.number_of_qualis}</span></div>
+                                <div>Qualis <span class="block font-medium text-gray-200 text-sm">${entry.number_of_qualis}</span></div>
                             </div>
                         </div>`;
                         desktopHTML += `<tr class="border-b border-gray-800 last:border-b-0 hover:bg-gray-800/50">
