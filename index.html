@@ -407,12 +407,10 @@
 
                 controlsContainer.classList.remove('hidden');
                 // Standardized control container
-                controlsContainer.innerHTML = `<div class="flex justify-center">
-                    <div id="climber-profile-selector" class="inline-flex overflow-x-auto whitespace-nowrap no-scrollbar gap-1 bg-gray-800 p-1 rounded-md">
-                        <button data-tab="profile" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Profile</button>
-                        <button data-tab="progress" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Progress</button>
-                        <button data-tab="history" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">History</button>
-                    </div>
+                controlsContainer.innerHTML = `<div id="climber-profile-selector" class="flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar justify-start md:justify-center">
+                    <button data-tab="profile" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Profile</button>
+                    <button data-tab="progress" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Progress</button>
+                    <button data-tab="history" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">History</button>
                 </div>`;
                 
                 mainContent.innerHTML = `<div id="climber-tab-content"></div>`;
@@ -702,18 +700,16 @@
                 let roundButtonsHTML = '';
                 individualQualiRounds.forEach(roundName => {
                     const shortName = roundName.replace(currentComp, '');
-                    roundButtonsHTML += `<button data-round="${roundName}" class="round-btn text-gray-300 font-semibold py-1 px-4 rounded-md">${shortName}</button>`;
+                    roundButtonsHTML += `<button data-round="${roundName}" class="round-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">${shortName}</button>`;
                 });
                 
-                roundButtonsHTML += `<button data-round="qualis" class="round-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Qualis</button>`;
-                roundButtonsHTML += `<button data-round="finals" class="round-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Final</button>`;
+                roundButtonsHTML += `<button data-round="qualis" class="round-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Qualis</button>`;
+                roundButtonsHTML += `<button data-round="finals" class="round-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Final</button>`;
                 
                 controlsContainer.classList.remove('hidden');
                 // Standardized control container
-                controlsContainer.innerHTML = `<div class="flex justify-center">
-                    <div id="round-selector" class="inline-flex overflow-x-auto whitespace-nowrap no-scrollbar gap-1 bg-gray-800 p-1 rounded-md">
-                        ${roundButtonsHTML}
-                    </div>
+                 controlsContainer.innerHTML = `<div id="round-selector" class="flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar justify-start md:justify-center">
+                    ${roundButtonsHTML}
                 </div>`;
 
                 mainContent.innerHTML = `<div id="results-container" class="w-full"></div>`;
@@ -824,11 +820,9 @@
 
                 controlsContainer.classList.remove('hidden');
                 // Standardized control container
-                controlsContainer.innerHTML = `<div class="flex justify-center">
-                    <div id="leaderboard-selector" class="inline-flex overflow-x-auto whitespace-nowrap no-scrollbar gap-1 bg-gray-800 p-1 rounded-md">
-                        <button data-leaderboard="qualis" class="leaderboard-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Qualis</button>
-                        <button data-leaderboard="finals" class="leaderboard-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Finals</button>
-                    </div>
+                controlsContainer.innerHTML = `<div id="leaderboard-selector" class="flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar justify-start md:justify-center">
+                    <button data-leaderboard="qualis" class="leaderboard-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Qualis</button>
+                    <button data-leaderboard="finals" class="leaderboard-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Finals</button>
                 </div>`;
                 
                 mainContent.innerHTML = `<div id="leaderboard-container" class="w-full"></div>`;
