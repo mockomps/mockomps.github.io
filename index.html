@@ -706,7 +706,9 @@
                 roundButtonsHTML += `<button data-round="finals" class="round-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Final</button>`;
                 
                 controlsContainer.classList.remove('hidden');
-                controlsContainer.innerHTML = `<div id="round-selector" class="flex overflow-x-auto whitespace-nowrap no-scrollbar justify-start md:justify-center gap-1 bg-gray-800 p-1 rounded-md">${roundButtonsHTML}</div>`;
+                // BUG FIX: Removed justify-start and md:justify-center. The parent handles centering.
+                // This allows overflow scrolling to work correctly on mobile.
+                controlsContainer.innerHTML = `<div id="round-selector" class="flex overflow-x-auto whitespace-nowrap no-scrollbar gap-1 bg-gray-800 p-1 rounded-md">${roundButtonsHTML}</div>`;
 
                 mainContent.innerHTML = `<div id="results-container" class="w-full"></div>`;
                 
@@ -729,7 +731,7 @@
                         pageContext.round = currentRound; // Update context for back navigation from profile
                         setActiveRoundButton();
                         renderResultsTable(pageContext);
-                     }
+                   }
                 });
             }
             
