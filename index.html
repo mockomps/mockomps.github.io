@@ -95,12 +95,11 @@
                 const lines = text.trim().split(/\r?\n/);
                 if (lines.length < 2) return [];
                 
-                // Corrected header parsing logic
                 const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/\s/g, '').replace(/%/g, '_pct').replace(/#/g, 'number_of_'));
                 
                 const data = lines.slice(1).map(line => {
                     if (line.trim() === '') return null;
-                    const values = line.split(',').map(v => v.trim());
+                    const values = line.split(',').map(v => v.trim().replace('%',''));
                     return header.reduce((obj, nextKey, index) => {
                         obj[nextKey] = values[index];
                         return obj;
@@ -142,7 +141,7 @@
 
                 const data = lines.slice(2).map(line => {
                     if (line.trim() === '') return null;
-                    const values = line.split(',').map(v => v.trim());
+                    const values = line.split(',').map(v => v.trim().replace('%',''));
                     return combinedHeader.reduce((obj, nextKey, index) => {
                         obj[nextKey] = values[index] || '';
                         return obj;
@@ -507,27 +506,39 @@
             }
 
             function renderClimberProfile_ProgressTab(container, climberName) {
-                container.innerHTML = `<div class="space-y-4">
-                    <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm"><canvas id="topsChart"></canvas></div>
-                    <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm"><canvas id="zonesChart"></canvas></div>
-                    <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm"><canvas id="flashesChart"></canvas></div>
-                </div>`;
-                
                 const climberData = appData.perCompGradeStats.filter(d => d.climber === climberName);
                 
                 if (climberData.length === 0) {
                     container.innerHTML = `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No progress data available for this climber.</div>`;
                     return;
                 }
-
-                const comps = [...new Set(appData.perCompGradeStats.map(d => d.comp))].sort();
-
+                
                 const gradeColors = {
                     '3': '#facc15', // yellow-400
                     '4': '#fb923c', // orange-400
                     '5': '#f87171', // red-400
                     '6': '#c084fc', // purple-400
                 };
+
+                let legendHTML = '<div class="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-4">';
+                for (const grade in gradeColors) {
+                    legendHTML += `<div class="flex items-center space-x-2 text-sm">
+                        <div class="w-3 h-3 rounded-full" style="background-color: ${gradeColors[grade]}"></div>
+                        <span class="text-gray-400">Grade ${grade}</span>
+                    </div>`;
+                }
+                legendHTML += '</div>';
+
+                container.innerHTML = `<div>
+                    ${legendHTML}
+                    <div class="space-y-4">
+                        <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm"><canvas id="topsChart"></canvas></div>
+                        <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm"><canvas id="zonesChart"></canvas></div>
+                        <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm"><canvas id="flashesChart"></canvas></div>
+                    </div>
+                </div>`;
+
+                const comps = [...new Set(appData.perCompGradeStats.map(d => d.comp))].sort();
 
                 const createChart = (canvasId, statType, title) => {
                     const datasets = Object.keys(gradeColors).map(grade => {
@@ -554,19 +565,20 @@
                         },
                         options: {
                             responsive: true,
+                            maintainAspectRatio: true,
                             plugins: {
                                 title: { display: true, text: title, color: '#e2e8f0', font: { size: 16 } },
-                                legend: { position: 'top', labels: { color: '#94a3b8' } }
+                                legend: { display: false }
                             },
                             scales: {
                                 y: {
+                                    display: false,
                                     beginAtZero: true,
                                     max: 100,
-                                    ticks: { color: '#94a3b8', callback: value => value + '%' },
                                     grid: { color: 'rgba(55, 65, 81, 0.5)' }
                                 },
                                 x: {
-                                    ticks: { color: '#94a3b8' },
+                                    ticks: { color: '#94a3b8', autoSkip: true, maxRotation: 0, minRotation: 0 },
                                     grid: { display: false }
                                 }
                             }
