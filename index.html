@@ -210,8 +210,11 @@
                          <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Forms</h1>
-                    <div class="flex-1"></div>`;
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 mainContent.innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
@@ -226,8 +229,11 @@
                          <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Results</h1>
-                    <div class="flex-1"></div>`; 
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`; 
                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 const qComps = appData.qStandings.map(s => s.comp);
                 const fComps = appData.fRankings.map(s => (s.final || '').replace(/F$/, ''));
@@ -242,7 +248,7 @@
                 mainContent.innerHTML = compGridHTML;
 
                 document.querySelectorAll('.comp-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => navigate('resultsComp', { comp: e.target.dataset.comp, from: 'resultsHome' }));
+                    btn.addEventListener('click', (e) => navigate('resultsComp', { comp: e.target.dataset.comp, from: { page: 'resultsHome' } }));
                 });
             }
             
@@ -252,8 +258,11 @@
                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Schedule</h1>
-                    <div class="flex-1"></div>`;
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
                  document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 const events = [
                     ...appData.qualis.map(q => ({ date: q.date, title: q.quali, type: 'Quali' })),
@@ -306,7 +315,7 @@
                     btn.addEventListener('click', e => {
                         const compName = e.currentTarget.dataset.comp;
                         const roundName = e.currentTarget.dataset.round;
-                        navigate('resultsComp', { comp: compName, round: roundName, from: 'schedule' });
+                        navigate('resultsComp', { comp: compName, round: roundName, from: { page: 'schedule' } });
                     });
                 });
             }
@@ -317,8 +326,11 @@
                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Climbers</h1>
-                    <div class="flex-1"></div>`;
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 mainContent.innerHTML = `
                     <div class="mb-4">
@@ -368,49 +380,55 @@
             // --- New Climber Profile Functions ---
 
             function renderClimberProfilePage(context) {
-                const { climberName, from } = context;
-                currentClimberTab = 'profile'; // Reset to default tab
+                const { climberName, from, tab } = context;
+                currentClimberTab = tab || 'profile'; // Set the tab state from context, default to 'profile'
 
                 headerContent.innerHTML = `
                     <div class="flex-1">
                         <button id="back-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">${climberName}</h1>
-                    <div class="flex-1"></div>`;
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
                 
                 document.getElementById('back-btn').addEventListener('click', () => {
                     navigate(from.page, from.context);
                 });
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 controlsContainer.classList.remove('hidden');
                 controlsContainer.innerHTML = `<div id="climber-profile-selector" class="flex justify-center gap-1 bg-gray-800 p-1 rounded-md">
-                    <button data-tab="profile" class="climber-tab-btn bg-blue-600 text-white font-semibold py-1 px-4 rounded-md shadow-md">Profile</button>
+                    <button data-tab="profile" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Profile</button>
                     <button data-tab="progress" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Progress</button>
                     <button data-tab="history" class="climber-tab-btn text-gray-300 font-semibold py-1 px-4 rounded-md">History</button>
                 </div>`;
                 
                 mainContent.innerHTML = `<div id="climber-tab-content"></div>`;
 
-                renderClimberTabContent(climberName);
+                function setActiveClimberTab() {
+                    document.querySelectorAll('.climber-tab-btn').forEach(btn => {
+                        const isSelected = btn.dataset.tab === currentClimberTab;
+                        btn.classList.toggle('bg-blue-600', isSelected);
+                        btn.classList.toggle('text-white', isSelected);
+                        btn.classList.toggle('shadow-md', isSelected);
+                        btn.classList.toggle('text-gray-300', !isSelected);
+                    });
+                }
+
+                setActiveClimberTab();
+                renderClimberTabContent(climberName, context);
 
                 document.getElementById('climber-profile-selector').addEventListener('click', e => {
                     if (e.target.tagName === 'BUTTON' && e.target.dataset.tab !== currentClimberTab) {
                         currentClimberTab = e.target.dataset.tab;
-
-                        document.querySelectorAll('.climber-tab-btn').forEach(btn => {
-                            const isSelected = btn.dataset.tab === currentClimberTab;
-                            btn.classList.toggle('bg-blue-600', isSelected);
-                            btn.classList.toggle('text-white', isSelected);
-                            btn.classList.toggle('shadow-md', isSelected);
-                            btn.classList.toggle('text-gray-300', !isSelected);
-                        });
-
-                        renderClimberTabContent(climberName);
+                        setActiveClimberTab();
+                        renderClimberTabContent(climberName, context);
                     }
                 });
             }
 
-            function renderClimberTabContent(climberName) {
+            function renderClimberTabContent(climberName, profilePageContext) {
                 const container = document.getElementById('climber-tab-content');
                 container.innerHTML = '';
                 if (currentClimberTab === 'profile') {
@@ -418,7 +436,7 @@
                 } else if (currentClimberTab === 'progress') {
                     renderClimberProfile_ProgressTab(container, climberName);
                 } else if (currentClimberTab === 'history') {
-                    renderClimberProfile_HistoryTab(container, climberName);
+                    renderClimberProfile_HistoryTab(container, climberName, profilePageContext);
                 }
             }
 
@@ -498,7 +516,7 @@
                 return num + (s[(v - 20) % 10] || s[v] || s[0]);
             }
 
-            function renderClimberProfile_HistoryTab(container, climberName) {
+            function renderClimberProfile_HistoryTab(container, climberName, profilePageContext) {
                 const compDateMap = new Map(appData.comps.map(c => [c.comp, new Date(c.start)]));
                 const historyByComp = {};
 
@@ -531,7 +549,7 @@
                 let historyHTML = '<div class="space-y-4">';
                 sortedHistory.forEach(([compName, data]) => {
                     historyHTML += `<div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm">
-                        <h3 class="font-bold text-lg text-gray-100 mb-2">${compName}</h3>
+                        <button data-comp="${compName}" class="history-comp-link font-bold text-lg text-left text-gray-100 mb-2 hover:text-blue-400">${compName}</button>
                         <div class="space-y-1 text-gray-200">`;
                     data.results.forEach(resultText => {
                         historyHTML += `<p>${resultText}</p>`;
@@ -540,6 +558,20 @@
                 });
                 historyHTML += '</div>';
                 container.innerHTML = historyHTML;
+
+                container.querySelectorAll('.history-comp-link').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const compName = e.currentTarget.dataset.comp;
+                        const newFromContext = {
+                            ...profilePageContext,
+                            tab: 'history'
+                        };
+                        navigate('resultsComp', {
+                            comp: compName,
+                            from: { page: 'climberProfile', context: newFromContext }
+                        });
+                    });
+                });
             }
 
 
@@ -549,15 +581,18 @@
                 const pageContext = context;
                 currentComp = pageContext.comp;
                 currentRound = pageContext.round || 'qualis';
-                const fromPage = pageContext.from || 'resultsHome';
+                const from = pageContext.from || { page: 'resultsHome' };
 
                 headerContent.innerHTML = `
                     <div class="flex-1">
                         <button id="back-to-comps-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">${currentComp}</h1>
-                    <div class="flex-1"></div>`;
-                document.getElementById('back-to-comps-btn').addEventListener('click', () => navigate(fromPage));
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
+                document.getElementById('back-to-comps-btn').addEventListener('click', () => navigate(from.page, from.context));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
                 
                 const individualQualiRounds = [...new Set(appData.qRankings
                     .filter(r => r.quali && r.quali.startsWith(currentComp))
@@ -676,8 +711,11 @@
                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Leaderboards</h1>
-                    <div class="flex-1"></div>`;
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 controlsContainer.classList.remove('hidden');
                 controlsContainer.innerHTML = `<div id="leaderboard-selector" class="flex justify-center gap-1 bg-gray-800 p-1 rounded-md">
