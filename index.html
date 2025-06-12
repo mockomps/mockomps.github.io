@@ -407,10 +407,12 @@
 
                 controlsContainer.classList.remove('hidden');
                 // Standardized control container
-                controlsContainer.innerHTML = `<div id="climber-profile-selector" class="flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar justify-start md:justify-center">
-                    <button data-tab="profile" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Profile</button>
-                    <button data-tab="progress" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Progress</button>
-                    <button data-tab="history" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">History</button>
+                controlsContainer.innerHTML = `<div class="flex justify-center">
+                    <div id="climber-profile-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar">
+                        <button data-tab="profile" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Profile</button>
+                        <button data-tab="progress" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Progress</button>
+                        <button data-tab="history" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">History</button>
+                    </div>
                 </div>`;
                 
                 mainContent.innerHTML = `<div id="climber-tab-content"></div>`;
@@ -708,9 +710,11 @@
                 
                 controlsContainer.classList.remove('hidden');
                 // Standardized control container
-                 controlsContainer.innerHTML = `<div id="round-selector" class="flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar justify-start md:justify-center">
-                    ${roundButtonsHTML}
-                </div>`;
+                 controlsContainer.innerHTML = `<div class="flex justify-center">
+                    <div id="round-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar">
+                        ${roundButtonsHTML}
+                    </div>
+                 </div>`;
 
                 mainContent.innerHTML = `<div id="results-container" class="w-full"></div>`;
                 
@@ -820,9 +824,11 @@
 
                 controlsContainer.classList.remove('hidden');
                 // Standardized control container
-                controlsContainer.innerHTML = `<div id="leaderboard-selector" class="flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar justify-start md:justify-center">
-                    <button data-leaderboard="qualis" class="leaderboard-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Qualis</button>
-                    <button data-leaderboard="finals" class="leaderboard-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Finals</button>
+                controlsContainer.innerHTML = `<div class="flex justify-center">
+                    <div id="leaderboard-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar">
+                        <button data-leaderboard="qualis" class="leaderboard-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Qualis</button>
+                        <button data-leaderboard="finals" class="leaderboard-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Finals</button>
+                    </div>
                 </div>`;
                 
                 mainContent.innerHTML = `<div id="leaderboard-container" class="w-full"></div>`;
