@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         /* Custom CSS to hide the scrollbar but keep functionality */
@@ -78,7 +79,8 @@
                 qualis: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1964387699&single=true&output=csv',
                 finals: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=2138071685&single=true&output=csv',
                 qLeaderboard: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1921578576&single=true&output=csv',
-                cStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1940156851&single=true&output=csv'
+                cStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1940156851&single=true&output=csv',
+                perCompGradeStats: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=98853432&single=true&output=csv'
             };
 
             // --- Utility Functions ---
@@ -93,7 +95,8 @@
                 const lines = text.trim().split(/\r?\n/);
                 if (lines.length < 2) return [];
                 
-                const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[\s-]+/g, '_'));
+                // Corrected header parsing logic
+                const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/\s/g, '').replace(/%/g, '_pct').replace(/#/g, 'number_of_'));
                 
                 const data = lines.slice(1).map(line => {
                     if (line.trim() === '') return null;
@@ -504,7 +507,76 @@
             }
 
             function renderClimberProfile_ProgressTab(container, climberName) {
-                container.innerHTML = `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">Progress data will be available soon.</div>`;
+                container.innerHTML = `<div class="space-y-4">
+                    <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm"><canvas id="topsChart"></canvas></div>
+                    <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm"><canvas id="zonesChart"></canvas></div>
+                    <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm"><canvas id="flashesChart"></canvas></div>
+                </div>`;
+                
+                const climberData = appData.perCompGradeStats.filter(d => d.climber === climberName);
+                
+                if (climberData.length === 0) {
+                    container.innerHTML = `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No progress data available for this climber.</div>`;
+                    return;
+                }
+
+                const comps = [...new Set(appData.perCompGradeStats.map(d => d.comp))].sort();
+
+                const gradeColors = {
+                    '3': '#facc15', // yellow-400
+                    '4': '#fb923c', // orange-400
+                    '5': '#f87171', // red-400
+                    '6': '#c084fc', // purple-400
+                };
+
+                const createChart = (canvasId, statType, title) => {
+                    const datasets = Object.keys(gradeColors).map(grade => {
+                        const data = comps.map(comp => {
+                            const record = climberData.find(d => d.comp === comp && d.grade === grade);
+                            return record ? parseFloat(record[statType]) : null;
+                        });
+                        return {
+                            label: `Grade ${grade}`,
+                            data: data,
+                            borderColor: gradeColors[grade],
+                            backgroundColor: gradeColors[grade],
+                            fill: false,
+                            tension: 0.1,
+                            spanGaps: true
+                        };
+                    });
+
+                    new Chart(document.getElementById(canvasId), {
+                        type: 'line',
+                        data: {
+                            labels: comps,
+                            datasets: datasets
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                title: { display: true, text: title, color: '#e2e8f0', font: { size: 16 } },
+                                legend: { position: 'top', labels: { color: '#94a3b8' } }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    ticks: { color: '#94a3b8', callback: value => value + '%' },
+                                    grid: { color: 'rgba(55, 65, 81, 0.5)' }
+                                },
+                                x: {
+                                    ticks: { color: '#94a3b8' },
+                                    grid: { display: false }
+                                }
+                            }
+                        }
+                    });
+                };
+
+                createChart('topsChart', 'top_pct', 'Top Percentage');
+                createChart('zonesChart', 'zone_pct', 'Zone Percentage');
+                createChart('flashesChart', 'flash_pct', 'Flash Percentage');
             }
 
             function getOrdinal(n) {
