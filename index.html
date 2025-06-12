@@ -553,21 +553,23 @@
                             backgroundColor: gradeColors[grade],
                             fill: false,
                             tension: 0.1,
-                            spanGaps: true
+                            spanGaps: true,
+                            borderWidth: 2,
+                            pointRadius: 3
                         };
                     });
 
                     new Chart(document.getElementById(canvasId), {
                         type: 'line',
                         data: {
-                            labels: comps,
+                            labels: comps.map(c => c.replace('M', '')),
                             datasets: datasets
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: true,
                             plugins: {
-                                title: { display: true, text: title, color: '#e2e8f0', font: { size: 16 } },
+                                title: { display: true, text: title, color: '#e2e8f0', font: { size: 14 } },
                                 legend: { display: false }
                             },
                             scales: {
@@ -578,7 +580,7 @@
                                     grid: { color: 'rgba(55, 65, 81, 0.5)' }
                                 },
                                 x: {
-                                    ticks: { color: '#94a3b8', autoSkip: true, maxRotation: 0, minRotation: 0 },
+                                    ticks: { color: '#94a3b8', autoSkip: true, maxRotation: 0, minRotation: 0, font: {size: 10} },
                                     grid: { display: false }
                                 }
                             }
