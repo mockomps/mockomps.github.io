@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mockomps</title>
+    <title>Mockomps | Results & Schedule</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -53,7 +53,7 @@
             <!-- Content will be set by JavaScript -->
         </div>
     </div>
-
+    
     <footer class="text-center py-8 text-xs text-gray-600">
         <p>
             powered by 
@@ -197,8 +197,8 @@
                     renderClimberProfilePage(context);
                 } else if (page === 'resultsComp') {
                     renderResultsCompPage(context);
-                } else if (page === 'forms') {
-                    renderFormsPage();
+                } else if (page === 'links') {
+                    renderLinksPage();
                 } else if (page === 'leaderboards') {
                     renderLeaderboardsPage();
                 } else if (page === 'rules') {
@@ -224,7 +224,7 @@
                         <button id="climbers-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Climbers</button>
                         <button id="leaderboards-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Leaderboards</button>
                         <button id="rules-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Rules</button>
-                        <button id="forms-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Forms</button>
+                        <button id="links-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Links</button>
                         <a href="https://forms.gle/hrDCyDAXzaKQ1gyX7" target="_blank" class="col-span-2 sm:col-span-1 bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Register</a>
                     </div>`;
                 
@@ -259,19 +259,19 @@
                 document.getElementById('climbers-btn').addEventListener('click', () => navigate('climbers'));
                 document.getElementById('leaderboards-btn').addEventListener('click', () => navigate('leaderboards'));
                 document.getElementById('rules-btn').addEventListener('click', () => navigate('rules'));
-                document.getElementById('forms-btn').addEventListener('click', () => navigate('forms'));
+                document.getElementById('links-btn').addEventListener('click', () => navigate('links'));
                 
                 document.querySelectorAll('.live-comp-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => navigate('resultsComp', { comp: e.target.dataset.comp, from: { page: 'home' } }));
                 });
             }
             
-            function renderFormsPage() {
+            function renderLinksPage() {
                 headerContent.innerHTML = `
                     <div class="flex-1">
                          <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
-                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Forms</h1>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Links</h1>
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
@@ -282,6 +282,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
                         <a href="https://forms.gle/uBJpWoj7mkNycZoJ8" target="_blank" class="block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Qualis Form</a>
                         <a href="https://forms.gle/C7vrjByfi4wnNa6x7" target="_blank" class="block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Finals Form</a>
+                        <a href="https://instagram.com/mockomps" target="_blank" class="md:col-span-2 block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl"><i class="fab fa-instagram mr-2"></i>mockomps</a>
                     </div>`;
             }
 
