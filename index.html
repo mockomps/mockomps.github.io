@@ -659,25 +659,29 @@
 
             function renderClimberProfile_HistoryTab(container, climberName, profilePageContext) {
                 const compDateMap = new Map(appData.comps.map(c => [c.comp, new Date(c.start)]));
-                const historyByComp = {};
+                const historyByComp = Object.create(null); // Use a null-prototype object for a safer map
 
                 appData.qStandings
                     .filter(s => s.climber === climberName)
                     .forEach(s => {
-                        if (!historyByComp[s.comp]) {
-                            historyByComp[s.comp] = { date: compDateMap.get(s.comp) || new Date(0), results: [] };
+                        if (s.comp) { // Guard against empty comp names
+                            if (!historyByComp[s.comp]) {
+                                historyByComp[s.comp] = { date: compDateMap.get(s.comp) || new Date(0), results: [] };
+                            }
+                            historyByComp[s.comp].results.push(`<span class="text-gray-400 font-semibold">Qualis</span> <strong class="text-white">${getOrdinal(s.place)} place</strong>`);
                         }
-                        historyByComp[s.comp].results.push(`<span class="text-gray-400 font-semibold">Qualis</span> <strong class="text-white">${getOrdinal(s.place)} place</strong>`);
                     });
 
                 appData.fRankings
                     .filter(s => s.climber === climberName)
                     .forEach(s => {
                         const compName = (s.final || '').replace(/F$/, '');
-                        if (!historyByComp[compName]) {
-                            historyByComp[compName] = { date: compDateMap.get(compName) || new Date(0), results: [] };
+                         if (compName) { // Guard against empty comp names
+                            if (!historyByComp[compName]) {
+                                historyByComp[compName] = { date: compDateMap.get(compName) || new Date(0), results: [] };
+                            }
+                            historyByComp[compName].results.push(`<span class="text-cyan-400 font-semibold">Finals</span> <strong class="text-white">${getOrdinal(s.place)} place</strong>`);
                         }
-                        historyByComp[s.comp].results.push(`<span class="text-cyan-400 font-semibold">Finals</span> <strong class="text-white">${getOrdinal(s.place)} place</strong>`);
                     });
                 
                 const sortedHistory = Object.entries(historyByComp).sort(([, a], [, b]) => b.date - a.date);
