@@ -206,7 +206,7 @@
 
                 headerContent.innerHTML = `<div class="flex-1"></div><div class="flex-1 text-center"><h1 class="text-2xl font-bold text-gray-100">Mockomps</h1></div><div class="flex-1"></div>`;
                 
-                mainContent.innerHTML = `
+                let mainHTML = `
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
                         <button id="results-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Results</button>
                         <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Schedule</button>
@@ -215,11 +215,42 @@
                         <a href="https://forms.gle/hrDCyDAXzaKQ1gyX7" target="_blank" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Register</a>
                         <button id="forms-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Forms</button>
                     </div>`;
+                
+                mainContent.innerHTML = mainHTML;
+                
+                // --- Live Comps Logic ---
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Normalize to the start of the day
+
+                const liveComps = appData.comps.filter(comp => {
+                    const startDate = new Date(comp.start);
+                    const endDate = new Date(comp.end);
+                    return today >= startDate && today <= endDate;
+                });
+                
+                if (liveComps.length > 0) {
+                    let liveCompsHTML = `
+                        <div class="mt-12">
+                            <h2 class="text-2xl font-bold text-center text-rose-400 mb-4">Live!</h2>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">`;
+                    
+                    liveComps.forEach(comp => {
+                        liveCompsHTML += `<button data-comp="${comp.comp}" class="live-comp-btn bg-rose-500/10 border border-rose-400/30 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-rose-500/20 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">${comp.comp}</button>`;
+                    });
+
+                    liveCompsHTML += `</div></div>`;
+                    mainContent.innerHTML += liveCompsHTML;
+                }
+
                 document.getElementById('schedule-btn').addEventListener('click', () => navigate('schedule'));
                 document.getElementById('results-btn').addEventListener('click', () => navigate('resultsHome'));
                 document.getElementById('climbers-btn').addEventListener('click', () => navigate('climbers'));
                 document.getElementById('leaderboards-btn').addEventListener('click', () => navigate('leaderboards'));
                 document.getElementById('forms-btn').addEventListener('click', () => navigate('forms'));
+                
+                document.querySelectorAll('.live-comp-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => navigate('resultsComp', { comp: e.target.dataset.comp, from: { page: 'home' } }));
+                });
             }
             
             function renderFormsPage() {
