@@ -687,7 +687,7 @@
                             <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="flashesChart"></canvas></div>
                         </div>
                         <div>
-                             <h3 class="text-base font-semibold text-gray-200 text-center mb-2">Quali Placement</h3>
+                             <h3 class="text-base font-semibold text-gray-200 text-center mb-2">Qualis Placement</h3>
                             <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="qualiPlacementChart"></canvas></div>
                         </div>
                          <div id="final-placement-chart-container"></div>
@@ -751,7 +751,7 @@
                     });
                 };
 
-                const createPlacementChart = (canvasId, data, title, color) => {
+                const createPlacementChart = (canvasId, data, color) => {
                     const isMobile = window.innerWidth <= 768;
                     
                     const labels = data.map(d => d.comp || (d.final || '').replace(/F$/, ''));
@@ -809,7 +809,7 @@
                     .filter(s => s.climber === climberName)
                     .sort((a,b) => a.comp.localeCompare(b.comp));
                 if (qualiPlacements.length > 0) {
-                     createPlacementChart('qualiPlacementChart', qualiPlacements, 'Quali Placement', '#38bdf8'); // light-blue-400
+                     createPlacementChart('qualiPlacementChart', qualiPlacements, '#38bdf8'); // light-blue-400
                 }
 
                 const finalPlacements = appData.fRankings
@@ -822,7 +822,7 @@
                             <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="finalPlacementChart"></canvas></div>
                         </div>
                     `;
-                    createPlacementChart('finalPlacementChart', finalPlacements, 'Final Placement', '#4ade80'); // green-400
+                    createPlacementChart('finalPlacementChart', finalPlacements, '#4ade80'); // green-400
                 }
             }
 
