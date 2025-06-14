@@ -3,42 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mockomps | Results & Schedule</title>
+    <title>Mockomps</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        /* Custom CSS to hide the scrollbar but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* Prevents horizontal scroll on a child from affecting the parent page scroll */
+        .h-scroll {
+            overscroll-behavior-x: contain;
+        }
     </style>
 </head>
 <body class="bg-gray-950 text-slate-300">
 
     <div id="app" class="container mx-auto p-4 max-w-7xl">
         
-        <div id="sticky-container" class="sticky top-0 z-10 bg-gray-950 pt-4 pb-4">
+        <!-- Header is hidden by default, shown after data loads -->
+        <div id="sticky-container" class="sticky top-0 z-10 bg-gray-950 pt-4 pb-4 hidden">
              <!-- Header -->
-            <header class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+            <header id="header-container" class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
                 <div id="header-content" class="flex items-center justify-between">
                     <!-- Header content will be dynamically generated -->
                 </div>
             </header>
              <!-- Round Selector Container - only shown on results page -->
-            <div id="controls-container" class="hidden mt-4 flex justify-center">
+            <div id="controls-container" class="hidden mt-4">
                  <!-- Content will be rendered here for results page -->
             </div>
         </div>
 
 
-        <!-- Main Content Area -->
-        <main id="main-content">
+        <!-- Main Content Area, hidden until data loads -->
+        <main id="main-content" class="hidden">
             <!-- Content will be rendered here by JavaScript -->
         </main>
 
-        <!-- Loading / Error Indicator -->
-        <div id="indicator" class="text-center p-10">
+        <!-- Loading / Error Indicator - centered on the screen -->
+        <div id="indicator" class="flex flex-col items-center justify-center min-h-screen -mt-20">
             <!-- Content will be set by JavaScript -->
         </div>
     </div>
+    
+    <footer class="text-center py-8 text-xs text-gray-600">
+        <p>
+            powered by 
+            <a href="https://instagram.com/saorockclimbing" target="_blank" class="hover:text-gray-400 transition-colors">@saorockclimbing</a> 
+            and 
+            <a href="https://instagram.com/picoclimbing" target="_blank" class="hover:text-gray-400 transition-colors">@picoclimbing</a>
+        </p>
+    </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -46,41 +69,58 @@
             const mainContent = document.getElementById('main-content');
             const indicator = document.getElementById('indicator');
             const headerContent = document.getElementById('header-content');
+            const headerContainer = document.getElementById('header-container');
             const controlsContainer = document.getElementById('controls-container');
+            const stickyContainer = document.getElementById('sticky-container');
 
 
             // --- App State ---
             let appData = {};
             let currentComp = null;
             let currentRound = 'qualis';
+            let currentLeaderboard = 'qualis';
+            let currentClimberTab = 'profile';
             
-            // --- Data Sources ---
+            // --- Data Sources (Simplified) ---
             const GOOGLE_SHEET_URLS = {
                 climbers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=937478252&single=true&output=csv',
                 climberStats: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=400895305&single=true&output=csv',
                 comps: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=91525471&single=true&output=csv',
                 qStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=687301211&single=true&output=csv',
+                qRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1437828732&single=true&output=csv',
                 fRankings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1749256148&single=true&output=csv',
                 qualis: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1964387699&single=true&output=csv',
                 finals: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=2138071685&single=true&output=csv',
+                qLeaderboard: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1921578576&single=true&output=csv',
+                cStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1940156851&single=true&output=csv',
+                perCompGradeStats: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=98853432&single=true&output=csv',
+                qBoulders: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1513683934&single=true&output=csv',
+                qResults: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=36605401&single=true&output=csv'
             };
 
             // --- Utility Functions ---
-            async function fetchAndParseSheet(url) {
+
+            async function fetchAndParseSheet(url, isChartData = false) {
                 const cacheBustUrl = `${url}&_=${new Date().getTime()}`;
                 const response = await fetch(cacheBustUrl);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const text = await response.text();
-                if (text.trim().startsWith('<')) throw new Error(`Received an HTML page instead of CSV data.`);
+                if (text.trim().startsWith('<')) throw new Error(`Received an HTML page instead of CSV from ${url}`);
                 
                 const lines = text.trim().split(/\r?\n/);
                 if (lines.length < 2) return [];
                 
-                const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[\s-]+/g, '_'));
+                // Corrected header parsing logic
+                const header = lines[0].split(',').map(h => 
+                    h.trim().toLowerCase()
+                    .replace(/ %/g, '_pct') // Handles "Top %" -> "top_pct"
+                    .replace(/[\s-]+/g, '_') // Handles "Quali Points" -> "quali_points"
+                    .replace(/# /g, 'number_of_') // Handles "# Qualis"
+                );
                 
                 const data = lines.slice(1).map(line => {
                     if (line.trim() === '') return null;
-                    const values = line.split(',').map(v => v.trim());
+                    const values = line.split(',').map(v => v.trim().replace('%',''));
                     return header.reduce((obj, nextKey, index) => {
                         obj[nextKey] = values[index];
                         return obj;
@@ -89,14 +129,61 @@
                 
                 return data;
             }
-            
-            // --- Navigation ---
-            function navigate(page, context = null) {
-                mainContent.innerHTML = ''; // Clear previous content
-                headerContent.innerHTML = ''; // Clear header
-                controlsContainer.innerHTML = ''; // Clear controls
-                controlsContainer.classList.add('hidden'); // Hide controls by default
 
+            async function fetchAndParseClimberStats(url) {
+                const cacheBustUrl = `${url}&_=${new Date().getTime()}`;
+                const response = await fetch(cacheBustUrl);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const text = await response.text();
+                if (text.trim().startsWith('<')) throw new Error(`Received an HTML page instead of CSV from ${url}`);
+
+                const lines = text.trim().split(/\r?\n/);
+                if (lines.length < 3) return []; 
+
+                const mainHeader = lines[0].split(',');
+                const subHeader = lines[1].split(',');
+                const combinedHeader = [];
+                let currentMainCategory = '';
+
+                for (let i = 0; i < subHeader.length; i++) {
+                    const mainCategoryText = mainHeader[i].trim();
+                    if (mainCategoryText) {
+                        currentMainCategory = mainCategoryText.toLowerCase().replace(/\s+/g, '_');
+                    }
+                    
+                    const subCategoryText = subHeader[i].trim().toLowerCase().replace('%', '_pct');
+                    
+                    if (i === 0) {
+                        combinedHeader.push('climber');
+                    } else {
+                        combinedHeader.push(`${currentMainCategory}_${subCategoryText}`);
+                    }
+                }
+
+                const data = lines.slice(2).map(line => {
+                    if (line.trim() === '') return null;
+                    const values = line.split(',').map(v => v.trim().replace('%',''));
+                    return combinedHeader.reduce((obj, nextKey, index) => {
+                        obj[nextKey] = values[index] || '';
+                        return obj;
+                    }, {});
+                }).filter(Boolean);
+
+                return data;
+            }
+            
+            function navigate(page, context = null) {
+                window.scrollTo(0, 0); // Scroll to top on every navigation
+                mainContent.innerHTML = ''; 
+                headerContent.innerHTML = '';
+                controlsContainer.innerHTML = '';
+                
+                headerContainer.style.backgroundColor = '';
+                headerContainer.style.border = '';
+                headerContainer.style.boxShadow = '';
+                headerContainer.classList.add('p-4', 'bg-gray-900', 'border-gray-800', 'rounded-lg', 'shadow-md');
+
+                controlsContainer.classList.add('hidden');
 
                 if (page === 'home') {
                     renderHomePage();
@@ -109,23 +196,172 @@
                 } else if (page === 'climberProfile') {
                     renderClimberProfilePage(context);
                 } else if (page === 'resultsComp') {
-                    currentComp = context;
-                    renderResultsCompPage();
+                    renderResultsCompPage(context);
+                } else if (page === 'links') {
+                    renderLinksPage();
+                } else if (page === 'leaderboards') {
+                    renderLeaderboardsPage();
+                } else if (page === 'rules') {
+                    renderRulesPage();
+                } else if (page === 'qualiResultDetail') {
+                    renderQualiResultDetailPage(context);
+                } else if (page === 'qualiCompResultDetail') {
+                    renderQualiCompResultDetailPage(context);
                 }
             }
 
-            // --- Page Rendering Functions ---
             function renderHomePage() {
+                headerContainer.style.backgroundColor = 'transparent';
+                headerContainer.style.border = 'none';
+                headerContainer.style.boxShadow = 'none';
+
                 headerContent.innerHTML = `<div class="flex-1"></div><div class="flex-1 text-center"><h1 class="text-2xl font-bold text-gray-100">Mockomps</h1></div><div class="flex-1"></div>`;
-                mainContent.innerHTML = `
-                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                        <button id="results-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Results</button>
-                        <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Schedule</button>
-                        <button id="climbers-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Climbers</button>
+                
+                let mainHTML = `
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
+                        <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Calendar</button>
+                        <button id="results-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Results</button>
+                        <button id="climbers-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Climbers</button>
+                        <button id="leaderboards-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Leaderboards</button>
+                        <button id="rules-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Rules</button>
+                        <button id="links-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Links</button>
+                        <a href="https://forms.gle/hrDCyDAXzaKQ1gyX7" target="_blank" class="col-span-2 sm:col-span-1 bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Register</a>
                     </div>`;
+                
+                mainContent.innerHTML = mainHTML;
+                
+                // --- Live Comps Logic ---
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Normalize to the start of the day
+
+                const liveComps = appData.comps.filter(comp => {
+                    const startDate = new Date(comp.start);
+                    const endDate = new Date(comp.end);
+                    return today >= startDate && today <= endDate;
+                });
+                
+                if (liveComps.length > 0) {
+                    let liveCompsHTML = `
+                        <div class="mt-12">
+                            <h2 class="text-2xl font-bold text-center text-rose-400 mb-4">Live!</h2>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">`;
+                    
+                    liveComps.forEach(comp => {
+                        liveCompsHTML += `<button data-comp="${comp.comp}" class="live-comp-btn bg-rose-500/10 border border-rose-400/30 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-rose-500/20 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">${comp.comp}</button>`;
+                    });
+
+                    liveCompsHTML += `</div></div>`;
+                    mainContent.innerHTML += liveCompsHTML;
+                }
+
                 document.getElementById('schedule-btn').addEventListener('click', () => navigate('schedule'));
                 document.getElementById('results-btn').addEventListener('click', () => navigate('resultsHome'));
                 document.getElementById('climbers-btn').addEventListener('click', () => navigate('climbers'));
+                document.getElementById('leaderboards-btn').addEventListener('click', () => navigate('leaderboards'));
+                document.getElementById('rules-btn').addEventListener('click', () => navigate('rules'));
+                document.getElementById('links-btn').addEventListener('click', () => navigate('links'));
+                
+                document.querySelectorAll('.live-comp-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => navigate('resultsComp', { comp: e.target.dataset.comp, from: { page: 'home' } }));
+                });
+            }
+            
+            function renderLinksPage() {
+                headerContent.innerHTML = `
+                    <div class="flex-1">
+                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Links</h1>
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
+                document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+
+                mainContent.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+                        <a href="https://forms.gle/uBJpWoj7mkNycZoJ8" target="_blank" class="block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Qualis Form</a>
+                        <a href="https://forms.gle/C7vrjByfi4wnNa6x7" target="_blank" class="block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Finals Form</a>
+                        <a href="https://instagram.com/mockomps" target="_blank" class="md:col-span-2 block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl"><i class="fab fa-instagram mr-2"></i>Mockomps</a>
+                    </div>`;
+            }
+
+            function renderRulesPage() {
+                headerContent.innerHTML = `
+                    <div class="flex-1">
+                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Rules & Format</h1>
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
+                document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+
+                mainContent.innerHTML = `
+                    <div class="space-y-8 text-gray-300 leading-relaxed">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-100 border-b border-gray-700 pb-2 mb-3">1. The Circuit</h2>
+                            <p>Mockomps is divided into Circuits (e.g., MC01, MC02). Each Circuit consists of 10 individual Mockomps (M01 through M10 for MC01, M11 through M20 for MC02, and so on), culminating in two final events: the <strong class="text-white">Mockomp Challengers</strong> and the <strong class="text-white">Mockomp Champions</strong> to decide the Circuit Champion.</p>
+                        </div>
+
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-100 border-b border-gray-700 pb-2 mb-3">2. The Mockomp</h2>
+                            <p>A Mockomp is a multi-week competition event held every one to two months at São Rock climbing gym. It is composed of a Qualification Phase and a Final.</p>
+                            <div class="space-y-4 mt-4">
+                                <div>
+                                    <h3 class="font-semibold text-lg text-gray-200">Qualification Phase</h3>
+                                    <p>The Qualification Phase consists of 3-5 consecutive Quali Rounds (e.g., M01Q1, M01Q2). A new round begins every Monday at São Rock with a fresh set of 10-15 boulders. Climbers have one week (Monday-Sunday) to attempt them and submit scores.</p>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-lg text-gray-200">Final</h3>
+                                    <p>The top 8 climbers with the most Quali Points from that Mockomp's qualification phase advance to Final. The format is 4 boulders with a 4+ minute time limit per boulder. Climbers are held in <strong class="text-white">competitor isolation</strong>, meaning they do not see the boulders being climbed before their turn.</p>
+                                    <p class="mt-2"><strong class="text-gray-200">Ranking:</strong> Climbers are ranked based on the following criteria, in order: 1. Most Tops, 2. Fewest Attempts to Top, 3. Most Zones, 4. Fewest Attempts to Zone.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                         <div>
+                            <h2 class="text-xl font-bold text-gray-100 border-b border-gray-700 pb-2 mb-3">3. The Circuit Finale</h2>
+                            <p>At the end of a 10-Mockomp circuit, two special events determine the ultimate champion.</p>
+                            <div class="space-y-4 mt-4">
+                                <div>
+                                    <h3 class="font-semibold text-lg text-gray-200">Mockomp Challengers</h3>
+                                    <ul class="list-disc list-inside space-y-2 mt-2 pl-2">
+                                        <li><strong class="text-gray-200">Who:</strong> Open to all climbers who participated in the circuit but did not qualify for a Final in any of the 10 Mockomps.</li>
+                                        <li><strong class="text-gray-200">Format:</strong> One qualification week, followed by a Final with the top 8 climbers from that quali. The top 3 finishers from the Challengers Final advance to the Mockomp Champions event.</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-lg text-gray-200">Mockomp Champions</h3>
+                                     <ul class="list-disc list-inside space-y-2 mt-2 pl-2">
+                                        <li><strong class="text-gray-200">Who:</strong> All climbers who made it to a Final during the circuit, plus the 3 winners from the Challengers event.</li>
+                                        <li><strong class="text-gray-200">Format:</strong> Two qualification weeks, followed by a Grand Final. For the 3 advancing Challengers, their score from the Challengers Quali serves as their score for the first Champions Quali week. All other competitors participate in both quali weeks. The top 8 climbers from the two Champions qualis advance to the Grand Final to decide the Circuit Champion.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-100 border-b border-gray-700 pb-2 mb-3">4. Scoring Explained</h2>
+                            <div class="space-y-4">
+                                <div>
+                                    <h3 class="font-semibold text-lg text-gray-200">Qualis Leaderboard Scoring</h3>
+                                    <p>Climbers are ranked by their total <strong class="text-white">Quali Points</strong>. Points per boulder are awarded as follows:</p>
+                                    <ul class="list-disc list-inside space-y-1 mt-2 pl-2">
+                                        <li><strong class="text-yellow-400">Flash:</strong> Points equal to the boulder's grade + 1 bonus point.</li>
+                                        <li><strong class="text-green-400">Top (after flash):</strong> Points equal to the boulder's grade.</li>
+                                        <li><strong class="text-blue-400">Zone only:</strong> Points equal to half of the boulder's grade.</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-lg text-gray-200">Finals Leaderboard Scoring</h3>
+                                    <p>This leaderboard ranks climbers based on <strong class="text-white">Circuit Points</strong>, which are awarded only in the Finals. The winner receives points equal to the number of participants (e.g., if 8 climbers are in the Final, 1st place gets 8 points). Subsequent places receive one less point each.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
 
             function renderResultsHomePage() {
@@ -134,15 +370,18 @@
                          <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Results</h1>
-                    <div class="flex-1"></div>`; // Spacer
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`; 
                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 const qComps = appData.qStandings.map(s => s.comp);
                 const fComps = appData.fRankings.map(s => (s.final || '').replace(/F$/, ''));
                 const compDateMap = new Map(appData.comps.map(c => [c.comp, c.start]));
                 const allCompNames = [...new Set([...qComps, ...fComps])].sort((a, b) => new Date(compDateMap.get(b) || 0) - new Date(compDateMap.get(a) || 0));
 
-                let compGridHTML = '<div class="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">';
+                let compGridHTML = '<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">';
                 allCompNames.forEach(compName => {
                     compGridHTML += `<button data-comp="${compName}" class="comp-btn bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl">${compName}</button>`;
                 });
@@ -150,7 +389,7 @@
                 mainContent.innerHTML = compGridHTML;
 
                 document.querySelectorAll('.comp-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => navigate('resultsComp', e.target.dataset.comp));
+                    btn.addEventListener('click', (e) => navigate('resultsComp', { comp: e.target.dataset.comp, from: { page: 'resultsHome' } }));
                 });
             }
             
@@ -159,9 +398,12 @@
                     <div class="flex-1">
                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
-                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Schedule</h1>
-                    <div class="flex-1"></div>`; // Spacer
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Calendar</h1>
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
                  document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 const events = [
                     ...appData.qualis.map(q => ({ date: q.date, title: q.quali, type: 'Quali' })),
@@ -169,7 +411,11 @@
                 ];
                 events.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-                let scheduleHTML = '<div class="mt-4 space-y-2">';
+                const qComps = appData.qStandings.map(s => s.comp);
+                const fComps = appData.fRankings.map(s => (s.final || '').replace(/F$/, ''));
+                const allResultCompNames = new Set([...qComps, ...fComps]);
+
+                let scheduleHTML = '<div class="space-y-2">';
                 let currentMonth = '';
                 
                 events.forEach(event => {
@@ -181,6 +427,16 @@
                         scheduleHTML += `<h2 class="text-lg font-bold text-gray-300 mt-5 mb-1 border-b border-gray-700 pb-1">${month}</h2>`;
                     }
 
+                    const compName = event.title.replace(/(Q\d*|F)$/, '');
+                    let titleHTML;
+
+                    if (allResultCompNames.has(compName)) {
+                        const round = event.type === 'Final' ? 'finals' : event.title;
+                        titleHTML = `<button data-comp="${compName}" data-round="${round}" class="schedule-comp-link text-left font-semibold text-sm text-gray-100 hover:text-blue-400">${event.title}</button>`;
+                    } else {
+                        titleHTML = `<p class="font-semibold text-sm text-gray-100">${event.title}</p>`;
+                    }
+
                     scheduleHTML += `
                         <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm flex items-center space-x-3">
                             <div class="text-center w-14">
@@ -188,62 +444,159 @@
                                 <div class="text-xs text-gray-400">${eventDate.toLocaleString('default', { weekday: 'short' })}</div>
                             </div>
                             <div>
-                                <p class="font-semibold text-sm text-gray-100">${event.title}</p>
-                                <p class="text-xs ${event.type === 'Final' ? 'text-red-500' : 'text-gray-400'}">${event.type}</p>
+                                ${titleHTML}
+                                <p class="text-xs ${event.type === 'Final' ? 'text-cyan-400' : 'text-gray-400'}">${event.type}</p>
                             </div>
                         </div>`;
                 });
                 scheduleHTML += '</div>';
                 mainContent.innerHTML = scheduleHTML;
+
+                document.querySelectorAll('.schedule-comp-link').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const compName = e.currentTarget.dataset.comp;
+                        const roundName = e.currentTarget.dataset.round;
+                        navigate('resultsComp', { comp: compName, round: roundName, from: { page: 'schedule' } });
+                    });
+                });
             }
             
             function renderClimbersPage() {
-                 headerContent.innerHTML = `
+                headerContent.innerHTML = `
                     <div class="flex-1">
                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Climbers</h1>
-                    <div class="flex-1"></div>`; // Spacer
-                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
-                
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
+                document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+
+                mainContent.innerHTML = `
+                    <div class="mb-4">
+                        <input type="text" id="climber-search" placeholder="Search for a climber..." class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-gray-700">
+                    </div>
+                    <div id="climber-list-container" class="space-y-2"></div>
+                `;
+
                 const climbers = [...appData.climbers].sort((a, b) => a.name.localeCompare(b.name));
-                
-                let climberListHTML = '<div class="mt-4 space-y-2">';
-                climbers.forEach(climber => {
-                    if (climber.name) { // Ensure climber has a name
-                        climberListHTML += `<button data-climber-name="${climber.name}" class="climber-btn w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold hover:bg-gray-800">${climber.name}</button>`;
+                const listContainer = document.getElementById('climber-list-container');
+
+                function renderClimberList(filteredClimbers) {
+                    listContainer.innerHTML = '';
+                    if (filteredClimbers.length === 0) {
+                        listContainer.innerHTML = `<p class="text-gray-400 text-center">No climbers found.</p>`;
+                        return;
                     }
-                });
-                climberListHTML += '</div>';
-                mainContent.innerHTML = climberListHTML;
-                
-                document.querySelectorAll('.climber-btn').forEach(btn => {
-                    btn.addEventListener('click', e => navigate('climberProfile', e.currentTarget.dataset.climberName));
+
+                    let climberListHTML = '';
+                    filteredClimbers.forEach(climber => {
+                        if (climber.name) {
+                            climberListHTML += `<button data-climber-name="${climber.name}" class="climber-btn w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold hover:bg-gray-800">${climber.name}</button>`;
+                        }
+                    });
+                    listContainer.innerHTML = climberListHTML;
+
+                    listContainer.querySelectorAll('.climber-btn').forEach(btn => {
+                        btn.addEventListener('click', e => {
+                            const climberName = e.currentTarget.dataset.climberName;
+                            navigate('climberProfile', {
+                                climberName: climberName,
+                                from: { page: 'climbers' }
+                            });
+                        });
+                    });
+                }
+
+                renderClimberList(climbers);
+
+                document.getElementById('climber-search').addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const filtered = climbers.filter(climber => climber.name && climber.name.toLowerCase().includes(searchTerm));
+                    renderClimberList(filtered);
                 });
             }
 
-            function renderClimberProfilePage(climberName) {
+            // --- New Climber Profile Functions ---
+
+            function renderClimberProfilePage(context) {
+                const { climberName, from, tab } = context;
+                currentClimberTab = tab || 'profile'; // Set the tab state from context, default to 'profile'
+
                 headerContent.innerHTML = `
                     <div class="flex-1">
-                        <button id="back-to-climbers-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                        <button id="back-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">${climberName}</h1>
-                    <div class="flex-1"></div>`; // Spacer
-                document.getElementById('back-to-climbers-btn').addEventListener('click', () => navigate('climbers'));
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
+                
+                document.getElementById('back-btn').addEventListener('click', () => {
+                    navigate(from.page, from.context);
+                });
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
+                controlsContainer.classList.remove('hidden');
+                // Standardized control container
+                controlsContainer.innerHTML = `<div class="flex justify-center">
+                    <div id="climber-profile-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
+                        <button data-tab="profile" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Profile</button>
+                        <button data-tab="progress" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Progress</button>
+                        <button data-tab="history" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">History</button>
+                    </div>
+                </div>`;
+                
+                mainContent.innerHTML = `<div id="climber-tab-content"></div>`;
+
+                function setActiveClimberTab() {
+                    document.querySelectorAll('.climber-tab-btn').forEach(btn => {
+                        const isSelected = btn.dataset.tab === currentClimberTab;
+                        btn.classList.toggle('bg-blue-600', isSelected);
+                        btn.classList.toggle('text-white', isSelected);
+                        btn.classList.toggle('shadow-md', isSelected);
+                        btn.classList.toggle('text-gray-300', !isSelected);
+                    });
+                }
+
+                setActiveClimberTab();
+                renderClimberTabContent(climberName, context);
+
+                document.getElementById('climber-profile-selector').addEventListener('click', e => {
+                    if (e.target.tagName === 'BUTTON' && e.target.dataset.tab !== currentClimberTab) {
+                        currentClimberTab = e.target.dataset.tab;
+                        setActiveClimberTab();
+                        renderClimberTabContent(climberName, context);
+                    }
+                });
+            }
+
+            function renderClimberTabContent(climberName, profilePageContext) {
+                const container = document.getElementById('climber-tab-content');
+                container.innerHTML = '';
+                if (currentClimberTab === 'profile') {
+                    renderClimberProfile_ProfileTab(container, climberName);
+                } else if (currentClimberTab === 'progress') {
+                    renderClimberProfile_ProgressTab(container, climberName);
+                } else if (currentClimberTab === 'history') {
+                    renderClimberProfile_HistoryTab(container, climberName, profilePageContext);
+                }
+            }
+
+            function renderClimberProfile_ProfileTab(container, climberName) {
                 const climberInfo = appData.climbers.find(c => c.name === climberName);
                 const climberStats = appData.climberStats.find(s => s.climber === climberName);
 
-                let profileHTML = '<div class="mt-4 space-y-4">';
+                let profileHTML = '<div class="space-y-4">';
 
-                // --- Climber Info Box ---
                 if (climberInfo) {
                     let instaHTML = '';
-                    if (climberInfo.instagram) {
+                    if (climberInfo.instagram && climberInfo.instagram !== 'N/A') {
                         const handle = climberInfo.instagram.replace(/^@/, '');
                         instaHTML = `<a href="https://instagram.com/${handle}" target="_blank" class="text-blue-400 hover:underline">@${handle}</a>`;
                     }
-                     profileHTML += `
+                    profileHTML += `
                         <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
                             <h2 class="text-xl font-bold text-gray-100 mb-2">${climberInfo.name}</h2>
                             <div class="text-sm space-y-1 text-gray-300">
@@ -254,123 +607,779 @@
                         </div>`;
                 }
 
-                // --- Climber Stats Box ---
                 if (climberStats) {
                     profileHTML += `
                         <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
-                            <h3 class="text-lg font-bold text-gray-200 mb-2">All-Time Stats</h3>
+                            <h3 class="text-lg font-bold text-gray-200 mb-3">All-Time Stats</h3>
                             <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
-                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Qualis</div><div class="font-bold text-xl text-gray-100">${climberStats.q || '0'}</div></div>
-                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${climberStats.b || '0'}</div></div>
-                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${climberStats.f || '0'}</div></div>
-                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${climberStats.t || '0'}</div></div>
-                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Zones</div><div class="font-bold text-xl text-gray-100">${climberStats.z || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Qualis</div><div class="font-bold text-xl text-gray-100">${climberStats.all_time_q || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${climberStats.all_time_b || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${climberStats.all_time_f || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${climberStats.all_time_t || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Zones</div><div class="font-bold text-xl text-gray-100">${climberStats.all_time_z || '0'}</div></div>
                             </div>
                         </div>`;
+
+                    const createGradeStatBox = (grade, stats) => {
+                        return `
+                        <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+                            <h3 class="text-lg font-bold text-gray-200 mb-3">Grade ${grade} Stats</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${stats[`grade_${grade}_b`] || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${stats[`grade_${grade}_f`] || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${stats[`grade_${grade}_t`] || '0'}</div></div>
+                                <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops %</div><div class="font-bold text-xl text-gray-100">${stats[`grade_${grade}_t_pct`] || '0%'}</div></div>
+                            </div>
+                        </div>`;
+                    };
+
+                    profileHTML += `<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">`;
+                    profileHTML += createGradeStatBox(3, climberStats);
+                    profileHTML += createGradeStatBox(4, climberStats);
+                    profileHTML += createGradeStatBox(5, climberStats);
+                    profileHTML += createGradeStatBox(6, climberStats);
+                    profileHTML += `</div>`;
+                } else if (!climberInfo) {
+                    profileHTML += `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No profile information available for this climber.</div>`;
                 }
                 
                 profileHTML += '</div>';
-                mainContent.innerHTML = profileHTML;
+                container.innerHTML = profileHTML;
             }
 
-            function renderResultsCompPage() {
-                 headerContent.innerHTML = `
+            function renderClimberProfile_ProgressTab(container, climberName) {
+                const climberData = appData.perCompGradeStats.filter(d => d.climber === climberName);
+                
+                if (climberData.length === 0) {
+                    container.innerHTML = `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No progress data available for this climber.</div>`;
+                    return;
+                }
+                
+                const gradeColors = {
+                    '3': '#facc15', // yellow-400
+                    '4': '#fb923c', // orange-400
+                    '5': '#f87171', // red-400
+                    '6': '#c084fc', // purple-400
+                };
+
+                let legendHTML = '<div class="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-4">';
+                for (const grade in gradeColors) {
+                    legendHTML += `<div class="flex items-center space-x-2 text-sm">
+                        <div class="w-3 h-3 rounded-full" style="background-color: ${gradeColors[grade]}"></div>
+                        <span class="text-gray-400">Grade ${grade}</span>
+                    </div>`;
+                }
+                legendHTML += '</div>';
+
+                container.innerHTML = `<div>
+                    ${legendHTML}
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-base font-semibold text-gray-200 text-center mb-2">Top Percentage</h3>
+                            <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="topsChart"></canvas></div>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-semibold text-gray-200 text-center mb-2">Zone Percentage</h3>
+                            <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="zonesChart"></canvas></div>
+                        </div>
+                        <div>
+                             <h3 class="text-base font-semibold text-gray-200 text-center mb-2">Flash Percentage</h3>
+                            <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="flashesChart"></canvas></div>
+                        </div>
+                        <div>
+                             <h3 class="text-base font-semibold text-gray-200 text-center mb-2">Qualis Placement</h3>
+                            <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="qualiPlacementChart"></canvas></div>
+                        </div>
+                         <div id="final-placement-chart-container"></div>
+                    </div>
+                </div>`;
+
+                const climberComps = [...new Set(climberData.map(d => d.comp))].sort();
+
+                const createPercentageChart = (canvasId, statKey) => {
+                    const isMobile = window.innerWidth <= 768;
+                    const datasets = Object.keys(gradeColors).map(grade => {
+                        const data = climberComps.map(comp => {
+                            const record = climberData.find(d => d.comp === comp && d.grade === grade);
+                            return record ? parseFloat(record[statKey]) : null;
+                        });
+                        return {
+                            label: `Grade ${grade}`,
+                            data: data,
+                            borderColor: gradeColors[grade],
+                            backgroundColor: gradeColors[grade],
+                            fill: false,
+                            tension: 0.1,
+                            spanGaps: true,
+                            borderWidth: isMobile ? 1.5 : 2.5,
+                            pointRadius: isMobile ? 2.5 : 3.5,
+                            clip: false
+                        };
+                    });
+
+                    new Chart(document.getElementById(canvasId), {
+                        type: 'line',
+                        data: {
+                            labels: climberComps,
+                            datasets: datasets
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            layout: { padding: { top: 10 } },
+                            plugins: {
+                                title: { display: false },
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    ticks: { 
+                                        color: '#94a3b8', 
+                                        stepSize: 20,
+                                        callback: value => value + '%' 
+                                    },
+                                    grid: { color: 'rgba(55, 65, 81, 0.5)', drawBorder: false }
+                                },
+                                x: {
+                                    ticks: { color: '#94a3b8', autoSkip: true, maxRotation: 0, minRotation: 0, font: {size: 10} },
+                                    grid: { display: false }
+                                }
+                            }
+                        }
+                    });
+                };
+
+                const createPlacementChart = (canvasId, data, color) => {
+                    const isMobile = window.innerWidth <= 768;
+                    
+                    const labels = data.map(d => d.comp || (d.final || '').replace(/F$/, ''));
+                    const placementData = data.map(d => parseInt(d.place));
+
+                    new Chart(document.getElementById(canvasId), {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Placement',
+                                data: placementData,
+                                borderColor: color,
+                                backgroundColor: color,
+                                fill: false,
+                                tension: 0.1,
+                                spanGaps: true,
+                                borderWidth: isMobile ? 1.5 : 2.5,
+                                pointRadius: isMobile ? 2.5 : 3.5,
+                                clip: false
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                             layout: { padding: { top: 10 } },
+                            plugins: {
+                                title: { display: false },
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    reverse: true,
+                                    beginAtZero: false,
+                                    ticks: {
+                                        color: '#94a3b8',
+                                        stepSize: 1
+                                    },
+                                    grid: { color: 'rgba(55, 65, 81, 0.5)', drawBorder: false }
+                                },
+                                x: {
+                                    ticks: { color: '#94a3b8', autoSkip: true, maxRotation: 0, minRotation: 0, font: {size: 10} },
+                                    grid: { display: false }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                createPercentageChart('topsChart', 'top_pct');
+                createPercentageChart('zonesChart', 'zone_pct');
+                createPercentageChart('flashesChart', 'flash_pct');
+
+                const qualiPlacements = appData.qStandings
+                    .filter(s => s.climber === climberName)
+                    .sort((a,b) => a.comp.localeCompare(b.comp));
+                if (qualiPlacements.length > 0) {
+                     createPlacementChart('qualiPlacementChart', qualiPlacements, '#38bdf8'); // light-blue-400
+                }
+
+                const finalPlacements = appData.fRankings
+                    .filter(s => s.climber === climberName)
+                    .sort((a,b) => a.final.localeCompare(b.final));
+                if (finalPlacements.length > 0) {
+                    document.getElementById('final-placement-chart-container').innerHTML = `
+                        <div>
+                            <h3 class="text-base font-semibold text-gray-200 text-center mb-2">Final Placement</h3>
+                            <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="finalPlacementChart"></canvas></div>
+                        </div>
+                    `;
+                    createPlacementChart('finalPlacementChart', finalPlacements, '#4ade80'); // green-400
+                }
+            }
+
+            function getOrdinal(n) {
+                if (isNaN(n) || n === null || n === '') return n;
+                const num = parseInt(n, 10);
+                if (isNaN(num)) return n;
+                const s = ["th", "st", "nd", "rd"];
+                const v = num % 100;
+                return num + (s[(v - 20) % 10] || s[v] || s[0]);
+            }
+
+            function renderClimberProfile_HistoryTab(container, climberName, profilePageContext) {
+                const compDateMap = new Map(appData.comps.map(c => [c.comp, new Date(c.start)]));
+                const historyByComp = Object.create(null); // Use a null-prototype object for a safer map
+
+                appData.qStandings
+                    .filter(s => s.climber === climberName)
+                    .forEach(s => {
+                        if (s.comp) { // Guard against empty comp names
+                            if (!historyByComp[s.comp]) {
+                                historyByComp[s.comp] = { date: compDateMap.get(s.comp) || new Date(0), results: [] };
+                            }
+                            historyByComp[s.comp].results.push(`<span class="text-gray-400 font-semibold">Qualis</span> <strong class="text-white">${getOrdinal(s.place)} place</strong>`);
+                        }
+                    });
+
+                appData.fRankings
+                    .filter(s => s.climber === climberName)
+                    .forEach(s => {
+                        const compName = (s.final || '').replace(/F$/, '');
+                         if (compName) { // Guard against empty comp names
+                            if (!historyByComp[compName]) {
+                                historyByComp[compName] = { date: compDateMap.get(compName) || new Date(0), results: [] };
+                            }
+                            historyByComp[compName].results.push(`<span class="text-cyan-400 font-semibold">Finals</span> <strong class="text-white">${getOrdinal(s.place)} place</strong>`);
+                        }
+                    });
+                
+                const sortedHistory = Object.entries(historyByComp).sort(([, a], [, b]) => b.date - a.date);
+
+                if (sortedHistory.length === 0) {
+                    container.innerHTML = `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No competition history found.</div>`;
+                    return;
+                }
+
+                let historyHTML = '<div class="space-y-4">';
+                sortedHistory.forEach(([compName, data]) => {
+                    historyHTML += `<div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm">
+                        <button data-comp="${compName}" class="history-comp-link font-bold text-lg text-left text-gray-100 mb-2 hover:text-blue-400">${compName}</button>
+                        <div class="space-y-1 text-gray-200">`;
+                    data.results.forEach(resultText => {
+                        historyHTML += `<p>${resultText}</p>`;
+                    });
+                    historyHTML += `</div></div>`;
+                });
+                historyHTML += '</div>';
+                container.innerHTML = historyHTML;
+
+                container.querySelectorAll('.history-comp-link').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const compName = e.currentTarget.dataset.comp;
+                        const newFromContext = {
+                            ...profilePageContext,
+                            tab: 'history'
+                        };
+                        navigate('resultsComp', {
+                            comp: compName,
+                            from: { page: 'climberProfile', context: newFromContext }
+                        });
+                    });
+                });
+            }
+
+
+            // --- Results & Leaderboards ---
+
+            function renderResultsCompPage(context) {
+                const pageContext = context;
+                currentComp = pageContext.comp;
+                currentRound = pageContext.round || 'qualis';
+                const from = pageContext.from || { page: 'resultsHome' };
+
+                headerContent.innerHTML = `
                     <div class="flex-1">
                         <button id="back-to-comps-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">${currentComp}</h1>
-                    <div class="flex-1"></div>`; // Spacer
-                 document.getElementById('back-to-comps-btn').addEventListener('click', () => navigate('resultsHome'));
-                
-                 controlsContainer.classList.remove('hidden');
-                 controlsContainer.innerHTML = `
-                    <div id="round-selector" class="flex space-x-1 bg-gray-800 p-1 rounded-md">
-                        <button data-round="qualis" class="round-btn bg-blue-600 text-white font-semibold py-1 px-4 rounded-md shadow-md">Qualis</button>
-                        <button data-round="finals" class="round-btn text-gray-300 font-semibold py-1 px-4 rounded-md">Final</button>
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
+                document.getElementById('back-to-comps-btn').addEventListener('click', () => navigate(from.page, from.context));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+                
+                const individualQualiRounds = [...new Set(appData.qRankings
+                    .filter(r => r.quali && r.quali.startsWith(currentComp))
+                    .map(r => r.quali)
+                )].sort();
 
-                 mainContent.innerHTML = `<div id="results-container" class="w-full"></div>`;
+                let roundButtonsHTML = '';
+                individualQualiRounds.forEach(roundName => {
+                    const shortName = roundName.replace(currentComp, '');
+                    roundButtonsHTML += `<button data-round="${roundName}" class="round-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">${shortName}</button>`;
+                });
+                
+                roundButtonsHTML += `<button data-round="qualis" class="round-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Qualis</button>`;
+                roundButtonsHTML += `<button data-round="finals" class="round-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Final</button>`;
+                
+                controlsContainer.classList.remove('hidden');
+                // Standardized control container
+                 controlsContainer.innerHTML = `<div class="flex justify-center">
+                    <div id="round-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
+                        ${roundButtonsHTML}
+                    </div>
+                 </div>`;
 
-                currentRound = 'qualis';
-                renderResultsTable();
+                mainContent.innerHTML = `<div id="results-container" class="w-full"></div>`;
+                
+                function setActiveRoundButton() {
+                    document.querySelectorAll('.round-btn').forEach(btn => {
+                        const isSelected = btn.dataset.round === currentRound;
+                        btn.classList.toggle('bg-blue-600', isSelected);
+                        btn.classList.toggle('text-white', isSelected);
+                        btn.classList.toggle('shadow-md', isSelected);
+                        btn.classList.toggle('text-gray-300', !isSelected);
+                    });
+                }
+                
+                setActiveRoundButton();
+                renderResultsTable(pageContext);
 
                 document.getElementById('round-selector').addEventListener('click', (e) => {
-                     if (e.target.tagName === 'BUTTON' && e.target.dataset.round !== currentRound) {
+                    if (e.target.tagName === 'BUTTON' && e.target.dataset.round !== currentRound) {
                         currentRound = e.target.dataset.round;
-                        document.querySelectorAll('.round-btn').forEach(btn => {
-                            btn.classList.toggle('bg-blue-600');
-                            btn.classList.toggle('text-white');
-                            btn.classList.toggle('text-gray-300');
-                            btn.classList.toggle('shadow-md');
-                        });
-                        renderResultsTable();
-                    }
+                        pageContext.round = currentRound; // Update context for back navigation from profile
+                        setActiveRoundButton();
+                        renderResultsTable(pageContext);
+                   }
                 });
             }
             
-            function renderResultsTable() {
+            function renderResultsTable(pageContext) {
                 const resultsContainer = document.getElementById('results-container');
-                const isQualis = currentRound === 'qualis';
-                const standings = isQualis ? appData.qStandings : appData.fRankings;
+                let compStandings = [];
+                let isOverallQualis = currentRound === 'qualis';
+                let isFinals = currentRound === 'finals';
+                let isIndividualQuali = !isOverallQualis && !isFinals;
+
+                if (isFinals) {
+                    compStandings = appData.fRankings.filter(s => (s.final || '').replace(/F$/, '') === currentComp);
+                } else if (isOverallQualis) {
+                    compStandings = appData.qStandings.filter(s => s.comp === currentComp);
+                } else { // Individual Quali
+                    compStandings = appData.qRankings.filter(s => s.quali === currentRound);
+                }
                 
-                let compStandings = isQualis
-                    ? standings.filter(s => s.comp === currentComp)
-                    : standings.filter(s => (s.final || '').replace(/F$/, '') === currentComp);
-                
-                compStandings.sort((a,b) => parseInt(a.place) - parseInt(b.place));
+                if (isFinals) {
+                    compStandings.sort((a,b) => parseInt(a.place) - parseInt(b.place));
+                } else {
+                    compStandings.sort((a, b) => parseFloat(b.quali_points) - parseFloat(a.quali_points));
+                    compStandings.forEach((s, i) => s.place = i + 1);
+                }
+
 
                 if (compStandings.length === 0) {
                     resultsContainer.innerHTML = `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No results available for this round.</div>`;
                     return;
                 }
                 
-                const headers = isQualis 
-                    ? ['Place', 'Climber', 'Quali Points', 'Flashes', 'Tops', 'Zones']
-                    : ['Place', 'Climber', 'Tops', 'Top Attempts', 'Zones', 'Zone Attempts'];
+                const headers = isFinals
+                    ? ['Place', 'Climber', 'Tops', 'Top Attempts', 'Zones', 'Zone Attempts']
+                    : ['Place', 'Climber', 'Quali Points', 'Flashes', 'Tops', 'Zones'];
 
                 let mobileHTML = '<div class="md:hidden space-y-2">';
                 let desktopHTML = `<div class="hidden md:block bg-gray-900 border border-gray-800 p-4 sm:p-6 rounded-lg shadow-md"><table class="w-full border-collapse"><thead><tr class="border-b border-gray-800">${headers.map(h => `<th class="p-3 font-semibold text-sm text-left text-gray-400">${h}</th>`).join('')}</tr></thead><tbody>`;
                 
                 for (const standing of compStandings) {
-                    const isQualisTop8 = isQualis && parseInt(standing.place) <= 8;
-                    const isFinalsTop3 = !isQualis && parseInt(standing.place) <= 3;
+                    const isQualisTop8 = !isFinals && parseInt(standing.place) <= 8;
+                    const isFinalsTop3 = isFinals && parseInt(standing.place) <= 3;
+                    let highlightClass = isQualisTop8 || isFinalsTop3 ? 'bg-sky-900/40' : '';
+                    
+                    const climberName = standing.climber || '-';
+                    const climberButton = `<button data-climber-name="${climberName}" class="profile-link-btn text-left hover:text-blue-400 transition-colors duration-150">${climberName}</button>`;
 
-                    let highlightClass = '';
-                    
-                    if (isQualisTop8 || isFinalsTop3) {
-                        highlightClass = 'bg-sky-900/40';
+                    let qualiPointsHTML;
+                    if (isIndividualQuali) {
+                        qualiPointsHTML = `<button data-climber-name="${climberName}" data-quali-name="${currentRound}" class="quali-detail-link font-bold text-blue-400 hover:text-blue-300">${standing.quali_points || '-'}</button>`;
+                    } else if (isOverallQualis) {
+                        qualiPointsHTML = `<button data-climber-name="${climberName}" data-comp-name="${currentComp}" class="quali-comp-detail-link font-bold text-blue-400 hover:text-blue-300">${standing.quali_points || '-'}</button>`;
+                    } else {
+                        qualiPointsHTML = `<span class="font-bold text-blue-400">${standing.quali_points || '-'}</span>`;
                     }
+
+
+                    const qualiStatsHTML = `<div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '-'}</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '-'}</span></div><div>Flashes <span class="block font-medium text-gray-200 text-sm">${standing.flashes || '-'}</span></div></div>`;
+                    const finalStatsHTML = `<div class="flex justify-around items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '0'}(${standing.top_attempts || '0'})</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '0'}(${standing.zone_attempts || '0'})</span></div></div>`;
                     
-                    const qualiStats = `<div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '-'}</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '-'}</span></div><div>Flashes <span class="block font-medium text-gray-200 text-sm">${standing.flashes || '-'}</span></div></div>`;
-                    const finalStats = `<div class="flex justify-around items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '0'}(${standing.top_attempts || '0'})</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '0'}(${standing.zone_attempts || '0'})</span></div></div>`;
+                    mobileHTML += `<div class="rounded-lg p-3 shadow-md border border-gray-800 ${highlightClass || 'bg-gray-900'}"><div class="flex justify-between items-center"><div class="flex items-center space-x-3"><span class="font-bold text-base text-gray-200 w-6">${standing.place||'-'}</span><span class="font-medium text-gray-100 text-sm">${climberButton}</span></div>${!isFinals?`<div class="text-base">${qualiPointsHTML}</div>`:''}</div>${isFinals?finalStatsHTML:qualiStatsHTML}</div>`;
                     
-                    mobileHTML += `<div class="rounded-lg p-2 shadow-md border border-gray-800 ${highlightClass || 'bg-gray-900'}"><div class="flex justify-between items-center"><div class="flex items-center space-x-2"><span class="font-bold text-base text-gray-200 w-6">${standing.place||'-'}</span><span class="font-medium text-gray-100 text-sm">${standing.climber||'-'}</span></div>${isQualis?`<div class="font-bold text-blue-400 text-base">${standing.quali_points||'-'}</div>`:''}</div>${isQualis?qualiStats:finalStats}</div>`;
-                    
-                    desktopHTML += `<tr class="border-b border-gray-800 last:border-b-0 hover:bg-gray-800/50 ${highlightClass}"><td class="p-3 font-bold text-gray-100">${standing.place||'-'}</td><td class="p-3 font-medium text-gray-200">${standing.climber||'-'}</td>${isQualis?`<td class="p-3 font-semibold text-blue-400 text-left">${standing.quali_points||'-'}</td><td class="p-3 text-left">${standing.flashes||'-'}</td><td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td>`:`<td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.top_attempts||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td><td class="p-3 text-left">${standing.zone_attempts||'-'}</td>`}</tr>`;
+                    const desktopRowContent = isFinals
+                        ? `<td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.top_attempts||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td><td class="p-3 text-left">${standing.zone_attempts||'-'}</td>`
+                        : `<td class="p-3 font-semibold text-blue-400 text-left">${qualiPointsHTML}</td><td class="p-3 text-left">${standing.flashes||'-'}</td><td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td>`;
+
+                    desktopHTML += `<tr class="border-b border-gray-800 last:border-b-0 hover:bg-gray-800/50 ${highlightClass}"><td class="p-3 font-bold text-gray-100">${standing.place||'-'}</td><td class="p-3 font-medium text-gray-200">${climberButton}</td>${desktopRowContent}</tr>`;
                 }
 
                 mobileHTML += '</div>';
                 desktopHTML += '</tbody></table></div>';
                 resultsContainer.innerHTML = mobileHTML + desktopHTML;
+                
+                resultsContainer.querySelectorAll('.profile-link-btn').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const climberName = e.currentTarget.dataset.climberName;
+                        navigate('climberProfile', {
+                            climberName: climberName,
+                            from: { page: 'resultsComp', context: pageContext }
+                        });
+                    });
+                });
+                
+                resultsContainer.querySelectorAll('.quali-detail-link').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const { climberName, qualiName } = e.currentTarget.dataset;
+                        navigate('qualiResultDetail', {
+                            climberName,
+                            qualiName,
+                            from: { page: 'resultsComp', context: pageContext }
+                        });
+                    });
+                });
+
+                resultsContainer.querySelectorAll('.quali-comp-detail-link').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const { climberName, compName } = e.currentTarget.dataset;
+                        navigate('qualiCompResultDetail', {
+                            climberName,
+                            compName,
+                            from: { page: 'resultsComp', context: pageContext }
+                        });
+                    });
+                });
             }
 
-            // --- Main Initialization ---
+            function renderQualiResultDetailPage(context) {
+                const { climberName, qualiName, from } = context;
+
+                headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="back-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <div class="flex-1 text-center">
+                        <h1 class="text-2xl font-bold text-gray-100">${climberName}</h1>
+                        <h2 class="text-sm font-medium text-gray-400 mt-1 whitespace-nowrap">${qualiName}</h2>
+                    </div>
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
+                document.getElementById('back-btn').addEventListener('click', () => navigate(from.page, from.context));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+
+                const qualiBoulders = appData.qBoulders.filter(b => b.quali === qualiName);
+                const climberResults = appData.qResults.find(r => r.climber === climberName && r.quali === qualiName);
+
+                if (!climberResults || qualiBoulders.length === 0) {
+                    mainContent.innerHTML = `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No detailed results available for this climber in this round.</div>`;
+                    return;
+                }
+
+                const getResultStyling = (result) => {
+                    switch(result) {
+                        case 'Flash': return 'bg-yellow-500/10 border-yellow-500 text-yellow-400';
+                        case 'Top': return 'bg-green-500/10 border-green-500 text-green-400';
+                        case 'Zone': return 'bg-blue-500/10 border-blue-500 text-blue-400';
+                        default: return 'bg-gray-700/20 border-gray-700 text-gray-400';
+                    }
+                }
+
+                let resultsHTML = '<div class="space-y-3">';
+                qualiBoulders.forEach(boulder => {
+                    const result = climberResults[boulder.name.toLowerCase()] || 'Nothing';
+                    const grade = boulder.grade || '';
+                    const room = boulder.a || '';
+
+                    resultsHTML += `
+                        <div class="bg-gray-900 border border-gray-800 px-4 py-3 rounded-lg shadow-sm flex items-center justify-between space-x-4">
+                            <div class="flex items-center space-x-4">
+                                <div class="font-bold text-xl text-gray-200 w-8 text-center">${boulder.name}</div>
+                                <div>
+                                    <p class="font-semibold text-gray-200">${grade} ${boulder.color}</p>
+                                    <p class="text-sm text-gray-400">${room}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-bold text-sm px-3 py-1 rounded-full border ${getResultStyling(result)}">${result}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                resultsHTML += '</div>';
+
+                mainContent.innerHTML = resultsHTML;
+            }
+
+            function renderQualiCompResultDetailPage(context) {
+                const { climberName, compName, from } = context;
+
+                headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="back-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <div class="flex-1 text-center">
+                        <h1 class="text-2xl font-bold text-gray-100">${climberName}</h1>
+                        <h2 class="text-sm font-medium text-gray-400 mt-1 whitespace-nowrap">${compName} Qualis</h2>
+                    </div>
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
+                document.getElementById('back-btn').addEventListener('click', () => navigate(from.page, from.context));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+
+                const getResultStyling = (result) => {
+                    switch(result) {
+                        case 'Flash': return 'bg-yellow-500/10 border-yellow-500 text-yellow-400';
+                        case 'Top': return 'bg-green-500/10 border-green-500 text-green-400';
+                        case 'Zone': return 'bg-blue-500/10 border-blue-500 text-blue-400';
+                        default: return 'bg-gray-700/20 border-gray-700 text-gray-400';
+                    }
+                }
+
+                const individualQualiRounds = [...new Set(appData.qRankings
+                    .filter(r => r.quali && r.quali.startsWith(compName))
+                    .map(r => r.quali)
+                )].sort();
+
+                if (individualQualiRounds.length === 0) {
+                     mainContent.innerHTML = `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No qualification rounds found for this competition.</div>`;
+                    return;
+                }
+
+                let finalHTML = '<div class="space-y-8">';
+
+                individualQualiRounds.forEach(qualiName => {
+                    const climberRanking = appData.qRankings.find(r => r.climber === climberName && r.quali === qualiName);
+                    const qualiPoints = climberRanking ? climberRanking.quali_points : '-';
+                    const roundTitle = qualiName.replace(compName, '');
+
+                    finalHTML += `<div><div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-3"><h3 class="text-xl font-bold text-gray-200">${roundTitle}</h3><span class="font-bold text-blue-400">${qualiPoints}</span></div>`;
+                    
+                    const qualiBoulders = appData.qBoulders.filter(b => b.quali === qualiName);
+                    const climberResults = appData.qResults.find(r => r.climber === climberName && r.quali === qualiName);
+                    
+                    if (climberResults && qualiBoulders.length > 0) {
+                        let resultsHTML = '<div class="space-y-3">';
+                         qualiBoulders.forEach(boulder => {
+                            const result = climberResults[boulder.name.toLowerCase()] || 'Nothing';
+                            const grade = boulder.grade || '';
+                            const room = boulder.a || '';
+
+                            resultsHTML += `
+                                <div class="bg-gray-900 border border-gray-800 px-4 py-3 rounded-lg shadow-sm flex items-center justify-between space-x-4">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="font-bold text-xl text-gray-200 w-8 text-center">${boulder.name}</div>
+                                        <div>
+                                            <p class="font-semibold text-gray-200">${grade} ${boulder.color}</p>
+                                            <p class="text-sm text-gray-400">${room}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="font-bold text-sm px-3 py-1 rounded-full border ${getResultStyling(result)}">${result}</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        resultsHTML += '</div>';
+                        finalHTML += resultsHTML;
+                    } else {
+                        finalHTML += `<div class="bg-gray-900 border border-gray-800 px-4 py-3 rounded-lg shadow-sm text-center text-gray-400">No results found for this round.</div>`;
+                    }
+                    finalHTML += `</div>`;
+                });
+
+                finalHTML += '</div>';
+                mainContent.innerHTML = finalHTML;
+            }
+
+
+            function renderLeaderboardsPage() {
+                headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Leaderboards</h1>
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
+                document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+
+                controlsContainer.classList.remove('hidden');
+                // Standardized control container
+                controlsContainer.innerHTML = `<div class="flex justify-center">
+                    <div id="leaderboard-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
+                        <button data-leaderboard="qualis" class="leaderboard-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Qualis</button>
+                        <button data-leaderboard="finals" class="leaderboard-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Finals</button>
+                    </div>
+                </div>`;
+                
+                mainContent.innerHTML = `<div id="leaderboard-container" class="w-full"></div>`;
+                
+                function setActiveLeaderboardButton() {
+                    document.querySelectorAll('.leaderboard-btn').forEach(btn => {
+                        const isSelected = btn.dataset.leaderboard === currentLeaderboard;
+                        btn.classList.toggle('bg-blue-600', isSelected);
+                        btn.classList.toggle('text-white', isSelected);
+                        btn.classList.toggle('shadow-md', isSelected);
+                        btn.classList.toggle('text-gray-300', !isSelected);
+                    });
+                }
+
+                currentLeaderboard = 'qualis';
+                setActiveLeaderboardButton();
+                renderLeaderboardTable(currentLeaderboard);
+
+                document.getElementById('leaderboard-selector').addEventListener('click', e => {
+                    if (e.target.tagName === 'BUTTON' && e.target.dataset.leaderboard !== currentLeaderboard) {
+                        currentLeaderboard = e.target.dataset.leaderboard;
+                        setActiveLeaderboardButton();
+                        renderLeaderboardTable(currentLeaderboard);
+                    }
+                });
+            }
+
+            function renderLeaderboardTable(leaderboardType) {
+                const container = document.getElementById('leaderboard-container');
+                let data, headers;
+
+                if (leaderboardType === 'qualis') {
+                    data = [...appData.qLeaderboard].sort((a, b) => parseInt(a.place) - parseInt(b.place));
+                    headers = ['Circuit', 'Place', 'Climber', 'Quali Points', 'Tops', 'Zones', 'Flashes', 'Qualis'];
+                } else {
+                    data = [...appData.cStandings].sort((a, b) => parseInt(a.place) - parseInt(b.place));
+                    headers = ['Circuit', 'Place', 'Climber', 'Circuit Points', '1st', '2nd', '3rd', 'Finals', 'Flashes'];
+                }
+
+                if (data.length === 0) {
+                    container.innerHTML = `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No leaderboard data available.</div>`;
+                    return;
+                }
+
+                let mobileHTML = '<div class="md:hidden space-y-2">';
+                let desktopHTML = `<div class="hidden md:block bg-gray-900 border border-gray-800 p-4 sm:p-6 rounded-lg shadow-md"><table class="w-full border-collapse"><thead><tr class="border-b border-gray-800">${headers.map(h => `<th class="p-3 font-semibold text-sm text-left text-gray-400">${h}</th>`).join('')}</tr></thead><tbody>`;
+
+                for (const entry of data) {
+                    const climberName = entry.climber || '-';
+                    const climberButton = `<button data-climber-name="${climberName}" class="profile-link-btn text-left hover:text-blue-400 transition-colors duration-150">${climberName}</button>`;
+
+                    if (leaderboardType === 'qualis') {
+                        mobileHTML += `<div class="rounded-lg p-3 shadow-md border border-gray-800 bg-gray-900">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-3">
+                                    <span class="font-bold text-base text-gray-200 w-6">${entry.place}</span>
+                                    <span class="font-medium text-gray-100 text-sm">${climberButton}</span>
+                                </div>
+                                <div class="font-bold text-blue-400 text-base">${entry.quali_points}</div>
+                            </div>
+                            <div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700">
+                                <div>Tops <span class="block font-medium text-gray-200 text-sm">${entry.tops}</span></div>
+                                <div>Zones <span class="block font-medium text-gray-200 text-sm">${entry.zones}</span></div>
+                                <div>Flashes <span class="block font-medium text-gray-200 text-sm">${entry.flashes}</span></div>
+                                <div>Qualis <span class="block font-medium text-gray-200 text-sm">${entry.number_of_qualis}</span></div>
+                            </div>
+                        </div>`;
+                        desktopHTML += `<tr class="border-b border-gray-800 last:border-b-0 hover:bg-gray-800/50">
+                            <td class="p-3">${entry.circuit}</td>
+                            <td class="p-3 font-bold text-gray-100">${entry.place}</td>
+                            <td class="p-3 font-medium text-gray-200">${climberButton}</td>
+                            <td class="p-3 font-semibold text-blue-400">${entry.quali_points}</td>
+                            <td class="p-3">${entry.tops}</td>
+                            <td class="p-3">${entry.zones}</td>
+                            <td class="p-3">${entry.flashes}</td>
+                            <td class="p-3">${entry.number_of_qualis}</td>
+                        </tr>`;
+                    } else { // Finals
+                        mobileHTML += `<div class="rounded-lg p-3 shadow-md border border-gray-800 bg-gray-900">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-3">
+                                    <span class="font-bold text-base text-gray-200 w-6">${entry.place}</span>
+                                    <span class="font-medium text-gray-100 text-sm">${climberButton}</span>
+                                </div>
+                                <div class="font-bold text-blue-400 text-base">${entry.circuit_points}</div>
+                            </div>
+                             <div class="flex flex-wrap justify-around items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700 gap-x-4 gap-y-2">
+                                <div>1st <span class="block font-medium text-gray-200 text-sm">${entry['1st']}</span></div>
+                                <div>2nd <span class="block font-medium text-gray-200 text-sm">${entry['2nd']}</span></div>
+                                <div>3rd <span class="block font-medium text-gray-200 text-sm">${entry['3rd']}</span></div>
+                                <div>Finals <span class="block font-medium text-gray-200 text-sm">${entry.finals}</span></div>
+                                <div>Flashes <span class="block font-medium text-gray-200 text-sm">${entry.flashes}</span></div>
+                            </div>
+                        </div>`;
+                        desktopHTML += `<tr class="border-b border-gray-800 last:border-b-0 hover:bg-gray-800/50">
+                            <td class="p-3">${entry.circuit}</td>
+                            <td class="p-3 font-bold text-gray-100">${entry.place}</td>
+                            <td class="p-3 font-medium text-gray-200">${climberButton}</td>
+                            <td class="p-3 font-semibold text-blue-400">${entry.circuit_points}</td>
+                            <td class="p-3">${entry['1st']}</td>
+                            <td class="p-3">${entry['2nd']}</td>
+                            <td class="p-3">${entry['3rd']}</td>
+                            <td class="p-3">${entry.finals}</td>
+                            <td class="p-3">${entry.flashes}</td>
+                        </tr>`;
+                    }
+                }
+
+                mobileHTML += '</div>';
+                desktopHTML += '</tbody></table></div>';
+                container.innerHTML = mobileHTML + desktopHTML;
+
+                container.querySelectorAll('.profile-link-btn').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const climberName = e.currentTarget.dataset.climberName;
+                        navigate('climberProfile', {
+                            climberName: climberName,
+                            from: { page: 'leaderboards' }
+                        });
+                    });
+                });
+            }
+
             async function init() {
                 indicator.innerHTML = `<i class="fas fa-spinner fa-spin text-4xl text-gray-400"></i><p class="mt-4 text-lg font-medium text-gray-300">Loading All Mockomps Data...</p>`;
                 
                 try {
-                    const dataPromises = Object.entries(GOOGLE_SHEET_URLS).map(([key, url]) =>
-                        fetchAndParseSheet(url).then(data => [key, data])
-                    );
+                    const dataPromises = Object.entries(GOOGLE_SHEET_URLS).map(([key, url]) => {
+                        // Use a general parsing function for all sheets now
+                        if (key === 'climberStats') {
+                            return fetchAndParseClimberStats(url).then(data => [key, data]);
+                        }
+                        return fetchAndParseSheet(url).then(data => [key, data]);
+                    });
+
                     const dataEntries = await Promise.all(dataPromises);
                     appData = Object.fromEntries(dataEntries);
                     
-                    indicator.style.display = 'none';
-                    mainContent.style.display = 'block';
+                    // --- FIX ---
+                    // Remove the indicator from the DOM instead of just hiding it.
+                    // This prevents mobile browsers from incorrectly calculating page height.
+                    indicator.remove(); 
+                    
+                    // Data loaded, show the main app content and header
+                    stickyContainer.classList.remove('hidden');
+                    mainContent.classList.remove('hidden');
+
                     navigate('home');
                     
                 } catch (error) {
-                    indicator.innerHTML = `<div class="p-10 bg-red-900/50 border border-red-500/30 text-red-300 rounded-lg"><h2 class="font-bold text-xl text-red-200">Error Loading Data</h2><p class="mt-2 text-sm">${error.message}</p></div>`;
+                    console.error("Initialization Error:", error);
+                    indicator.innerHTML = `<div class="p-10 bg-red-900/50 border border-red-500/30 text-red-300 rounded-lg"><h2 class="font-bold text-xl text-red-200">Error Loading Data</h2><p class="mt-2 text-sm">${error.message}</p><p class="mt-2 text-xs">Please check the browser console for more details, ensure all Google Sheet GIDs are correct, and that sheets are published.</p></div>`;
                 }
             }
 
