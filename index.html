@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mockomps</title>
+    <title>Mockomps | Results & Schedule</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -674,18 +674,18 @@
                 container.innerHTML = `<div>
                     ${legendHTML}
                     <div class="space-y-4">
-                        <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm"><canvas id="topsChart"></canvas></div>
-                        <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm"><canvas id="zonesChart"></canvas></div>
-                        <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm"><canvas id="flashesChart"></canvas></div>
+                        <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="topsChart"></canvas></div>
+                        <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="zonesChart"></canvas></div>
+                        <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="flashesChart"></canvas></div>
                     </div>
                 </div>`;
 
-                const comps = [...new Set(appData.perCompGradeStats.map(d => d.comp))].sort();
+                const climberComps = [...new Set(climberData.map(d => d.comp))].sort();
 
                 const createChart = (canvasId, statKey, title) => {
                     const isMobile = window.innerWidth <= 768;
                     const datasets = Object.keys(gradeColors).map(grade => {
-                        const data = comps.map(comp => {
+                        const data = climberComps.map(comp => {
                             const record = climberData.find(d => d.comp === comp && d.grade === grade);
                             return record ? parseFloat(record[statKey]) : null;
                         });
@@ -697,33 +697,43 @@
                             fill: false,
                             tension: 0.1,
                             spanGaps: true,
-                            borderWidth: isMobile ? 1.5 : 2,
-                            pointRadius: isMobile ? 2 : 3,
+                            borderWidth: isMobile ? 1.5 : 2.5,
+                            pointRadius: isMobile ? 2.5 : 3.5,
+                            clip: false
                         };
                     });
 
                     new Chart(document.getElementById(canvasId), {
                         type: 'line',
                         data: {
-                            labels: comps.map(c => c.replace('M', '')),
+                            labels: climberComps,
                             datasets: datasets
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: true,
                             layout: {
-                                padding: { top: isMobile ? 10 : 0 }
+                                padding: { top: 15 }
                             },
                             plugins: {
-                                title: { display: true, text: title, color: '#e2e8f0', font: { size: isMobile ? 14 : 16 }, padding: { top: 0, bottom: isMobile ? 5 : 10 } },
+                                title: { 
+                                    display: true, 
+                                    text: title, 
+                                    color: '#e2e8f0', 
+                                    font: { size: isMobile ? 12 : 16 }, 
+                                    padding: { top: 0, bottom: 5 } 
+                                },
                                 legend: { display: false }
                             },
                             scales: {
                                 y: {
-                                    display: !isMobile,
                                     beginAtZero: true,
                                     max: 100,
-                                    ticks: { color: '#94a3b8', callback: value => value + '%' },
+                                    ticks: { 
+                                        color: '#94a3b8', 
+                                        stepSize: 20,
+                                        callback: value => value + '%' 
+                                    },
                                     grid: { color: 'rgba(55, 65, 81, 0.5)' }
                                 },
                                 x: {
