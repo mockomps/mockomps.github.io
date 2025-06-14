@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mockomps | Results & Schedule</title>
+    <title>Mockomps</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -53,7 +53,7 @@
             <!-- Content will be set by JavaScript -->
         </div>
     </div>
-    
+
     <!-- Admin PIN Modal -->
     <div id="pin-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
         <div class="bg-gray-900 border border-gray-800 rounded-lg p-8 w-full max-w-sm mx-4">
@@ -67,7 +67,7 @@
             </div>
         </div>
     </div>
-
+    
     <footer class="text-center py-8 text-xs text-gray-600">
         <p>
             powered by 
@@ -96,6 +96,9 @@
             let currentClimberTab = 'profile';
             const ADMIN_PIN = '0306'; 
             
+            // --- Centralized Google Apps Script URL ---
+            const GOOGLE_APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzZ5SsJuEAbosB2omSgUJP4HVD4UXbuQdidkIx6YqGfx02wDGFC8GbnAfcYtFNOQP7Z/exec';
+
             // --- Data Sources (Simplified) ---
             const GOOGLE_SHEET_URLS = {
                 climbers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=937478252&single=true&output=csv',
@@ -125,12 +128,11 @@
                 const lines = text.trim().split(/\r?\n/);
                 if (lines.length < 2) return [];
                 
-                // Corrected header parsing logic
                 const header = lines[0].split(',').map(h => 
                     h.trim().toLowerCase()
-                    .replace(/ %/g, '_pct') // Handles "Top %" -> "top_pct"
-                    .replace(/[\s-]+/g, '_') // Handles "Quali Points" -> "quali_points"
-                    .replace(/# /g, 'number_of_') // Handles "# Qualis"
+                    .replace(/ %/g, '_pct')
+                    .replace(/[\s-]+/g, '_')
+                    .replace(/# /g, 'number_of_')
                 );
                 
                 const data = lines.slice(1).map(line => {
@@ -188,7 +190,7 @@
             }
             
             function navigate(page, context = null) {
-                window.scrollTo(0, 0); // Scroll to top on every navigation
+                window.scrollTo(0, 0);
                 mainContent.innerHTML = ''; 
                 headerContent.innerHTML = '';
                 controlsContainer.innerHTML = '';
@@ -249,9 +251,8 @@
                 
                 mainContent.innerHTML = mainHTML;
                 
-                // --- Live Comps Logic ---
                 const today = new Date();
-                today.setHours(0, 0, 0, 0); // Normalize to the start of the day
+                today.setHours(0, 0, 0, 0);
 
                 const liveComps = appData.comps.filter(comp => {
                     const startDate = new Date(comp.start);
@@ -324,7 +325,6 @@
                             <h2 class="text-xl font-bold text-gray-100 border-b border-gray-700 pb-2 mb-3">1. The Circuit</h2>
                             <p>Mockomps is divided into Circuits (e.g., MC01, MC02). Each Circuit consists of 10 individual Mockomps (M01 through M10 for MC01, M11 through M20 for MC02, and so on), culminating in two final events: the <strong class="text-white">Mockomp Challengers</strong> and the <strong class="text-white">Mockomp Champions</strong> to decide the Circuit Champion.</p>
                         </div>
-
                         <div>
                             <h2 class="text-xl font-bold text-gray-100 border-b border-gray-700 pb-2 mb-3">2. The Mockomp</h2>
                             <p>A Mockomp is a multi-week competition event held every one to two months at São Rock climbing gym. It is composed of a Qualification Phase and a Final.</p>
@@ -340,7 +340,6 @@
                                 </div>
                             </div>
                         </div>
-
                          <div>
                             <h2 class="text-xl font-bold text-gray-100 border-b border-gray-700 pb-2 mb-3">3. The Circuit Finale</h2>
                             <p>At the end of a 10-Mockomp circuit, two special events determine the ultimate champion.</p>
@@ -361,7 +360,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <div>
                             <h2 class="text-xl font-bold text-gray-100 border-b border-gray-700 pb-2 mb-3">4. Scoring Explained</h2>
                             <div class="space-y-4">
@@ -393,106 +391,106 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
-                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                  const countries = ["Portugal", "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo, Democratic Republic of the", "Congo, Republic of the", "Costa Rica", "Cote d'Ivoire", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"];
                  let countryOptions = countries.map(country => `<option value="${country}" ${country === 'Portugal' ? 'selected' : ''}>${country}</option>`).join('');
 
-                mainContent.innerHTML = `
-                    <div class="max-w-md mx-auto">
-                        <form id="registration-form" class="space-y-4">
-                            <div>
-                                <label for="Name" class="block text-sm font-medium text-gray-300 mb-1">Name</label>
-                                <input type="text" name="Name" id="Name" placeholder="First and Last Name" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label for="Date of Birth" class="block text-sm font-medium text-gray-300 mb-1">Date of Birth</label>
-                                <input type="text" name="Date of Birth" id="Date of Birth" placeholder="DD/MM/YYYY" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
-                            </div>
+                 mainContent.innerHTML = `
+                     <div class="max-w-md mx-auto">
+                         <form id="registration-form" class="space-y-4">
                              <div>
-                                <label for="Country" class="block text-sm font-medium text-gray-300 mb-1">Country</label>
-                                <select name="Country" id="Country" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
-                                    ${countryOptions}
-                                </select>
-                            </div>
-                            <div>
-                                <label for="Instagram" class="block text-sm font-medium text-gray-300 mb-1">Instagram</label>
-                                <input type="text" name="Instagram" id="Instagram" placeholder="without @" class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
-                            </div>
-                            <div>
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Sign Up</button>
-                            </div>
-                        </form>
-                        <div id="form-feedback" class="mt-4 text-center"></div>
-                    </div>
-                `;
+                                 <label for="Name" class="block text-sm font-medium text-gray-300 mb-1">Name</label>
+                                 <input type="text" name="Name" id="Name" placeholder="First and Last Name" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                             </div>
+                             <div>
+                                 <label for="Date of Birth" class="block text-sm font-medium text-gray-300 mb-1">Date of Birth</label>
+                                 <input type="text" name="Date of Birth" id="Date of Birth" placeholder="DD/MM/YYYY" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                             </div>
+                              <div>
+                                 <label for="Country" class="block text-sm font-medium text-gray-300 mb-1">Country</label>
+                                 <select name="Country" id="Country" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                     ${countryOptions}
+                                 </select>
+                             </div>
+                             <div>
+                                 <label for="Instagram" class="block text-sm font-medium text-gray-300 mb-1">Instagram</label>
+                                 <input type="text" name="Instagram" id="Instagram" placeholder="without @" class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                             </div>
+                             <div>
+                                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Sign Up</button>
+                             </div>
+                         </form>
+                         <div id="form-feedback" class="mt-4 text-center"></div>
+                     </div>
+                 `;
 
-                const form = document.getElementById('registration-form');
-                const feedback = document.getElementById('form-feedback');
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbx57I5Y0_iuLPBRC5_rycJfDZTv_qwbso9EsxKiHHFD9HQ8fLxXAWuXQWMmh-3PKFAJ/exec';
+                 const form = document.getElementById('registration-form');
+                 const feedback = document.getElementById('form-feedback');
+                 
+                 form.addEventListener('submit', e => {
+                     e.preventDefault();
+                     feedback.innerHTML = ``;
 
-                form.addEventListener('submit', e => {
-                    e.preventDefault();
-                    feedback.innerHTML = ``; // Clear previous feedback
+                     const nameInput = document.getElementById('Name');
+                     const dobInput = document.getElementById('Date of Birth');
 
-                    const nameInput = document.getElementById('Name');
-                    const dobInput = document.getElementById('Date of Birth');
-
-                    // --- Data Validation ---
-                    const dobValue = dobInput.value.trim();
-                    if(dobValue) {
-                         const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-                         if (!datePattern.test(dobValue)) {
-                             feedback.innerHTML = `<p class="text-red-400">Please enter the date of birth in DD/MM/YYYY format.</p>`;
+                     const dobValue = dobInput.value.trim();
+                     if(dobValue) {
+                          const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+                          if (!datePattern.test(dobValue)) {
+                              feedback.innerHTML = `<p class="text-red-400">Please enter the date of birth in DD/MM/YYYY format.</p>`;
+                              return;
+                          }
+                         const parts = dobValue.split("/");
+                         const day = parseInt(parts[0], 10);
+                         const month = parseInt(parts[1], 10);
+                         const year = parseInt(parts[2], 10);
+                         
+                         const date = new Date(year, month - 1, day);
+                         if (date.getFullYear() !== year || date.getMonth() + 1 !== month || date.getDate() !== day) {
+                             feedback.innerHTML = `<p class="text-red-400">Please enter a valid date.</p>`;
                              return;
                          }
-                        const parts = dobValue.split("/");
-                        const day = parseInt(parts[0], 10);
-                        const month = parseInt(parts[1], 10);
-                        const year = parseInt(parts[2], 10);
-                        
-                        const date = new Date(year, month - 1, day);
-                        if (date.getFullYear() !== year || date.getMonth() + 1 !== month || date.getDate() !== day) {
-                            feedback.innerHTML = `<p class="text-red-400">Please enter a valid date.</p>`;
-                            return;
-                        }
-                    }
+                     }
 
-                    // --- Data Cleaning ---
-                    const cleanedName = nameInput.value
-                        .trim()
-                        .replace(/\s+/g, ' ')
-                        .split(' ')
-                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                        .join(' ');
-                    
-                    const submitButton = form.querySelector('button[type="submit"]');
-                    submitButton.disabled = true;
-                    submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...`;
-                    
-                    const formData = new FormData(form);
-                    formData.set('Name', cleanedName); // Set the cleaned name for submission
+                     const cleanedName = nameInput.value
+                         .trim()
+                         .replace(/\s+/g, ' ')
+                         .split(' ')
+                         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                         .join(' ');
+                     
+                     const submitButton = form.querySelector('button[type="submit"]');
+                     submitButton.disabled = true;
+                     submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...`;
+                     
+                     const plainFormData = Object.fromEntries(new FormData(form).entries());
+                     plainFormData.Name = cleanedName;
+                     plainFormData.formType = 'climberRegistration';
 
-                    fetch(scriptURL, { method: 'POST', body: formData})
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.result === 'success') {
-                                feedback.innerHTML = `<p class="text-green-400">Success! You are now registered.</p>`;
-                                form.reset();
-                            } else {
-                                throw new Error(data.error || 'Unknown error');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error!', error);
-                            feedback.innerHTML = `<p class="text-red-400">Error: Submission failed. This could be a network issue or a server-side script problem. Please try again later.</p>`;
-                        })
-                        .finally(() => {
-                             submitButton.disabled = false;
-                             submitButton.innerHTML = `Sign Up`;
-                        });
-                });
+                     fetch(GOOGLE_APP_SCRIPT_URL, {
+                         method: 'POST',
+                         mode: 'no-cors', // Workaround for CORS issues with Google Apps Script
+                         headers: {
+                            'Content-Type': 'application/json',
+                         },
+                         body: JSON.stringify(plainFormData)
+                     })
+                     .then(() => {
+                         // With 'no-cors', we can't read the response. We assume success.
+                         feedback.innerHTML = `<p class="text-green-400">Success! You are now registered.</p>`;
+                         form.reset();
+                     }).catch(error => {
+                         // This will catch network errors, but not server-side script errors.
+                         console.error('Error!', error);
+                         feedback.innerHTML = `<p class="text-red-400">Error: Submission failed due to a network issue. Please check your connection and try again.</p>`;
+                     }).finally(() => {
+                          submitButton.disabled = false;
+                          submitButton.innerHTML = `Sign Up`;
+                     });
+                 });
             }
             
             function renderAdminPage() {
@@ -508,12 +506,12 @@
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 mainContent.innerHTML = `
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center mt-8">
-                        <button id="add-quali-boulders-btn" class="bg-blue-600 hover:bg-blue-700 p-6 rounded-lg text-white font-bold text-lg">Add Quali Boulders</button>
-                        <button class="bg-gray-700 opacity-50 cursor-not-allowed p-6 rounded-lg text-gray-400 font-bold text-lg">Add Final Boulders</button>
-                        <button class="bg-gray-700 opacity-50 cursor-not-allowed p-6 rounded-lg text-gray-400 font-bold text-lg">Update Quali Form</button>
-                        <button class="bg-gray-700 opacity-50 cursor-not-allowed p-6 rounded-lg text-gray-400 font-bold text-lg">Update Final Form</button>
-                    </div>
+                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center mt-8">
+                            <button id="add-quali-boulders-btn" class="bg-blue-600 hover:bg-blue-700 p-6 rounded-lg text-white font-bold text-lg">Add Quali Boulders</button>
+                            <button class="bg-gray-700 opacity-50 cursor-not-allowed p-6 rounded-lg text-gray-400 font-bold text-lg">Add Final Boulders</button>
+                            <button class="bg-gray-700 opacity-50 cursor-not-allowed p-6 rounded-lg text-gray-400 font-bold text-lg">Update Quali Form</button>
+                            <button class="bg-gray-700 opacity-50 cursor-not-allowed p-6 rounded-lg text-gray-400 font-bold text-lg">Update Final Form</button>
+                        </div>
                 `;
 
                 document.getElementById('add-quali-boulders-btn').addEventListener('click', () => navigate('addBoulders'));
@@ -547,7 +545,6 @@
                                 </select>
                             </div>
                             <div id="boulder-list" class="space-y-3">
-                                <!-- Boulder rows will be injected here -->
                             </div>
                             <div class="flex justify-between items-center">
                                 <button type="button" id="add-boulder-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Add Boulder</button>
@@ -599,13 +596,12 @@
                 }
 
                 function populateBouldersForQuali(qualiName) {
-                    boulderList.innerHTML = ''; // Clear existing rows
+                    boulderList.innerHTML = '';
                     const existingBoulders = appData.qBoulders.filter(b => b.quali === qualiName);
 
                     if (existingBoulders.length > 0) {
                         existingBoulders.forEach(boulder => addBoulderRow(boulder));
                     } else {
-                        // Add 5 empty rows for a new quali
                         for(let i=0; i<5; i++) {
                             addBoulderRow();
                         }
@@ -617,7 +613,7 @@
                     if(selectedQuali) {
                         populateBouldersForQuali(selectedQuali);
                     } else {
-                        boulderList.innerHTML = ''; // Clear if no quali is selected
+                        boulderList.innerHTML = '';
                     }
                 });
 
@@ -628,7 +624,6 @@
                 
                 const boulderForm = document.getElementById('boulder-form');
                 const boulderFeedback = document.getElementById('boulder-form-feedback');
-                const boulderScriptURL = 'https://script.google.com/macros/s/AKfycbz9-kWe_2A4MPRkEdP-Dm8-1wxZXPxOKHBuJiaa-uqLbIvzkBs8GWKgy-evf5rOWSEc/exec';
 
                 boulderForm.addEventListener('submit', e => {
                     e.preventDefault();
@@ -657,6 +652,7 @@
                     });
                     
                     const payload = {
+                        formType: 'addBoulders',
                         quali: qualiName,
                         boulders: boulders
                     };
@@ -665,21 +661,21 @@
                     submitButton.disabled = true;
                     submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...`;
                     
-                    fetch(boulderScriptURL, {
+                    fetch(GOOGLE_APP_SCRIPT_URL, {
                         method: 'POST',
+                        mode: 'no-cors', // Workaround for CORS issues with Google Apps Script
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
                         body: JSON.stringify(payload)
                     })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.result === 'success') {
-                            boulderFeedback.innerHTML = `<p class="text-green-400">Success! Boulders for ${qualiName} have been updated.</p>`;
-                        } else {
-                            throw new Error(data.error || 'Unknown server error');
-                        }
+                    .then(() => {
+                        // With 'no-cors', we can't read the response. We assume success.
+                        boulderFeedback.innerHTML = `<p class="text-green-400">Success! Boulders for ${qualiName} have been updated.</p>`;
                     })
                     .catch(error => {
                         console.error('Error!', error);
-                        boulderFeedback.innerHTML = `<p class="text-red-400">Error: Submission failed. Please check the console.</p>`;
+                        boulderFeedback.innerHTML = `<p class="text-red-400">Error: Submission failed due to a network issue. Please check your connection and try again.</p>`;
                     })
                      .finally(() => {
                          submitButton.disabled = false;
@@ -873,7 +869,7 @@
 
             function renderClimberProfilePage(context) {
                 const { climberName, from, tab } = context;
-                currentClimberTab = tab || 'profile'; // Set the tab state from context, default to 'profile'
+                currentClimberTab = tab || 'profile';
 
                 headerContent.innerHTML = `
                     <div class="flex-1">
@@ -890,7 +886,6 @@
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 controlsContainer.classList.remove('hidden');
-                // Standardized control container
                 controlsContainer.innerHTML = `<div class="flex justify-center">
                     <div id="climber-profile-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
                         <button data-tab="profile" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Profile</button>
@@ -1160,7 +1155,7 @@
                     .filter(s => s.climber === climberName)
                     .sort((a,b) => a.comp.localeCompare(b.comp));
                 if (qualiPlacements.length > 0) {
-                     createPlacementChart('qualiPlacementChart', qualiPlacements, '#38bdf8'); // light-blue-400
+                     createPlacementChart('qualiPlacementChart', qualiPlacements, '#38bdf8');
                 }
 
                 const finalPlacements = appData.fRankings
@@ -1173,7 +1168,7 @@
                             <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="finalPlacementChart"></canvas></div>
                         </div>
                     `;
-                    createPlacementChart('finalPlacementChart', finalPlacements, '#4ade80'); // green-400
+                    createPlacementChart('finalPlacementChart', finalPlacements, '#4ade80');
                 }
             }
 
@@ -1188,12 +1183,12 @@
 
             function renderClimberProfile_HistoryTab(container, climberName, profilePageContext) {
                 const compDateMap = new Map(appData.comps.map(c => [c.comp, new Date(c.start)]));
-                const historyByComp = Object.create(null); // Use a null-prototype object for a safer map
+                const historyByComp = Object.create(null);
 
                 appData.qStandings
                     .filter(s => s.climber === climberName)
                     .forEach(s => {
-                        if (s.comp) { // Guard against empty comp names
+                        if (s.comp) {
                             if (!historyByComp[s.comp]) {
                                 historyByComp[s.comp] = { date: compDateMap.get(s.comp) || new Date(0), results: [] };
                             }
@@ -1205,7 +1200,7 @@
                     .filter(s => s.climber === climberName)
                     .forEach(s => {
                         const compName = (s.final || '').replace(/F$/, '');
-                         if (compName) { // Guard against empty comp names
+                         if (compName) {
                             if (!historyByComp[compName]) {
                                 historyByComp[compName] = { date: compDateMap.get(compName) || new Date(0), results: [] };
                             }
@@ -1283,11 +1278,10 @@
                 roundButtonsHTML += `<button data-round="finals" class="round-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Final</button>`;
                 
                 controlsContainer.classList.remove('hidden');
-                // Standardized control container
                  controlsContainer.innerHTML = `<div class="flex justify-center">
-                    <div id="round-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
-                        ${roundButtonsHTML}
-                    </div>
+                     <div id="round-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
+                         ${roundButtonsHTML}
+                     </div>
                  </div>`;
 
                 mainContent.innerHTML = `<div id="results-container" class="w-full"></div>`;
@@ -1308,7 +1302,7 @@
                 document.getElementById('round-selector').addEventListener('click', (e) => {
                     if (e.target.tagName === 'BUTTON' && e.target.dataset.round !== currentRound) {
                         currentRound = e.target.dataset.round;
-                        pageContext.round = currentRound; // Update context for back navigation from profile
+                        pageContext.round = currentRound;
                         setActiveRoundButton();
                         renderResultsTable(pageContext);
                    }
@@ -1326,7 +1320,7 @@
                     compStandings = appData.fRankings.filter(s => (s.final || '').replace(/F$/, '') === currentComp);
                 } else if (isOverallQualis) {
                     compStandings = appData.qStandings.filter(s => s.comp === currentComp);
-                } else { // Individual Quali
+                } else {
                     compStandings = appData.qRankings.filter(s => s.quali === currentRound);
                 }
                 
@@ -1573,7 +1567,6 @@
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 controlsContainer.classList.remove('hidden');
-                // Standardized control container
                 controlsContainer.innerHTML = `<div class="flex justify-center">
                     <div id="leaderboard-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
                         <button data-leaderboard="qualis" class="leaderboard-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Qualis</button>
@@ -1707,7 +1700,6 @@
                 
                 try {
                     const dataPromises = Object.entries(GOOGLE_SHEET_URLS).map(([key, url]) => {
-                        // Use a general parsing function for all sheets now
                         if (key === 'climberStats') {
                             return fetchAndParseClimberStats(url).then(data => [key, data]);
                         }
@@ -1717,12 +1709,8 @@
                     const dataEntries = await Promise.all(dataPromises);
                     appData = Object.fromEntries(dataEntries);
                     
-                    // --- FIX ---
-                    // Remove the indicator from the DOM instead of just hiding it.
-                    // This prevents mobile browsers from incorrectly calculating page height.
                     indicator.remove(); 
                     
-                    // Data loaded, show the main app content and header
                     stickyContainer.classList.remove('hidden');
                     mainContent.classList.remove('hidden');
 
