@@ -673,16 +673,25 @@
 
                 container.innerHTML = `<div>
                     ${legendHTML}
-                    <div class="space-y-4">
-                        <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="topsChart"></canvas></div>
-                        <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="zonesChart"></canvas></div>
-                        <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="flashesChart"></canvas></div>
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-base font-semibold text-gray-200 text-center mb-2">Top Percentage</h3>
+                            <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="topsChart"></canvas></div>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-semibold text-gray-200 text-center mb-2">Zone Percentage</h3>
+                            <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="zonesChart"></canvas></div>
+                        </div>
+                        <div>
+                             <h3 class="text-base font-semibold text-gray-200 text-center mb-2">Flash Percentage</h3>
+                            <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="flashesChart"></canvas></div>
+                        </div>
                     </div>
                 </div>`;
 
                 const climberComps = [...new Set(climberData.map(d => d.comp))].sort();
 
-                const createChart = (canvasId, statKey, title) => {
+                const createChart = (canvasId, statKey) => {
                     const isMobile = window.innerWidth <= 768;
                     const datasets = Object.keys(gradeColors).map(grade => {
                         const data = climberComps.map(comp => {
@@ -699,7 +708,7 @@
                             spanGaps: true,
                             borderWidth: isMobile ? 1.5 : 2.5,
                             pointRadius: isMobile ? 2.5 : 3.5,
-                            clip: false
+                            clip: false // Prevents clipping of points at the edge of the chart area
                         };
                     });
 
@@ -713,16 +722,10 @@
                             responsive: true,
                             maintainAspectRatio: true,
                             layout: {
-                                padding: { top: 15 }
+                                padding: { top: 10 }
                             },
                             plugins: {
-                                title: { 
-                                    display: true, 
-                                    text: title, 
-                                    color: '#e2e8f0', 
-                                    font: { size: isMobile ? 12 : 16 }, 
-                                    padding: { top: 0, bottom: 5 } 
-                                },
+                                title: { display: false },
                                 legend: { display: false }
                             },
                             scales: {
@@ -734,7 +737,7 @@
                                         stepSize: 20,
                                         callback: value => value + '%' 
                                     },
-                                    grid: { color: 'rgba(55, 65, 81, 0.5)' }
+                                    grid: { color: 'rgba(55, 65, 81, 0.5)', drawBorder: false }
                                 },
                                 x: {
                                     ticks: { color: '#94a3b8', autoSkip: true, maxRotation: 0, minRotation: 0, font: {size: 10} },
@@ -745,9 +748,9 @@
                     });
                 };
 
-                createChart('topsChart', 'top_pct', 'Top Percentage');
-                createChart('zonesChart', 'zone_pct', 'Zone Percentage');
-                createChart('flashesChart', 'flash_pct', 'Flash Percentage');
+                createChart('topsChart', 'top_pct');
+                createChart('zonesChart', 'zone_pct');
+                createChart('flashesChart', 'flash_pct');
             }
 
             function getOrdinal(n) {
