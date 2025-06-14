@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mockomps</title>
+    <title>Mockomps | Results & Schedule</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -54,6 +54,20 @@
         </div>
     </div>
     
+    <!-- Admin PIN Modal -->
+    <div id="pin-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-8 w-full max-w-sm mx-4">
+            <h2 class="text-xl font-bold text-center text-white mb-4">Admin Access</h2>
+            <p class="text-center text-gray-400 mb-6">Enter PIN to continue</p>
+            <input type="password" id="pin-input" class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 text-center text-2xl tracking-widest focus:outline-none focus:border-blue-500">
+            <p id="pin-error" class="text-red-400 text-sm text-center mt-2 h-5"></p>
+            <div class="mt-4 flex space-x-4">
+                <button id="pin-cancel" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Cancel</button>
+                <button id="pin-submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Enter</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="text-center py-8 text-xs text-gray-600">
         <p>
             powered by 
@@ -80,6 +94,7 @@
             let currentRound = 'qualis';
             let currentLeaderboard = 'qualis';
             let currentClimberTab = 'profile';
+            const ADMIN_PIN = '0306'; 
             
             // --- Data Sources (Simplified) ---
             const GOOGLE_SHEET_URLS = {
@@ -203,6 +218,12 @@
                     renderLeaderboardsPage();
                 } else if (page === 'rules') {
                     renderRulesPage();
+                } else if (page === 'register') {
+                    renderRegisterPage();
+                } else if (page === 'admin') {
+                    renderAdminPage();
+                } else if (page === 'addBoulders') {
+                    renderAddBouldersPage();
                 } else if (page === 'qualiResultDetail') {
                     renderQualiResultDetailPage(context);
                 } else if (page === 'qualiCompResultDetail') {
@@ -211,12 +232,10 @@
             }
 
             function renderHomePage() {
-                headerContainer.style.backgroundColor = 'transparent';
-                headerContainer.style.border = 'none';
-                headerContainer.style.boxShadow = 'none';
-
-                headerContent.innerHTML = `<div class="flex-1"></div><div class="flex-1 text-center"><h1 class="text-2xl font-bold text-gray-100">Mockomps</h1></div><div class="flex-1"></div>`;
+                headerContent.innerHTML = `<div class="flex-1"></div><div class="flex-1 text-center"><h1 class="text-2xl font-bold text-gray-100">Mockomps</h1></div><div class="flex-1 text-right"><button id="admin-btn" class="text-gray-600 hover:text-white"><i class="fas fa-cog text-xl"></i></button></div>`;
                 
+                document.getElementById('admin-btn').addEventListener('click', showPinModal);
+
                 let mainHTML = `
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
                         <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Calendar</button>
@@ -225,7 +244,7 @@
                         <button id="leaderboards-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Leaderboards</button>
                         <button id="rules-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Rules</button>
                         <button id="links-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Links</button>
-                        <a href="https://forms.gle/hrDCyDAXzaKQ1gyX7" target="_blank" class="col-span-2 sm:col-span-1 bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Register</a>
+                        <button id="register-btn" class="col-span-2 sm:col-span-1 bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Sign Up</button>
                     </div>`;
                 
                 mainContent.innerHTML = mainHTML;
@@ -260,6 +279,7 @@
                 document.getElementById('leaderboards-btn').addEventListener('click', () => navigate('leaderboards'));
                 document.getElementById('rules-btn').addEventListener('click', () => navigate('rules'));
                 document.getElementById('links-btn').addEventListener('click', () => navigate('links'));
+                document.getElementById('register-btn').addEventListener('click', () => navigate('register'));
                 
                 document.querySelectorAll('.live-comp-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => navigate('resultsComp', { comp: e.target.dataset.comp, from: { page: 'home' } }));
@@ -363,6 +383,337 @@
                     </div>
                 `;
             }
+
+            function renderRegisterPage() {
+                 headerContent.innerHTML = `
+                    <div class="flex-1">
+                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Sign Up</h1>
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
+                document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+
+                 const countries = ["Portugal", "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo, Democratic Republic of the", "Congo, Republic of the", "Costa Rica", "Cote d'Ivoire", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"];
+                 let countryOptions = countries.map(country => `<option value="${country}" ${country === 'Portugal' ? 'selected' : ''}>${country}</option>`).join('');
+
+                mainContent.innerHTML = `
+                    <div class="max-w-md mx-auto">
+                        <form id="registration-form" class="space-y-4">
+                            <div>
+                                <label for="Name" class="block text-sm font-medium text-gray-300 mb-1">Name</label>
+                                <input type="text" name="Name" id="Name" placeholder="First and Last Name" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label for="Date of Birth" class="block text-sm font-medium text-gray-300 mb-1">Date of Birth</label>
+                                <input type="text" name="Date of Birth" id="Date of Birth" placeholder="DD/MM/YYYY" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                            </div>
+                             <div>
+                                <label for="Country" class="block text-sm font-medium text-gray-300 mb-1">Country</label>
+                                <select name="Country" id="Country" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                    ${countryOptions}
+                                </select>
+                            </div>
+                            <div>
+                                <label for="Instagram" class="block text-sm font-medium text-gray-300 mb-1">Instagram</label>
+                                <input type="text" name="Instagram" id="Instagram" placeholder="without @" class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Sign Up</button>
+                            </div>
+                        </form>
+                        <div id="form-feedback" class="mt-4 text-center"></div>
+                    </div>
+                `;
+
+                const form = document.getElementById('registration-form');
+                const feedback = document.getElementById('form-feedback');
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbzKv3yAKI-BbssAIfPr-qT0rqWeSDVz3wGnkE3WdjHON3zHaN0095Xaj0-FM7aIIdWj/exec';
+
+                form.addEventListener('submit', e => {
+                    e.preventDefault();
+                    feedback.innerHTML = ``; // Clear previous feedback
+
+                    const nameInput = document.getElementById('Name');
+                    const dobInput = document.getElementById('Date of Birth');
+
+                    // --- Data Validation ---
+                    const dobValue = dobInput.value.trim();
+                    if(dobValue) {
+                         const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+                         if (!datePattern.test(dobValue)) {
+                             feedback.innerHTML = `<p class="text-red-400">Please enter the date of birth in DD/MM/YYYY format.</p>`;
+                             return;
+                         }
+                        const parts = dobValue.split("/");
+                        const day = parseInt(parts[0], 10);
+                        const month = parseInt(parts[1], 10);
+                        const year = parseInt(parts[2], 10);
+                        
+                        const date = new Date(year, month - 1, day);
+                        if (date.getFullYear() !== year || date.getMonth() + 1 !== month || date.getDate() !== day) {
+                            feedback.innerHTML = `<p class="text-red-400">Please enter a valid date.</p>`;
+                            return;
+                        }
+                    }
+
+                    // --- Data Cleaning ---
+                    const cleanedName = nameInput.value
+                        .trim()
+                        .replace(/\s+/g, ' ')
+                        .split(' ')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                        .join(' ');
+                    
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...`;
+                    
+                    const formData = new FormData(form);
+                    formData.set('Name', cleanedName); // Set the cleaned name for submission
+
+                    fetch(scriptURL, { method: 'POST', body: formData})
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.result === 'success') {
+                                feedback.innerHTML = `<p class="text-green-400">Success! You are now registered.</p>`;
+                                form.reset();
+                            } else {
+                                throw new Error(data.error || 'Unknown error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error!', error);
+                            feedback.innerHTML = `<p class="text-red-400">Error: Submission failed. This could be a network issue or a server-side script problem. Please try again later.</p>`;
+                        })
+                        .finally(() => {
+                             submitButton.disabled = false;
+                             submitButton.innerHTML = `Sign Up`;
+                        });
+                });
+            }
+            
+            function renderAdminPage() {
+                headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="admin-back-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Admin Panel</h1>
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
+                document.getElementById('admin-back-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+
+                mainContent.innerHTML = `
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center mt-8">
+                        <button id="add-quali-boulders-btn" class="bg-blue-600 hover:bg-blue-700 p-6 rounded-lg text-white font-bold text-lg">Add Quali Boulders</button>
+                        <button class="bg-gray-700 opacity-50 cursor-not-allowed p-6 rounded-lg text-gray-400 font-bold text-lg">Add Final Boulders</button>
+                        <button class="bg-gray-700 opacity-50 cursor-not-allowed p-6 rounded-lg text-gray-400 font-bold text-lg">Update Quali Form</button>
+                        <button class="bg-gray-700 opacity-50 cursor-not-allowed p-6 rounded-lg text-gray-400 font-bold text-lg">Update Final Form</button>
+                    </div>
+                `;
+
+                document.getElementById('add-quali-boulders-btn').addEventListener('click', () => navigate('addBoulders'));
+            }
+
+            function renderAddBouldersPage() {
+                headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="back-to-admin-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Add Quali Boulders</h1>
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
+                document.getElementById('back-to-admin-btn').addEventListener('click', () => navigate('admin'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+                
+                const qualiOptions = [...new Set(appData.qualis.map(q => q.quali))].reverse().map(q => `<option value="${q}">${q}</option>`).join('');
+                const gradeOptions = [1,2,3,4,5,6,7].map(g => `<option value="${g}">${g}</option>`).join('');
+                const colorOptions = ["Black", "Blue", "Green", "Mint", "Purple", "Red", "White", "Yellow"].map(c => `<option value="${c}">${c}</option>`).join('');
+
+
+                mainContent.innerHTML = `
+                    <div class="max-w-xl mx-auto">
+                        <form id="boulder-form" class="space-y-6">
+                            <div>
+                                <label for="quali-select" class="block text-sm font-medium text-gray-300 mb-1">Select Quali Round</label>
+                                <select id="quali-select" class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                    <option value="">-- Select a Quali --</option>
+                                    ${qualiOptions}
+                                </select>
+                            </div>
+                            <div id="boulder-list" class="space-y-3">
+                                <!-- Boulder rows will be injected here -->
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <button type="button" id="add-boulder-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Add Boulder</button>
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">Submit All Boulders</button>
+                            </div>
+                        </form>
+                        <div id="boulder-form-feedback" class="mt-4 text-center"></div>
+                    </div>
+                `;
+
+                const boulderList = document.getElementById('boulder-list');
+                const qualiSelect = document.getElementById('quali-select');
+                
+                function addBoulderRow(boulder = {}) {
+                    const letter = String.fromCharCode(65 + boulderList.children.length);
+                    const row = document.createElement('div');
+                    row.className = "boulder-row grid grid-cols-12 gap-2 items-center";
+                    row.innerHTML = `
+                        <div class="col-span-1 text-center font-bold text-xl text-gray-400">${letter}</div>
+                        <div class="col-span-3"><select name="grade" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-md">${gradeOptions}</select></div>
+                        <div class="col-span-4"><select name="color" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-md">${colorOptions}</select></div>
+                        <div class="col-span-3">
+                            <select name="room" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-md">
+                                <option>A1</option>
+                                <option>A2</option>
+                            </select>
+                        </div>
+                        <div class="col-span-1 text-right">
+                             <button type="button" class="remove-boulder-btn text-red-500 hover:text-red-400 text-2xl font-bold">&times;</button>
+                        </div>
+                    `;
+                    boulderList.appendChild(row);
+
+                    if(boulder.grade) row.querySelector('select[name="grade"]').value = boulder.grade;
+                    if(boulder.color) row.querySelector('select[name="color"]').value = boulder.color;
+                    if(boulder.a) row.querySelector('select[name="room"]').value = boulder.a;
+
+                    row.querySelector('.remove-boulder-btn').addEventListener('click', () => {
+                         row.remove();
+                         updateBoulderLetters();
+                    });
+                }
+                
+                function updateBoulderLetters() {
+                    const rows = boulderList.querySelectorAll('.boulder-row');
+                    rows.forEach((row, index) => {
+                        row.querySelector('div:first-child').textContent = String.fromCharCode(65 + index);
+                    });
+                }
+
+                function populateBouldersForQuali(qualiName) {
+                    boulderList.innerHTML = ''; // Clear existing rows
+                    const existingBoulders = appData.qBoulders.filter(b => b.quali === qualiName);
+
+                    if (existingBoulders.length > 0) {
+                        existingBoulders.forEach(boulder => addBoulderRow(boulder));
+                    } else {
+                        // Add 5 empty rows for a new quali
+                        for(let i=0; i<5; i++) {
+                            addBoulderRow();
+                        }
+                    }
+                }
+                
+                qualiSelect.addEventListener('change', (e) => {
+                    const selectedQuali = e.target.value;
+                    if(selectedQuali) {
+                        populateBouldersForQuali(selectedQuali);
+                    } else {
+                        boulderList.innerHTML = ''; // Clear if no quali is selected
+                    }
+                });
+
+
+                document.getElementById('add-boulder-btn').addEventListener('click', () => {
+                    addBoulderRow();
+                });
+                
+                const boulderForm = document.getElementById('boulder-form');
+                const boulderFeedback = document.getElementById('boulder-form-feedback');
+                const boulderScriptURL = 'https://script.google.com/macros/s/AKfycbz9-kWe_2A4MPRkEdP-Dm8-1wxZXPxOKHBuJiaa-uqLbIvzkBs8GWKgy-evf5rOWSEc/exec';
+
+                boulderForm.addEventListener('submit', e => {
+                    e.preventDefault();
+                    boulderFeedback.innerHTML = '';
+                    
+                    const qualiName = document.getElementById('quali-select').value;
+                     if (!qualiName) {
+                        boulderFeedback.innerHTML = `<p class="text-red-400">Please select a Quali round first.</p>`;
+                        return;
+                    }
+
+                    const boulders = [];
+                    const rows = boulderList.querySelectorAll('.boulder-row');
+                    
+                    rows.forEach((row, index) => {
+                        const grade = row.querySelector('select[name="grade"]').value;
+                        const color = row.querySelector('select[name="color"]').value;
+                        const room = row.querySelector('select[name="room"]').value;
+
+                        boulders.push({
+                            Name: String.fromCharCode(65 + index),
+                            Grade: grade,
+                            Color: color,
+                            A: room
+                        });
+                    });
+                    
+                    const payload = {
+                        quali: qualiName,
+                        boulders: boulders
+                    };
+                    
+                    const submitButton = boulderForm.querySelector('button[type="submit"]');
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...`;
+                    
+                    fetch(boulderScriptURL, {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.result === 'success') {
+                            boulderFeedback.innerHTML = `<p class="text-green-400">Success! Boulders for ${qualiName} have been updated.</p>`;
+                        } else {
+                            throw new Error(data.error || 'Unknown server error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error!', error);
+                        boulderFeedback.innerHTML = `<p class="text-red-400">Error: Submission failed. Please check the console.</p>`;
+                    })
+                     .finally(() => {
+                         submitButton.disabled = false;
+                         submitButton.innerHTML = `Submit All Boulders`;
+                    });
+                });
+            }
+
+            function showPinModal() {
+                const pinModal = document.getElementById('pin-modal');
+                const pinInput = document.getElementById('pin-input');
+                const pinError = document.getElementById('pin-error');
+                pinInput.value = '';
+                pinError.textContent = '';
+                pinModal.classList.remove('hidden');
+                pinInput.focus();
+            }
+
+            document.getElementById('pin-submit').addEventListener('click', () => {
+                const pinInput = document.getElementById('pin-input');
+                const pinError = document.getElementById('pin-error');
+                if (pinInput.value === ADMIN_PIN) {
+                    document.getElementById('pin-modal').classList.add('hidden');
+                    navigate('admin');
+                } else {
+                    pinError.textContent = 'Incorrect PIN.';
+                    pinInput.value = '';
+                }
+            });
+
+             document.getElementById('pin-cancel').addEventListener('click', () => {
+                document.getElementById('pin-modal').classList.add('hidden');
+            });
+
 
             function renderResultsHomePage() {
                 headerContent.innerHTML = `
