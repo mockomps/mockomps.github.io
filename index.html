@@ -336,7 +336,7 @@
                 }
 
                 callToActionHTML += `
-                    <div class="mt-8 text-center">
+                    <div class="mt-4 text-center">
                         <button id="submit-results-btn" class="w-full md:w-auto bg-blue-800 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 text-xl">
                             <i class="fas fa-clipboard-check mr-2"></i> Submit Results
                         </button>
@@ -572,18 +572,19 @@
                 document.getElementById('admin-back-btn').addEventListener('click', () => navigate('home'));
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
+                // START Admin Page Revamp
                 mainContent.innerHTML = `
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center mt-8">
-                            <button id="add-quali-boulders-btn" class="bg-blue-600 hover:bg-blue-700 p-6 rounded-lg text-white font-bold text-lg">Add Quali Boulders</button>
-                            <button id="judge-finals-btn" class="bg-green-600 hover:bg-green-700 p-6 rounded-lg text-white font-bold text-lg">Judge Finals</button>
-                            <button id="manage-finals-btn" class="bg-orange-600 hover:bg-orange-700 p-6 rounded-lg text-white font-bold text-lg">Manage Finals</button>
-                            <button class="bg-gray-700 opacity-50 cursor-not-allowed p-6 rounded-lg text-gray-400 font-bold text-lg">Update Final Form</button>
+                        <div class="grid grid-cols-1 gap-4 text-center mt-8">
+                            <button id="add-quali-boulders-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl">Manage Qualis Boulders</button>
+                            <button id="manage-finals-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl">Manage Finals Rosters</button>
+                            <button id="judge-finals-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl">Judges App</button>
                         </div>
                 `;
+                // END Admin Page Revamp
 
                 document.getElementById('add-quali-boulders-btn').addEventListener('click', () => navigate('addBoulders'));
-                document.getElementById('judge-finals-btn').addEventListener('click', () => navigate('judgesApp'));
                 document.getElementById('manage-finals-btn').addEventListener('click', () => navigate('manageFinals'));
+                document.getElementById('judge-finals-btn').addEventListener('click', () => navigate('judgesApp'));
             }
 
             function renderAddBouldersPage() {
@@ -591,7 +592,7 @@
                     <div class="flex-1">
                         <button id="back-to-admin-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
-                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Add Quali Boulders</h1>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Manage Qualis Boulders</h1>
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
@@ -761,6 +762,15 @@
                 pinModal.classList.remove('hidden');
                 pinInput.focus();
             }
+
+            // START PIN Modal Enter Key Listener
+            document.getElementById('pin-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Prevent default form submission behavior
+                    document.getElementById('pin-submit').click();
+                }
+            });
+            // END PIN Modal Enter Key Listener
 
             document.getElementById('pin-submit').addEventListener('click', () => {
                 const pinInput = document.getElementById('pin-input');
@@ -937,7 +947,12 @@
                     let climberListHTML = '';
                     filteredClimbers.forEach(climber => {
                         if (climber.name) {
-                            climberListHTML += `<button data-climber-name="${climber.name}" class="climber-btn w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold hover:bg-gray-800">${climber.name}</button>`;
+                            // START Add Arrow to Climber Buttons
+                            climberListHTML += `<button data-climber-name="${climber.name}" class="climber-btn w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold hover:bg-gray-800 flex justify-between items-center">
+                                                    <span>${climber.name}</span>
+                                                    <i class="fas fa-chevron-right text-gray-500"></i>
+                                                </button>`;
+                            // END Add Arrow to Climber Buttons
                         }
                     });
                     listContainer.innerHTML = climberListHTML;
@@ -1425,7 +1440,17 @@
                     compStandings.sort((a,b) => parseInt(a.place) - parseInt(b.place));
                 } else {
                     compStandings.sort((a, b) => parseFloat(b.quali_points) - parseFloat(a.quali_points));
-                    compStandings.forEach((s, i) => s.place = i + 1);
+                    
+                    let lastScore = -1;
+                    let currentRank = 0;
+                    compStandings.forEach((s, i) => {
+                        const score = parseFloat(s.quali_points);
+                        if(score !== lastScore) {
+                            currentRank = i + 1;
+                            lastScore = score;
+                        }
+                        s.place = currentRank;
+                    });
                 }
 
 
@@ -1698,15 +1723,30 @@
 
             function renderLeaderboardTable(leaderboardType) {
                 const container = document.getElementById('leaderboard-container');
-                let data, headers;
+                let data, headers, scoreKey;
 
                 if (leaderboardType === 'qualis') {
-                    data = [...appData.qLeaderboard].sort((a, b) => parseInt(a.place) - parseInt(b.place));
+                    data = [...appData.qLeaderboard];
                     headers = ['Circuit', 'Place', 'Climber', 'Quali Points', 'Tops', 'Zones', 'Flashes', 'Qualis'];
+                    scoreKey = 'quali_points';
+                    data.sort((a, b) => parseFloat(b[scoreKey]) - parseFloat(a[scoreKey]));
                 } else {
-                    data = [...appData.cStandings].sort((a, b) => parseInt(a.place) - parseInt(b.place));
+                    data = [...appData.cStandings];
                     headers = ['Circuit', 'Place', 'Climber', 'Circuit Points', '1st', '2nd', '3rd', 'Finals', 'Flashes'];
+                    scoreKey = 'circuit_points';
+                    data.sort((a, b) => parseFloat(b[scoreKey]) - parseFloat(a[scoreKey]));
                 }
+                
+                let lastScore = -1;
+                let currentRank = 0;
+                data.forEach((entry, i) => {
+                    const score = parseFloat(entry[scoreKey]);
+                    if(score !== lastScore) {
+                        currentRank = i + 1;
+                        lastScore = score;
+                    }
+                    entry.place = currentRank;
+                });
 
                 if (data.length === 0) {
                     container.innerHTML = `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No leaderboard data available.</div>`;
@@ -1856,6 +1896,7 @@
                     boulderQuestionsContainer.innerHTML = '';
                     boulderQuestionsContainer.classList.add('hidden');
                     submitBtnContainer.classList.add('hidden');
+                    qualiSelect.value = '';
                     
                     if (climberSelect.value) {
                         const now = new Date();
@@ -1882,18 +1923,25 @@
                 });
 
                 qualiSelect.addEventListener('change', () => {
+                    const selectedClimber = climberSelect.value;
                     const selectedQuali = qualiSelect.value;
                     boulderQuestionsContainer.innerHTML = '';
                     boulderQuestionsContainer.classList.add('hidden');
                     submitBtnContainer.classList.add('hidden');
                     
-                    if (selectedQuali) {
+                    if (selectedQuali && selectedClimber) {
                         const boulders = appData.qBoulders.filter(b => b.quali === selectedQuali);
+                        
+                        const existingResult = appData.qResults.find(r => r.climber === selectedClimber && r.quali === selectedQuali);
+
                         if(boulders.length > 0) {
                             let questionsHTML = `<h3 class="text-lg font-semibold text-gray-200 pt-4 border-t border-gray-800">3. Log Your Results</h3>`;
                             boulders.forEach(boulder => {
                                 const boulderNameLower = boulder.name.toLowerCase();
-                                const boulderId = `${selectedQuali}-${boulder.name}`; // Unique ID for each radio group
+                                const boulderId = `${selectedQuali}-${boulder.name}`;
+                                
+                                const previousAnswer = existingResult ? existingResult[boulderNameLower] : null;
+
                                 questionsHTML += `
                                     <div class="bg-gray-900/50 border border-gray-800 p-4 rounded-lg space-y-3">
                                         <div class="flex justify-between items-center">
@@ -1901,13 +1949,13 @@
                                             <p class="font-normal text-gray-300">${boulder.grade} ${boulder.color} ${boulder.a}</p>
                                         </div>
                                         <div class="segmented-control">
-                                            <input type="radio" id="${boulderId}-flash" name="results[${boulderNameLower}]" value="Flash" required>
+                                            <input type="radio" id="${boulderId}-flash" name="results[${boulderNameLower}]" value="Flash" required ${previousAnswer === 'Flash' ? 'checked' : ''}>
                                             <label for="${boulderId}-flash" class="text-flash">Flash</label>
-                                            <input type="radio" id="${boulderId}-top" name="results[${boulderNameLower}]" value="Top" required>
+                                            <input type="radio" id="${boulderId}-top" name="results[${boulderNameLower}]" value="Top" required ${previousAnswer === 'Top' ? 'checked' : ''}>
                                             <label for="${boulderId}-top" class="text-top">Top</label>
-                                            <input type="radio" id="${boulderId}-zone" name="results[${boulderNameLower}]" value="Zone" required>
+                                            <input type="radio" id="${boulderId}-zone" name="results[${boulderNameLower}]" value="Zone" required ${previousAnswer === 'Zone' ? 'checked' : ''}>
                                             <label for="${boulderId}-zone" class="text-zone">Zone</label>
-                                            <input type="radio" id="${boulderId}-nothing" name="results[${boulderNameLower}]" value="Nothing" required>
+                                            <input type="radio" id="${boulderId}-nothing" name="results[${boulderNameLower}]" value="Nothing" required ${previousAnswer === 'Nothing' || !previousAnswer ? 'checked' : ''}>
                                             <label for="${boulderId}-nothing" class="text-nothing">Nothing</label>
                                         </div>
                                     </div>
