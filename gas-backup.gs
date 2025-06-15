@@ -1,16 +1,11 @@
 /**
- * The main entry point for handling all POST requests from the web app.
- * Acts as a router to delegate tasks to specific handler functions based on 'formType'.
- * @param {Object} e The event parameter for a POST request.
- * @returns {ContentService.TextOutput} A JSON object indicating success or failure.
+ * Main entry point for all POST requests from the web app. Routes to the correct handler.
  */
 function doPost(e) {
   let response;
   try {
-    // Parse the JSON payload from the request
     const data = JSON.parse(e.postData.contents);
 
-    // Use a switch to route to the correct handler based on the formType
     switch (data.formType) {
       case 'climberRegistration':
         response = handleClimberRegistration(data);
@@ -20,131 +15,204 @@ function doPost(e) {
         response = handleAddBoulders(data);
         break;
 
-      // You can add more cases here for future forms
-      // case 'anotherFormType':
-      //   response = handleAnotherForm(data);
-      //   break;
+      case 'submitQualiResults':
+        response = handleSubmitQualiResults(data);
+        break;
+
+      case 'manageFinalists':
+        response = handleManageFinalists(data);
+        break;
 
       default:
-        response = { 
-          result: 'error', 
-          message: 'Unknown form type specified.' 
-        };
+        response = { result: 'error', message: 'Unknown form type specified.' };
         break;
     }
   } catch (error) {
-    // Catch any errors (e.g., JSON parsing, script errors) and return a helpful message
     response = {
       result: 'error',
       message: 'Script error: ' + error.message,
-      stack: error.stack // Useful for debugging
+      stack: error.stack
     };
   }
 
-  // Return the response as a JSON string, which is standard practice for web apps.
   return ContentService
     .createTextOutput(JSON.stringify(response))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+// --- Handler Functions ---
 
 /**
- * Handles the submission of the climber registration form.
- * Appends a new row to the 'Climbers' sheet.
- * @param {Object} data The parsed JSON data from the form.
- * @returns {Object} A success or error object.
+ * Handles climber registration submissions.
  */
 function handleClimberRegistration(data) {
   try {
     const sheetName = 'Climbers';
-    // Get the active spreadsheet and the specific sheet by its name.
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-    
-    if (!sheet) {
-      throw new Error(`Sheet "${sheetName}" not found. Please check the sheet name.`);
-    }
+    if (!sheet) throw new Error(`Sheet "${sheetName}" not found.`);
 
-    // Append the data as a new row. The order here must exactly match your sheet's column order.
     sheet.appendRow([
-      new Date(), // Timestamp for when the registration occurred
-      data.Name,
-      data['Date of Birth'], // Use bracket notation for keys with spaces
-      data.Country,
-      data.Instagram
+      new Date(), data.Name, data['Date of Birth'], data.Country, data.Instagram
     ]);
 
-    return { 
-      result: 'success', 
-      message: `Climber "${data.Name}" registered successfully.` 
-    };
+    return { result: 'success', message: `Climber "${data.Name}" registered successfully.` };
   } catch (error) {
-    return { 
-      result: 'error', 
-      message: 'Failed to register climber: ' + error.message 
-    };
+    return { result: 'error', message: 'Failed to register climber: ' + error.message };
   }
 }
 
-
 /**
- * Handles adding or updating qualification boulders for a specific round.
- * This function first deletes all existing boulders for the given quali round
- * and then adds the new set of boulders. This prevents duplicate entries.
- * @param {Object} data The parsed JSON data from the form, containing 'quali' and 'boulders' array.
- * @returns {Object} A success or error object.
+ * Handles adding/updating boulders for a quali round.
  */
 function handleAddBoulders(data) {
   try {
     const sheetName = 'qBoulders';
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-
-    if (!sheet) {
-      throw new Error(`Sheet "${sheetName}" not found. Please check the sheet name.`);
-    }
+    if (!sheet) throw new Error(`Sheet "${sheetName}" not found.`);
     
     const qualiName = data.quali;
-    const newBoulders = data.boulders;
+    if (!qualiName) throw new Error('Quali name is missing from the submission data.');
 
-    if (!qualiName) {
-      throw new Error('Quali name is missing from the submission data.');
-    }
-
-    // --- Deletion Step: Remove old boulders for this quali round ---
-    const dataRange = sheet.getDataRange();
-    const values = dataRange.getValues();
-    const qualiColumnIndex = 0; // The 'Quali' column is the first column (index 0)
-
-    // Loop backwards when deleting rows to avoid issues with shifting row indices.
-    for (let i = values.length - 1; i >= 1; i--) { // Start from the last row and skip the header (row 0)
-      if (values[i][qualiColumnIndex] === qualiName) {
-        sheet.deleteRow(i + 1); // Row numbers are 1-based, not 0-based
+    const values = sheet.getDataRange().getValues();
+    for (let i = values.length - 1; i >= 1; i--) {
+      if (values[i][0] === qualiName) {
+        sheet.deleteRow(i + 1);
       }
     }
 
-    // --- Insertion Step: Add the new boulders ---
-    if (newBoulders && newBoulders.length > 0) {
-      // Prepare an array of rows to be inserted. This is more efficient than appending one by one.
-      const rowsToAdd = newBoulders.map(boulder => [
-        qualiName,      // Column A: Quali
-        boulder.Name,     // Column B: Name
-        boulder.Grade,    // Column C: Grade
-        boulder.Color,    // Column D: Color
-        '',               // Column E: Setter (Placeholder, since form doesn't collect this)
-        boulder.A         // Column F: A (Room)
+    if (data.boulders && data.boulders.length > 0) {
+      const rowsToAdd = data.boulders.map(boulder => [
+        qualiName, boulder.Name, boulder.Grade, boulder.Color, '', boulder.A
       ]);
-
-      // Add all new boulders in a single operation for better performance.
       sheet.getRange(sheet.getLastRow() + 1, 1, rowsToAdd.length, rowsToAdd[0].length).setValues(rowsToAdd);
     }
 
-    return { 
-      result: 'success', 
-      message: `Boulders for ${qualiName} have been successfully updated.` 
+    return { result: 'success', message: `Boulders for ${qualiName} have been successfully updated.` };
+  } catch (error) {
+    return { result: 'error', message: 'Failed to add boulders: ' + error.message };
+  }
+}
+
+/**
+ * Handles quali results submission. Saves the data quickly and then
+ * creates a trigger to run the heavy update functions in the background.
+ */
+function handleSubmitQualiResults(data) {
+  try {
+    const sheetName = 'qResults';
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    if (!sheet) throw new Error(`Sheet "${sheetName}" not found.`);
+
+    const allData = sheet.getDataRange().getValues();
+    const headers = allData[0];
+    const qualiColIndex = headers.indexOf('Quali');
+    const climberColIndex = headers.indexOf('Climber');
+
+    let existingRowIndex = -1;
+    for (let i = 1; i < allData.length; i++) {
+      if (allData[i][qualiColIndex] === data.quali && allData[i][climberColIndex] === data.climber) {
+        existingRowIndex = i;
+        break;
+      }
+    }
+
+    const newRow = headers.map(header => {
+      const h = header.toLowerCase();
+      if (h === 'timestamp') return new Date();
+      if (h === 'quali') return data.quali;
+      if (h === 'climber') return data.climber;
+      return data.results[h] || '';
+    });
+
+    let successMessage;
+    if (existingRowIndex !== -1) {
+      sheet.getRange(existingRowIndex + 1, 1, 1, newRow.length).setValues([newRow]);
+      successMessage = 'Results updated successfully. Leaderboards will update shortly.';
+    } else {
+      sheet.appendRow(newRow);
+      successMessage = 'Results submitted successfully. Leaderboards will update shortly.';
+    }
+
+    createOneTimeTrigger();
+
+    return { result: 'success', message: successMessage };
+
+  } catch (error) {
+    return {
+      result: 'error',
+      message: 'Failed to submit results: ' + error.message,
+      stack: error.stack
     };
+  }
+}
+
+/**
+ * Handles managing the list of finalists for a given final.
+ * Deletes all old entries for that final and replaces them with the new list.
+ * @param {Object} data The parsed JSON data from the form.
+ * @returns {Object} A success or error object.
+ */
+function handleManageFinalists(data) {
+  try {
+    const sheetName = 'FClimbers';
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    if (!sheet) throw new Error(`Sheet "${sheetName}" not found.`);
+    
+    const finalName = data.final;
+    if (!finalName) throw new Error('Final name is missing from the submission data.');
+
+    const values = sheet.getDataRange().getValues();
+    // Delete existing rows for this final, looping backwards.
+    for (let i = values.length - 1; i >= 1; i--) {
+      if (values[i][0] === finalName) {
+        sheet.deleteRow(i + 1);
+      }
+    }
+    
+    // Add the new list of climbers for this final.
+    if (data.climbers && data.climbers.length > 0) {
+      const rowsToAdd = data.climbers.map(climber => [finalName, climber]);
+      sheet.getRange(sheet.getLastRow() + 1, 1, rowsToAdd.length, rowsToAdd[0].length).setValues(rowsToAdd);
+    }
+
+    return { result: 'success', message: `Finalist roster for ${finalName} has been updated.` };
   } catch (error) {
     return { 
       result: 'error', 
-      message: 'Failed to add boulders: ' + error.message 
+      message: 'Failed to manage finalists: ' + error.message,
+      stack: error.stack
     };
+  }
+}
+
+// --- Trigger and Background Functions ---
+
+/**
+ * Creates a one-time trigger to run the main update function after a short delay.
+ */
+function createOneTimeTrigger() {
+  const allTriggers = ScriptApp.getProjectTriggers();
+  for (const trigger of allTriggers) {
+    if (trigger.getHandlerFunction() === 'runAllUpdates') {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  }
+  ScriptApp.newTrigger('runAllUpdates')
+    .timeBased()
+    .after(30 * 1000)
+    .create();
+}
+
+/**
+ * Contains all the long-running update processes.
+ */
+function runAllUpdates() {
+  try {
+    QRankStandUpdate();
+    ClimberStatsUpdate();
+    QLeaderboardUpdate();
+    perCompGradeStatsUpdate();
+  } catch (e) {
+    console.error("Error during triggered update: " + e.toString());
   }
 }
