@@ -306,8 +306,7 @@
                             <div class="flex flex-wrap justify-center gap-4 text-center">`;
                     
                     liveComps.forEach(comp => {
-                        // Changed p-6 md:p-8 to just p-6
-                        callToActionHTML += `<button data-comp="${comp.comp}" class="live-comp-btn bg-rose-500/10 border border-rose-400/30 p-6 rounded-lg shadow-md hover:shadow-xl hover:bg-rose-500/20 transition-all duration-200 text-gray-100 font-bold text-xl flex items-center justify-center">${comp.comp}</button>`;
+                        callToActionHTML += `<button data-comp="${comp.comp}" class="live-comp-btn bg-rose-500/10 border border-rose-400/30 p-6 w-48 text-center rounded-lg shadow-md hover:shadow-xl hover:bg-rose-500/20 transition-all duration-200 text-gray-100 font-bold text-xl">${comp.comp}</button>`;
                     });
 
                     callToActionHTML += `</div></div>`;
