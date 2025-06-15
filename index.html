@@ -22,6 +22,42 @@
         .h-scroll {
             overscroll-behavior-x: contain;
         }
+        /* Styles for the new segmented control */
+        .segmented-control {
+            display: flex;
+            width: 100%;
+            border-radius: 0.5rem;
+            background-color: #374151; /* gray-700 */
+            padding: 0.25rem;
+        }
+        .segmented-control input[type="radio"] {
+            display: none; /* Hide the actual radio button */
+        }
+        .segmented-control label {
+            flex: 1;
+            padding: 0.5rem 0.25rem;
+            text-align: center;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 600; /* font-semibold */
+        }
+        .segmented-control input[type="radio"]:checked + label {
+            background-color: #3b82f6; /* blue-600 */
+            color: white;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        .segmented-control label.text-flash { color: #facc15; } /* yellow-400 */
+        .segmented-control label.text-top { color: #4ade80; } /* green-400 */
+        .segmented-control label.text-zone { color: #60a5fa; } /* blue-400 */
+        .segmented-control label.text-nothing { color: #9ca3af; } /* gray-400 */
+        .segmented-control input[type="radio"]:checked + label.text-flash,
+        .segmented-control input[type="radio"]:checked + label.text-top,
+        .segmented-control input[type="radio"]:checked + label.text-zone,
+        .segmented-control input[type="radio"]:checked + label.text-nothing {
+            color: white;
+        }
     </style>
 </head>
 <body class="bg-gray-950 text-slate-300">
@@ -216,7 +252,7 @@
                     renderClimberProfilePage(context);
                 } else if (page === 'resultsComp') {
                     renderResultsCompPage(context);
-                } else if (page === 'about') { // Changed from 'links'
+                } else if (page === 'about') {
                     renderAboutPage();
                 } else if (page === 'leaderboards') {
                     renderLeaderboardsPage();
@@ -267,10 +303,11 @@
                     callToActionHTML += `
                         <div class="mt-12">
                             <h2 class="text-2xl font-bold text-center text-rose-400 mb-4">Live!</h2>
-                            <div class="flex flex-wrap justify-center gap-4 text-center">`; // Changed to centered flex
+                            <div class="flex flex-wrap justify-center gap-4 text-center">`;
                     
                     liveComps.forEach(comp => {
-                        callToActionHTML += `<button data-comp="${comp.comp}" class="live-comp-btn bg-rose-500/10 border border-rose-400/30 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-rose-500/20 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">${comp.comp}</button>`;
+                        // Changed p-6 md:p-8 to just p-6
+                        callToActionHTML += `<button data-comp="${comp.comp}" class="live-comp-btn bg-rose-500/10 border border-rose-400/30 p-6 rounded-lg shadow-md hover:shadow-xl hover:bg-rose-500/20 transition-all duration-200 text-gray-100 font-bold text-xl flex items-center justify-center">${comp.comp}</button>`;
                     });
 
                     callToActionHTML += `</div></div>`;
@@ -278,8 +315,8 @@
 
                 callToActionHTML += `
                     <div class="mt-8 text-center">
-                        <button id="submit-results-btn" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 text-xl">
-                            <i class="fas fa-clipboard-check mr-2"></i> Submit Quali Results
+                        <button id="submit-results-btn" class="w-full md:w-auto bg-blue-800 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 text-xl">
+                            <i class="fas fa-clipboard-check mr-2"></i> Submit Results
                         </button>
                     </div>`;
 
@@ -290,7 +327,7 @@
                 document.getElementById('climbers-btn').addEventListener('click', () => navigate('climbers'));
                 document.getElementById('leaderboards-btn').addEventListener('click', () => navigate('leaderboards'));
                 document.getElementById('rules-btn').addEventListener('click', () => navigate('rules'));
-                document.getElementById('about-btn').addEventListener('click', () => navigate('about')); // Changed from links-btn
+                document.getElementById('about-btn').addEventListener('click', () => navigate('about'));
                 document.getElementById('register-btn').addEventListener('click', () => navigate('register'));
                 document.getElementById('submit-results-btn').addEventListener('click', () => navigate('submitResults'));
                 
@@ -299,7 +336,7 @@
                 });
             }
             
-            function renderAboutPage() { // Renamed from renderLinksPage
+            function renderAboutPage() {
                 headerContent.innerHTML = `
                     <div class="flex-1">
                          <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
@@ -1803,14 +1840,22 @@
                             let questionsHTML = `<h3 class="text-lg font-semibold text-gray-200 pt-4 border-t border-gray-800">3. Log Your Results</h3>`;
                             boulders.forEach(boulder => {
                                 const boulderNameLower = boulder.name.toLowerCase();
+                                const boulderId = `${selectedQuali}-${boulder.name}`; // Unique ID for each radio group
                                 questionsHTML += `
-                                    <div class="bg-gray-900/50 border border-gray-800 p-4 rounded-lg">
-                                        <p class="font-bold text-gray-200">Boulder ${boulder.name}: <span class="font-normal text-gray-300">${boulder.grade} ${boulder.color} (${boulder.a})</span></p>
-                                        <div class="flex flex-wrap justify-around mt-3 gap-y-2">
-                                            <label class="flex items-center space-x-2"><input type="radio" name="results[${boulderNameLower}]" value="Flash" required class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"> <span class="text-yellow-400">Flash</span></label>
-                                            <label class="flex items-center space-x-2"><input type="radio" name="results[${boulderNameLower}]" value="Top" required class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"> <span class="text-green-400">Top</span></label>
-                                            <label class="flex items-center space-x-2"><input type="radio" name="results[${boulderNameLower}]" value="Zone" required class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"> <span class="text-blue-400">Zone</span></label>
-                                            <label class="flex items-center space-x-2"><input type="radio" name="results[${boulderNameLower}]" value="Nothing" required class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"> <span class="text-gray-400">Nothing</span></label>
+                                    <div class="bg-gray-900/50 border border-gray-800 p-4 rounded-lg space-y-3">
+                                        <div class="flex justify-between items-center">
+                                            <p class="font-bold text-xl text-gray-200">${boulder.name}</p>
+                                            <p class="font-normal text-gray-300">${boulder.grade} ${boulder.color} ${boulder.a}</p>
+                                        </div>
+                                        <div class="segmented-control">
+                                            <input type="radio" id="${boulderId}-flash" name="results[${boulderNameLower}]" value="Flash" required>
+                                            <label for="${boulderId}-flash" class="text-flash">Flash</label>
+                                            <input type="radio" id="${boulderId}-top" name="results[${boulderNameLower}]" value="Top" required>
+                                            <label for="${boulderId}-top" class="text-top">Top</label>
+                                            <input type="radio" id="${boulderId}-zone" name="results[${boulderNameLower}]" value="Zone" required>
+                                            <label for="${boulderId}-zone" class="text-zone">Zone</label>
+                                            <input type="radio" id="${boulderId}-nothing" name="results[${boulderNameLower}]" value="Nothing" required>
+                                            <label for="${boulderId}-nothing" class="text-nothing">Nothing</label>
                                         </div>
                                     </div>
                                 `;
@@ -1830,7 +1875,7 @@
                     const climber = formData.get('climber');
                     const quali = formData.get('quali');
                     const results = {};
-                    let questionCount = boulderQuestionsContainer.querySelectorAll('input[type="radio"]').length / 4;
+                    let questionCount = boulderQuestionsContainer.querySelectorAll('.segmented-control').length;
                     let answeredCount = 0;
 
                     for (let [key, value] of formData.entries()) {
