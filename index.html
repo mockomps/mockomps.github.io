@@ -58,6 +58,10 @@
         .segmented-control input[type="radio"]:checked + label.text-nothing {
             color: white;
         }
+        /* Ensure disabled buttons have the correct cursor */
+        button:disabled {
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="bg-gray-950 text-slate-300">
@@ -74,7 +78,7 @@
             </header>
              <!-- Round Selector Container - only shown on results page -->
             <div id="controls-container" class="hidden mt-4">
-                 <!-- Content will be rendered here for results page -->
+                <!-- Content will be rendered here for results page -->
             </div>
         </div>
 
@@ -100,6 +104,18 @@
             <div class="mt-4 flex space-x-4">
                 <button id="pin-cancel" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Cancel</button>
                 <button id="pin-submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Enter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Confirmation Modal -->
+    <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-8 w-full max-w-sm mx-4">
+            <h2 id="confirmation-title" class="text-xl font-bold text-center text-white mb-4">Confirm Action</h2>
+            <p id="confirmation-message" class="text-center text-gray-400 mb-6">Are you sure?</p>
+            <div class="mt-4 flex space-x-4">
+                <button id="confirmation-cancel" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Cancel</button>
+                <button id="confirmation-confirm" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Confirm</button>
             </div>
         </div>
     </div>
@@ -265,6 +281,8 @@
                     renderAdminPage();
                 } else if (page === 'judgesApp') {
                     renderJudgesAppPage();
+                } else if (page === 'judgeBoulderPage') { // New page route
+                    renderJudgeBoulderPage(context);
                 } else if (page === 'manageFinals') {
                     renderManageFinalsPage();
                 } else if (page === 'addBoulders') {
@@ -449,32 +467,32 @@
                  let countryOptions = countries.map(country => `<option value="${country}" ${country === 'Portugal' ? 'selected' : ''}>${country}</option>`).join('');
 
                  mainContent.innerHTML = `
-                     <div class="max-w-md mx-auto">
-                         <form id="registration-form" class="space-y-4">
-                             <div>
-                                 <label for="Name" class="block text-sm font-medium text-gray-300 mb-1">Name</label>
-                                 <input type="text" name="Name" id="Name" placeholder="first and last name" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
-                             </div>
-                             <div>
-                                 <label for="Date of Birth" class="block text-sm font-medium text-gray-300 mb-1">Date of Birth</label>
-                                 <input type="text" name="Date of Birth" id="Date of Birth" placeholder="dd/mm/yyyy" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
-                             </div>
-                              <div>
-                                 <label for="Country" class="block text-sm font-medium text-gray-300 mb-1">Country</label>
-                                 <select name="Country" id="Country" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
-                                     ${countryOptions}
-                                 </select>
-                             </div>
-                             <div>
-                                 <label for="Instagram" class="block text-sm font-medium text-gray-300 mb-1">Instagram</label>
-                                 <input type="text" name="Instagram" id="Instagram" placeholder="without @" class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
-                             </div>
-                             <div class="pt-2">
-                                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Sign Up</button>
-                             </div>
-                         </form>
-                         <div id="form-feedback" class="mt-4 text-center"></div>
-                     </div>
+                       <div class="max-w-md mx-auto">
+                           <form id="registration-form" class="space-y-4">
+                               <div>
+                                   <label for="Name" class="block text-sm font-medium text-gray-300 mb-1">Name</label>
+                                   <input type="text" name="Name" id="Name" placeholder="first and last name" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                               </div>
+                               <div>
+                                   <label for="Date of Birth" class="block text-sm font-medium text-gray-300 mb-1">Date of Birth</label>
+                                   <input type="text" name="Date of Birth" id="Date of Birth" placeholder="dd/mm/yyyy" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                               </div>
+                                <div>
+                                   <label for="Country" class="block text-sm font-medium text-gray-300 mb-1">Country</label>
+                                   <select name="Country" id="Country" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                       ${countryOptions}
+                                   </select>
+                               </div>
+                               <div>
+                                   <label for="Instagram" class="block text-sm font-medium text-gray-300 mb-1">Instagram</label>
+                                   <input type="text" name="Instagram" id="Instagram" placeholder="without @" class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                               </div>
+                               <div class="pt-2">
+                                   <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Sign Up</button>
+                               </div>
+                           </form>
+                           <div id="form-feedback" class="mt-4 text-center"></div>
+                       </div>
                  `;
 
                  const form = document.getElementById('registration-form');
@@ -525,7 +543,7 @@
                          method: 'POST',
                          mode: 'no-cors',
                          headers: {
-                            'Content-Type': 'application/json',
+                             'Content-Type': 'application/json',
                          },
                          body: JSON.stringify(plainFormData)
                      })
@@ -555,7 +573,7 @@
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 mainContent.innerHTML = `
-                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center mt-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center mt-8">
                             <button id="add-quali-boulders-btn" class="bg-blue-600 hover:bg-blue-700 p-6 rounded-lg text-white font-bold text-lg">Add Quali Boulders</button>
                             <button id="judge-finals-btn" class="bg-green-600 hover:bg-green-700 p-6 rounded-lg text-white font-bold text-lg">Judge Finals</button>
                             <button id="manage-finals-btn" class="bg-orange-600 hover:bg-orange-700 p-6 rounded-lg text-white font-bold text-lg">Manage Finals</button>
@@ -634,8 +652,8 @@
                     if(boulder.a) row.querySelector('select[name="room"]').value = boulder.a;
 
                     row.querySelector('.remove-boulder-btn').addEventListener('click', () => {
-                         row.remove();
-                         updateBoulderLetters();
+                          row.remove();
+                          updateBoulderLetters();
                     });
                 }
                 
@@ -682,9 +700,9 @@
                     
                     const qualiName = document.getElementById('quali-select').value;
                      if (!qualiName) {
-                        boulderFeedback.innerHTML = `<p class="text-red-400">Please select a Quali round first.</p>`;
-                        return;
-                    }
+                         boulderFeedback.innerHTML = `<p class="text-red-400">Please select a Quali round first.</p>`;
+                         return;
+                     }
 
                     const boulders = [];
                     const rows = boulderList.querySelectorAll('.boulder-row');
@@ -730,7 +748,7 @@
                      .finally(() => {
                          submitButton.disabled = false;
                          submitButton.innerHTML = `Submit All Boulders`;
-                    });
+                     });
                 });
             }
 
@@ -759,6 +777,35 @@
              document.getElementById('pin-cancel').addEventListener('click', () => {
                 document.getElementById('pin-modal').classList.add('hidden');
             });
+
+            function showConfirmationModal(title, message, onConfirmCallback) {
+                const modal = document.getElementById('confirmation-modal');
+                const modalTitle = document.getElementById('confirmation-title');
+                const modalMessage = document.getElementById('confirmation-message');
+                const confirmBtn = document.getElementById('confirmation-confirm');
+                const cancelBtn = document.getElementById('confirmation-cancel');
+
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+
+                // Clone and replace the button to remove old event listeners
+                const newConfirmBtn = confirmBtn.cloneNode(true);
+                confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+                const newCancelBtn = cancelBtn.cloneNode(true);
+                cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+                newConfirmBtn.addEventListener('click', () => {
+                    onConfirmCallback();
+                    modal.classList.add('hidden');
+                });
+
+                newCancelBtn.addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                });
+
+                modal.classList.remove('hidden');
+            }
 
 
             function renderResultsHomePage() {
@@ -1205,7 +1252,7 @@
                     .filter(s => s.climber === climberName)
                     .sort((a,b) => a.comp.localeCompare(b.comp));
                 if (qualiPlacements.length > 0) {
-                     createPlacementChart('qualiPlacementChart', qualiPlacements, '#38bdf8');
+                       createPlacementChart('qualiPlacementChart', qualiPlacements, '#38bdf8');
                 }
 
                 const finalPlacements = appData.fRankings
@@ -1329,9 +1376,9 @@
                 
                 controlsContainer.classList.remove('hidden');
                  controlsContainer.innerHTML = `<div class="flex justify-center">
-                     <div id="round-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
-                         ${roundButtonsHTML}
-                     </div>
+                       <div id="round-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
+                             ${roundButtonsHTML}
+                       </div>
                  </div>`;
 
                 mainContent.innerHTML = `<div id="results-container" class="w-full"></div>`;
@@ -1934,7 +1981,7 @@
                 });
             }
 
-            // --- NEW: Judges App Page ---
+            // --- Judges App Page ---
             function renderJudgesAppPage() {
                 headerContent.innerHTML = `
                     <div class="flex-1">
@@ -1977,13 +2024,14 @@
                             
                             <!-- Next Button (hidden initially) -->
                             <div id="next-btn-container" class="hidden pt-2">
-                                 <button type="submit" disabled class="w-full bg-gray-600 cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg">Next</button>
+                                 <button type="submit" disabled class="w-full bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition">Next</button>
                             </div>
 
                         </form>
                     </div>
                 `;
 
+                const form = document.getElementById('judges-form');
                 const finalSelect = document.getElementById('final-select');
                 const climberSelectContainer = document.getElementById('climber-select-container');
                 const climberSelect = document.getElementById('climber-select');
@@ -2009,11 +2057,27 @@
                 }
                 finalSelect.innerHTML = finalsOptionsHTML;
 
-                // Event Listeners to show next step
+                // Event Listeners to show next step and enable button
+                const checkCompletion = () => {
+                    const nextButton = nextBtnContainer.querySelector('button');
+                    if (finalSelect.value && climberSelect.value && boulderSelect.value) {
+                        nextButton.disabled = false;
+                        nextButton.classList.remove('bg-gray-600', 'cursor-not-allowed');
+                        nextButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                    } else {
+                        nextButton.disabled = true;
+                        nextButton.classList.add('bg-gray-600', 'cursor-not-allowed');
+                        nextButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                    }
+                };
+                
                 finalSelect.addEventListener('change', () => {
                     climberSelectContainer.classList.add('hidden');
                     boulderSelectContainer.classList.add('hidden');
                     nextBtnContainer.classList.add('hidden');
+                    climberSelect.value = '';
+                    boulderSelect.value = '';
+
 
                     if (finalSelect.value) {
                         const climbersInFinal = appData.fClimbers
@@ -2027,11 +2091,14 @@
                         climberSelect.innerHTML = climberOptionsHTML;
                         climberSelectContainer.classList.remove('hidden');
                     }
+                    checkCompletion();
                 });
 
                 climberSelect.addEventListener('change', () => {
                     boulderSelectContainer.classList.add('hidden');
                     nextBtnContainer.classList.add('hidden');
+                    boulderSelect.value = '';
+
 
                     if (climberSelect.value) {
                         boulderSelect.innerHTML = `
@@ -2043,6 +2110,7 @@
                         `;
                         boulderSelectContainer.classList.remove('hidden');
                     }
+                     checkCompletion();
                 });
                 
                 boulderSelect.addEventListener('change', () => {
@@ -2051,10 +2119,244 @@
                     } else {
                         nextBtnContainer.classList.add('hidden');
                     }
+                    checkCompletion();
+                });
+
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const context = {
+                        final: finalSelect.value,
+                        climber: climberSelect.value,
+                        boulder: boulderSelect.value
+                    };
+                    navigate('judgeBoulderPage', context);
                 });
             }
 
-            // --- NEW: Manage Finals Page ---
+            // --- REVISED: Judge Boulder Page ---
+            function renderJudgeBoulderPage(context) {
+                const { final, climber, boulder } = context;
+
+                headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="back-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <div class="flex-1 text-center">
+                        <h1 class="text-2xl font-bold text-gray-100">${climber}</h1>
+                        <h2 class="text-sm font-medium text-gray-400 mt-1 whitespace-nowrap">${boulder} &middot; ${final}</h2>
+                    </div>
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
+                document.getElementById('back-btn').addEventListener('click', () => navigate('judgesApp'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+
+                mainContent.innerHTML = `
+                    <div class="max-w-md mx-auto space-y-4">
+                        <!-- Timer Section -->
+                        <div class="text-center">
+                            <div id="timer-display" class="text-7xl font-mono font-bold text-white">04:00</div>
+                            <div class="flex justify-center items-center space-x-4 mt-2">
+                                <button id="play-btn" class="text-gray-300 hover:text-white text-3xl p-2"><i class="fas fa-play"></i></button>
+                                <button id="pause-btn" class="text-gray-300 hover:text-white text-3xl p-2"><i class="fas fa-pause"></i></button>
+                                <button id="reset-clock-btn" class="text-gray-300 hover:text-white text-3xl p-2"><i class="fas fa-undo"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Scoreboard -->
+                        <div class="grid grid-cols-3 gap-4 text-center items-center py-4">
+                            <div>
+                                <div class="text-sm text-green-400">TOP</div>
+                                <div id="top-score" class="text-4xl font-bold text-green-400">0</div>
+                            </div>
+                            <div>
+                                <div class="text-sm text-blue-400">ZONE</div>
+                                <div id="zone-score" class="text-4xl font-bold text-blue-400">0</div>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-400">Attempts</div>
+                                <div id="attempt-counter" class="text-4xl font-bold text-white">0</div>
+                            </div>
+                        </div>
+
+                        <!-- Main Action Area -->
+                        <div class="grid grid-cols-2 gap-4 pt-4">
+                            <button id="top-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-24 text-2xl rounded-lg transition flex items-center justify-center">TOP</button>
+                            <button id="add-attempt-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold h-24 text-4xl rounded-lg transition flex items-center justify-center">+</button>
+                            <button id="zone-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-24 text-2xl rounded-lg transition flex items-center justify-center">ZONE</button>
+                            <button id="subtract-attempt-btn" class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold h-24 text-4xl rounded-lg transition flex items-center justify-center">-</button>
+                        </div>
+                        
+                        <!-- Footer Actions -->
+                        <div id="form-feedback" class="text-center h-6 py-2"></div>
+                        <div class="grid grid-cols-2 gap-4 pt-4">
+                             <button id="reset-attempt-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-lg transition">Reset Attempt</button>
+                             <button id="submit-btn" class="w-full bg-blue-800 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition">Submit</button>
+                        </div>
+                    </div>
+                `;
+
+                // --- State Management ---
+                let timeRemaining = 240; // 4 minutes in seconds
+                let timerInterval = null;
+                let attemptCount = 0;
+                let topAttempt = 0;
+                let zoneAttempt = 0;
+
+                // --- DOM Element References ---
+                const timerDisplay = document.getElementById('timer-display');
+                const playBtn = document.getElementById('play-btn');
+                const pauseBtn = document.getElementById('pause-btn');
+                const resetClockBtn = document.getElementById('reset-clock-btn');
+                const attemptCounter = document.getElementById('attempt-counter');
+                const topScore = document.getElementById('top-score');
+                const zoneScore = document.getElementById('zone-score');
+                const topBtn = document.getElementById('top-btn');
+                const zoneBtn = document.getElementById('zone-btn');
+                const addAttemptBtn = document.getElementById('add-attempt-btn');
+                const subtractAttemptBtn = document.getElementById('subtract-attempt-btn');
+                const resetAttemptBtn = document.getElementById('reset-attempt-btn');
+                const submitBtn = document.getElementById('submit-btn');
+                const feedbackDiv = document.getElementById('form-feedback');
+
+                // --- Helper Functions ---
+                const formatTime = (seconds) => {
+                    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+                    const secs = (seconds % 60).toString().padStart(2, '0');
+                    return `${mins}:${secs}`;
+                };
+
+                const updateUI = () => {
+                    timerDisplay.textContent = formatTime(timeRemaining);
+                    attemptCounter.textContent = attemptCount;
+                    topScore.textContent = topAttempt;
+                    zoneScore.textContent = zoneAttempt;
+                    
+                    topBtn.classList.toggle('opacity-50', topAttempt > 0);
+                    zoneBtn.classList.toggle('opacity-50', zoneAttempt > 0);
+                };
+                
+                const resetFullAttempt = () => {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    timeRemaining = 240;
+                    attemptCount = 0;
+                    topAttempt = 0;
+                    zoneAttempt = 0;
+                    feedbackDiv.innerHTML = '';
+                    updateUI();
+                };
+
+                // --- Timer Logic ---
+                const startTimer = () => {
+                    if (timerInterval || timeRemaining <= 0) return;
+                    timerInterval = setInterval(() => {
+                        timeRemaining--;
+                        timerDisplay.textContent = formatTime(timeRemaining);
+                        if (timeRemaining <= 0) {
+                            clearInterval(timerInterval);
+                            timerInterval = null;
+                            timerDisplay.classList.add('text-red-500');
+                        }
+                    }, 1000);
+                };
+
+                playBtn.addEventListener('click', startTimer);
+                pauseBtn.addEventListener('click', () => {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                });
+                resetClockBtn.addEventListener('click', () => {
+                    showConfirmationModal('Reset Timer?', 'This will only reset the clock.', () => {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        timeRemaining = 240;
+                        timerDisplay.classList.remove('text-red-500');
+                        updateUI();
+                    });
+                });
+
+                // --- Attempts Counter Logic (Simplified) ---
+                addAttemptBtn.addEventListener('click', () => {
+                    attemptCount++;
+                    updateUI();
+                });
+
+                subtractAttemptBtn.addEventListener('click', () => {
+                    if (attemptCount > 0) {
+                        attemptCount--;
+                        updateUI();
+                    }
+                });
+
+                // --- Scoring Logic (Toggleable) ---
+                zoneBtn.addEventListener('click', () => {
+                    if (zoneAttempt > 0) {
+                        zoneAttempt = 0; // Reset if already scored
+                    } else {
+                        zoneAttempt = attemptCount;
+                    }
+                    updateUI();
+                });
+
+                topBtn.addEventListener('click', () => {
+                    if (topAttempt > 0) {
+                        topAttempt = 0; // Reset if already scored
+                    } else {
+                        topAttempt = attemptCount;
+                        if (zoneAttempt === 0) { // Only set zone if it hasn't been set
+                            zoneAttempt = attemptCount;
+                        }
+                    }
+                    updateUI();
+                });
+                
+                // --- Footer Actions ---
+                resetAttemptBtn.addEventListener('click', () => {
+                    showConfirmationModal('Reset Full Attempt?', 'This will reset timer, attempts, and scores.', resetFullAttempt);
+                });
+
+                submitBtn.addEventListener('click', () => {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...`;
+                    
+                    const isTopAwarded = topAttempt > 0;
+                    const isZoneAwarded = zoneAttempt > 0;
+
+                    const payload = {
+                        formType: 'submitFinalsResult',
+                        final: final, // Correctly include the final name
+                        climber: climber,
+                        boulder: boulder,
+                        send: isTopAwarded ? 'Top' : (isZoneAwarded ? 'Zone' : 'Nothing'),
+                        topAttempts: topAttempt,
+                        zoneAttempts: zoneAttempt
+                    };
+
+                    fetch(GOOGLE_APP_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(() => {
+                        feedbackDiv.innerHTML = `<p class="text-green-400">Result for ${climber} on Boulder ${boulder} saved!</p>`;
+                        setTimeout(() => navigate('judgesApp'), 1500);
+                    })
+                    .catch(err => {
+                        console.error('Error!', err);
+                        feedbackDiv.innerHTML = `<p class="text-red-400">Error: Submission failed.</p>`;
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Submit';
+                    });
+                });
+                
+                // Initial UI setup
+                updateUI();
+            }
+
+
+            // --- Manage Finals Page ---
             function renderManageFinalsPage() {
                  headerContent.innerHTML = `
                     <div class="flex-1">
@@ -2064,8 +2366,8 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                document.getElementById('back-btn').addEventListener('click', () => navigate('admin'));
-                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+                 document.getElementById('back-btn').addEventListener('click', () => navigate('admin'));
+                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 const today = new Date();
                 today.setHours(0, 0, 0, 0); // Normalize today's date to midnight
@@ -2126,7 +2428,7 @@
                         html += `
                             <div class="flex justify-between items-center bg-gray-800 p-2 rounded-lg">
                                 <span class="text-gray-200">${climber}</span>
-                                <button type="button" data-climber="${climber}" class="remove-climber-btn text-red-500 hover:text-red-400">&times;</button>
+                                <button type="button" data-climber="${climber}" class="remove-climber-btn text-red-500 hover:text-red-400 text-2xl font-bold">&times;</button>
                             </div>
                         `;
                     });
@@ -2171,6 +2473,7 @@
                         const climberToAdd = select.value;
                         if (climberToAdd && !currentFinalists.includes(climberToAdd)) {
                             currentFinalists.push(climberToAdd);
+                            currentFinalists.sort();
                             renderRosterUI();
                         }
                     });
