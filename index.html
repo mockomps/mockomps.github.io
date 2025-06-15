@@ -204,6 +204,8 @@
 
                 if (page === 'home') {
                     renderHomePage();
+                } else if (page === 'submitResults') { // New route for the results form
+                    renderSubmitResultsPage();
                 } else if (page === 'resultsHome') {
                     renderResultsHomePage();
                 } else if (page === 'schedule') {
@@ -260,19 +262,28 @@
                     return today >= startDate && today <= endDate;
                 });
                 
+                let callToActionHTML = '';
                 if (liveComps.length > 0) {
-                    let liveCompsHTML = `
+                    callToActionHTML += `
                         <div class="mt-12">
                             <h2 class="text-2xl font-bold text-center text-rose-400 mb-4">Live!</h2>
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">`;
                     
                     liveComps.forEach(comp => {
-                        liveCompsHTML += `<button data-comp="${comp.comp}" class="live-comp-btn bg-rose-500/10 border border-rose-400/30 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-rose-500/20 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">${comp.comp}</button>`;
+                        callToActionHTML += `<button data-comp="${comp.comp}" class="live-comp-btn bg-rose-500/10 border border-rose-400/30 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-rose-500/20 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">${comp.comp}</button>`;
                     });
 
-                    liveCompsHTML += `</div></div>`;
-                    mainContent.innerHTML += liveCompsHTML;
+                    callToActionHTML += `</div></div>`;
                 }
+
+                callToActionHTML += `
+                    <div class="mt-8 text-center">
+                        <button id="submit-results-btn" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 text-xl">
+                            <i class="fas fa-clipboard-check mr-2"></i> Submit Quali Results
+                        </button>
+                    </div>`;
+
+                mainContent.innerHTML += callToActionHTML;
 
                 document.getElementById('schedule-btn').addEventListener('click', () => navigate('schedule'));
                 document.getElementById('results-btn').addEventListener('click', () => navigate('resultsHome'));
@@ -281,6 +292,7 @@
                 document.getElementById('rules-btn').addEventListener('click', () => navigate('rules'));
                 document.getElementById('links-btn').addEventListener('click', () => navigate('links'));
                 document.getElementById('register-btn').addEventListener('click', () => navigate('register'));
+                document.getElementById('submit-results-btn').addEventListener('click', () => navigate('submitResults'));
                 
                 document.querySelectorAll('.live-comp-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => navigate('resultsComp', { comp: e.target.dataset.comp, from: { page: 'home' } }));
@@ -472,20 +484,18 @@
 
                      fetch(GOOGLE_APP_SCRIPT_URL, {
                          method: 'POST',
-                         mode: 'no-cors', // Workaround for CORS issues with Google Apps Script
+                         mode: 'no-cors',
                          headers: {
                             'Content-Type': 'application/json',
                          },
                          body: JSON.stringify(plainFormData)
                      })
                      .then(() => {
-                         // With 'no-cors', we can't read the response. We assume success.
                          feedback.innerHTML = `<p class="text-green-400">Success! You are now registered.</p>`;
                          form.reset();
                      }).catch(error => {
-                         // This will catch network errors, but not server-side script errors.
                          console.error('Error!', error);
-                         feedback.innerHTML = `<p class="text-red-400">Error: Submission failed due to a network issue. Please check your connection and try again.</p>`;
+                         feedback.innerHTML = `<p class="text-red-400">Error: Submission failed. Please check your connection.</p>`;
                      }).finally(() => {
                           submitButton.disabled = false;
                           submitButton.innerHTML = `Sign Up`;
@@ -663,19 +673,18 @@
                     
                     fetch(GOOGLE_APP_SCRIPT_URL, {
                         method: 'POST',
-                        mode: 'no-cors', // Workaround for CORS issues with Google Apps Script
+                        mode: 'no-cors',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify(payload)
                     })
                     .then(() => {
-                        // With 'no-cors', we can't read the response. We assume success.
                         boulderFeedback.innerHTML = `<p class="text-green-400">Success! Boulders for ${qualiName} have been updated.</p>`;
                     })
                     .catch(error => {
                         console.error('Error!', error);
-                        boulderFeedback.innerHTML = `<p class="text-red-400">Error: Submission failed due to a network issue. Please check your connection and try again.</p>`;
+                        boulderFeedback.innerHTML = `<p class="text-red-400">Error: Submission failed. Please check your connection.</p>`;
                     })
                      .finally(() => {
                          submitButton.disabled = false;
@@ -1691,6 +1700,189 @@
                             climberName: climberName,
                             from: { page: 'leaderboards' }
                         });
+                    });
+                });
+            }
+            
+            // --- NEW: Quali Results Submission Page ---
+            function renderSubmitResultsPage() {
+                headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Submit Quali Results</h1>
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
+                document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+
+                const climberOptions = [...appData.climbers].sort((a,b) => a.name.localeCompare(b.name)).map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+
+                mainContent.innerHTML = `
+                    <div class="max-w-xl mx-auto">
+                        <form id="quali-results-form" class="space-y-6">
+                            
+                            <!-- Step 1: Climber Selection -->
+                            <div>
+                                <label for="climber-select" class="block text-sm font-medium text-gray-300 mb-1">1. Select Your Name</label>
+                                <select id="climber-select" name="climber" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                    <option value="">-- Select Climber --</option>
+                                    ${climberOptions}
+                                </select>
+                            </div>
+
+                            <!-- Step 2: Quali Selection (hidden initially) -->
+                            <div id="quali-select-container" class="hidden">
+                                <label for="quali-select" class="block text-sm font-medium text-gray-300 mb-1">2. Select Live Quali Round</label>
+                                <select id="quali-select" name="quali" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                    <!-- Options will be populated dynamically -->
+                                </select>
+                            </div>
+
+                            <!-- Step 3: Boulder Questions (hidden initially) -->
+                            <div id="boulder-questions-container" class="hidden space-y-4">
+                                <!-- Questions will be populated dynamically -->
+                            </div>
+                            
+                            <div id="form-feedback" class="text-center h-6"></div>
+
+                            <!-- Submit Button (hidden initially) -->
+                            <div id="submit-btn-container" class="hidden">
+                                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Submit Scores</button>
+                            </div>
+
+                        </form>
+                    </div>
+                `;
+
+                const climberSelect = document.getElementById('climber-select');
+                const qualiSelectContainer = document.getElementById('quali-select-container');
+                const qualiSelect = document.getElementById('quali-select');
+                const boulderQuestionsContainer = document.getElementById('boulder-questions-container');
+                const submitBtnContainer = document.getElementById('submit-btn-container');
+                const form = document.getElementById('quali-results-form');
+                const feedback = document.getElementById('form-feedback');
+
+                climberSelect.addEventListener('change', () => {
+                    boulderQuestionsContainer.innerHTML = '';
+                    boulderQuestionsContainer.classList.add('hidden');
+                    submitBtnContainer.classList.add('hidden');
+                    
+                    if (climberSelect.value) {
+                        const now = new Date();
+                        const liveQualis = appData.qualis.filter(quali => {
+                            const startDate = new Date(quali.date);
+                            // End date is 7 days (for the week) + 12 hours (grace period) after the start date.
+                            const endDate = new Date(startDate.getTime() + (7 * 24 * 60 * 60 * 1000) + (12 * 60 * 60 * 1000));
+                            return now >= startDate && now <= endDate;
+                        }).sort((a, b) => new Date(b.date) - new Date(a.date)); // Show most recent first
+
+                        let qualiOptionsHTML = '<option value="">-- Select Quali --</option>';
+                        if(liveQualis.length > 0) {
+                           liveQualis.forEach(q => {
+                                qualiOptionsHTML += `<option value="${q.quali}">${q.quali}</option>`;
+                           });
+                        } else {
+                            qualiOptionsHTML = '<option value="">-- No Live Qualis Available --</option>';
+                        }
+                        
+                        qualiSelect.innerHTML = qualiOptionsHTML;
+                        qualiSelectContainer.classList.remove('hidden');
+                    } else {
+                        qualiSelectContainer.classList.add('hidden');
+                    }
+                });
+
+                qualiSelect.addEventListener('change', () => {
+                    const selectedQuali = qualiSelect.value;
+                    boulderQuestionsContainer.innerHTML = '';
+                    boulderQuestionsContainer.classList.add('hidden');
+                    submitBtnContainer.classList.add('hidden');
+                    
+                    if (selectedQuali) {
+                        const boulders = appData.qBoulders.filter(b => b.quali === selectedQuali);
+                        if(boulders.length > 0) {
+                            let questionsHTML = `<h3 class="text-lg font-semibold text-gray-200 pt-4 border-t border-gray-800">3. Log Your Results</h3>`;
+                            boulders.forEach(boulder => {
+                                const boulderNameLower = boulder.name.toLowerCase();
+                                questionsHTML += `
+                                    <div class="bg-gray-900/50 border border-gray-800 p-4 rounded-lg">
+                                        <p class="font-bold text-gray-200">Boulder ${boulder.name}: <span class="font-normal text-gray-300">${boulder.grade} ${boulder.color} (${boulder.a})</span></p>
+                                        <div class="flex flex-wrap justify-around mt-3 gap-y-2">
+                                            <label class="flex items-center space-x-2"><input type="radio" name="results[${boulderNameLower}]" value="Flash" required class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"> <span class="text-yellow-400">Flash</span></label>
+                                            <label class="flex items-center space-x-2"><input type="radio" name="results[${boulderNameLower}]" value="Top" required class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"> <span class="text-green-400">Top</span></label>
+                                            <label class="flex items-center space-x-2"><input type="radio" name="results[${boulderNameLower}]" value="Zone" required class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"> <span class="text-blue-400">Zone</span></label>
+                                            <label class="flex items-center space-x-2"><input type="radio" name="results[${boulderNameLower}]" value="Nothing" required class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500"> <span class="text-gray-400">Nothing</span></label>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            boulderQuestionsContainer.innerHTML = questionsHTML;
+                            boulderQuestionsContainer.classList.remove('hidden');
+                            submitBtnContainer.classList.remove('hidden');
+                        }
+                    }
+                });
+
+                form.addEventListener('submit', e => {
+                    e.preventDefault();
+                    feedback.innerHTML = '';
+                    
+                    const formData = new FormData(form);
+                    const climber = formData.get('climber');
+                    const quali = formData.get('quali');
+                    const results = {};
+                    let questionCount = boulderQuestionsContainer.querySelectorAll('input[type="radio"]').length / 4;
+                    let answeredCount = 0;
+
+                    for (let [key, value] of formData.entries()) {
+                       if (key.startsWith('results[')) {
+                           const boulderName = key.match(/\[(.*?)\]/)[1];
+                           results[boulderName] = value;
+                           answeredCount++;
+                       }
+                    }
+
+                    // Validation to ensure all questions are answered
+                    if (answeredCount < questionCount) {
+                        feedback.innerHTML = `<p class="text-red-400">Please answer all boulder questions before submitting.</p>`;
+                        return;
+                    }
+
+                    const payload = {
+                        formType: 'submitQualiResults',
+                        climber,
+                        quali,
+                        results
+                    };
+
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...`;
+
+                    fetch(GOOGLE_APP_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(() => {
+                        feedback.innerHTML = `<p class="text-green-400">Success! Your results have been submitted.</p>`;
+                        form.reset();
+                        qualiSelectContainer.classList.add('hidden');
+                        boulderQuestionsContainer.classList.add('hidden');
+                        submitBtnContainer.classList.add('hidden');
+                    })
+                    .catch(error => {
+                        console.error('Error!', error);
+                        feedback.innerHTML = `<p class="text-red-400">Error: Submission failed. Please check your connection.</p>`;
+                    })
+                    .finally(() => {
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = `Submit Scores`;
                     });
                 });
             }
