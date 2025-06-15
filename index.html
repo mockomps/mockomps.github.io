@@ -149,7 +149,8 @@
                 cStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1940156851&single=true&output=csv',
                 perCompGradeStats: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=98853432&single=true&output=csv',
                 qBoulders: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1513683934&single=true&output=csv',
-                qResults: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=36605401&single=true&output=csv'
+                qResults: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=36605401&single=true&output=csv',
+                fClimbers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=704595417&single=true&output=csv'
             };
 
             // --- Utility Functions ---
@@ -262,6 +263,10 @@
                     renderRegisterPage();
                 } else if (page === 'admin') {
                     renderAdminPage();
+                } else if (page === 'judgesApp') {
+                    renderJudgesAppPage();
+                } else if (page === 'manageFinals') {
+                    renderManageFinalsPage();
                 } else if (page === 'addBoulders') {
                     renderAddBouldersPage();
                 } else if (page === 'qualiResultDetail') {
@@ -303,10 +308,10 @@
                     callToActionHTML += `
                         <div class="mt-12">
                             <h2 class="text-2xl font-bold text-center text-rose-400 mb-4">Live!</h2>
-                            <div class="flex justify-start sm:justify-center gap-4 text-center overflow-x-auto no-scrollbar h-scroll pb-4">`;
+                            <div class="flex justify-center gap-4 text-center">`;
                     
                     liveComps.forEach(comp => {
-                        callToActionHTML += `<button data-comp="${comp.comp}" class="live-comp-btn flex-shrink-0 bg-rose-500/10 border border-rose-400/30 p-6 w-48 text-center rounded-lg shadow-md hover:shadow-xl hover:bg-rose-500/20 transition-all duration-200 text-gray-100 font-bold text-xl">${comp.comp}</button>`;
+                        callToActionHTML += `<button data-comp="${comp.comp}" class="live-comp-btn flex-1 bg-rose-500/10 border border-rose-400/30 p-6 rounded-lg shadow-md hover:shadow-xl hover:bg-rose-500/20 transition-all duration-200 text-gray-100 font-bold text-xl">${comp.comp}</button>`;
                     });
 
                     callToActionHTML += `</div></div>`;
@@ -552,13 +557,15 @@
                 mainContent.innerHTML = `
                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center mt-8">
                             <button id="add-quali-boulders-btn" class="bg-blue-600 hover:bg-blue-700 p-6 rounded-lg text-white font-bold text-lg">Add Quali Boulders</button>
-                            <button class="bg-gray-700 opacity-50 cursor-not-allowed p-6 rounded-lg text-gray-400 font-bold text-lg">Add Final Boulders</button>
-                            <button class="bg-gray-700 opacity-50 cursor-not-allowed p-6 rounded-lg text-gray-400 font-bold text-lg">Update Quali Form</button>
+                            <button id="judge-finals-btn" class="bg-green-600 hover:bg-green-700 p-6 rounded-lg text-white font-bold text-lg">Judge Finals</button>
+                            <button id="manage-finals-btn" class="bg-orange-600 hover:bg-orange-700 p-6 rounded-lg text-white font-bold text-lg">Manage Finals</button>
                             <button class="bg-gray-700 opacity-50 cursor-not-allowed p-6 rounded-lg text-gray-400 font-bold text-lg">Update Final Form</button>
                         </div>
                 `;
 
                 document.getElementById('add-quali-boulders-btn').addEventListener('click', () => navigate('addBoulders'));
+                document.getElementById('judge-finals-btn').addEventListener('click', () => navigate('judgesApp'));
+                document.getElementById('manage-finals-btn').addEventListener('click', () => navigate('manageFinals'));
             }
 
             function renderAddBouldersPage() {
@@ -1926,6 +1933,283 @@
                     });
                 });
             }
+
+            // --- NEW: Judges App Page ---
+            function renderJudgesAppPage() {
+                headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="back-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Judges App</h1>
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
+                document.getElementById('back-btn').addEventListener('click', () => navigate('admin'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+
+                mainContent.innerHTML = `
+                    <div class="max-w-xl mx-auto">
+                        <form id="judges-form" class="space-y-6">
+                            
+                            <!-- Step 1: Final Selection -->
+                            <div>
+                                <label for="final-select" class="block text-sm font-medium text-gray-300 mb-1">Select Final</label>
+                                <select id="final-select" name="final" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                    <!-- Options will be populated dynamically -->
+                                </select>
+                            </div>
+
+                            <!-- Step 2: Climber Selection (hidden initially) -->
+                            <div id="climber-select-container" class="hidden">
+                                <label for="climber-select" class="block text-sm font-medium text-gray-300 mb-1">Select Climber</label>
+                                <select id="climber-select" name="climber" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                    <!-- Options will be populated dynamically -->
+                                </select>
+                            </div>
+
+                            <!-- Step 3: Boulder Selection (hidden initially) -->
+                            <div id="boulder-select-container" class="hidden">
+                                <label for="boulder-select" class="block text-sm font-medium text-gray-300 mb-1">Select Boulder</label>
+                                <select id="boulder-select" name="boulder" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                    <!-- Options will be populated dynamically -->
+                                </select>
+                            </div>
+                            
+                            <!-- Next Button (hidden initially) -->
+                            <div id="next-btn-container" class="hidden pt-2">
+                                 <button type="submit" disabled class="w-full bg-gray-600 cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg">Next</button>
+                            </div>
+
+                        </form>
+                    </div>
+                `;
+
+                const finalSelect = document.getElementById('final-select');
+                const climberSelectContainer = document.getElementById('climber-select-container');
+                const climberSelect = document.getElementById('climber-select');
+                const boulderSelectContainer = document.getElementById('boulder-select-container');
+                const boulderSelect = document.getElementById('boulder-select');
+                const nextBtnContainer = document.getElementById('next-btn-container');
+                
+                // Populate Finals
+                const now = new Date();
+                const liveFinals = appData.finals.filter(final => {
+                    const finalDate = new Date(final.date);
+                    const endDate = new Date(finalDate.getTime() + (24 * 60 * 60 * 1000) + (6 * 60 * 60 * 1000)); // End of day + 6 hours
+                    return now >= finalDate && now <= endDate;
+                });
+                
+                let finalsOptionsHTML = '<option value="">-- Select a Final --</option>';
+                if (liveFinals.length > 0) {
+                    liveFinals.forEach(f => {
+                        finalsOptionsHTML += `<option value="${f.final}">${f.final}</option>`;
+                    });
+                } else {
+                    finalsOptionsHTML = '<option value="">-- No Live Finals --</option>';
+                }
+                finalSelect.innerHTML = finalsOptionsHTML;
+
+                // Event Listeners to show next step
+                finalSelect.addEventListener('change', () => {
+                    climberSelectContainer.classList.add('hidden');
+                    boulderSelectContainer.classList.add('hidden');
+                    nextBtnContainer.classList.add('hidden');
+
+                    if (finalSelect.value) {
+                        const climbersInFinal = appData.fClimbers
+                            .filter(r => r.final === finalSelect.value)
+                            .map(r => r.climber)
+                            .sort();
+                        let climberOptionsHTML = '<option value="">-- Select a Climber --</option>';
+                        climbersInFinal.forEach(c => {
+                             climberOptionsHTML += `<option value="${c}">${c}</option>`;
+                        });
+                        climberSelect.innerHTML = climberOptionsHTML;
+                        climberSelectContainer.classList.remove('hidden');
+                    }
+                });
+
+                climberSelect.addEventListener('change', () => {
+                    boulderSelectContainer.classList.add('hidden');
+                    nextBtnContainer.classList.add('hidden');
+
+                    if (climberSelect.value) {
+                        boulderSelect.innerHTML = `
+                            <option value="">-- Select a Boulder --</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                        `;
+                        boulderSelectContainer.classList.remove('hidden');
+                    }
+                });
+                
+                boulderSelect.addEventListener('change', () => {
+                    if (boulderSelect.value) {
+                        nextBtnContainer.classList.remove('hidden');
+                    } else {
+                        nextBtnContainer.classList.add('hidden');
+                    }
+                });
+            }
+
+            // --- NEW: Manage Finals Page ---
+            function renderManageFinalsPage() {
+                 headerContent.innerHTML = `
+                    <div class="flex-1">
+                        <button id="back-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Manage Finals Roster</h1>
+                    <div class="flex-1 text-right">
+                        <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
+                    </div>`;
+                document.getElementById('back-btn').addEventListener('click', () => navigate('admin'));
+                document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Normalize today's date to midnight
+                const upcomingFinals = appData.finals.filter(f => new Date(f.date) >= today);
+                const finalOptions = upcomingFinals.map(f => `<option value="${f.final}">${f.final}</option>`).join('');
+
+                mainContent.innerHTML = `
+                    <div class="max-w-xl mx-auto">
+                        <form id="manage-finals-form" class="space-y-6">
+                            <div>
+                                <label for="final-select" class="block text-sm font-medium text-gray-300 mb-1">Select Upcoming Final</label>
+                                <select id="final-select" name="final" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                    <option value="">-- Select a Final --</option>
+                                    ${finalOptions}
+                                </select>
+                            </div>
+
+                            <div id="roster-management-container" class="hidden space-y-4">
+                                <!-- Roster will be rendered here -->
+                            </div>
+                            
+                            <div id="form-feedback" class="text-center h-6"></div>
+                        </form>
+                    </div>
+                `;
+
+                const finalSelect = document.getElementById('final-select');
+                const rosterContainer = document.getElementById('roster-management-container');
+                const feedback = document.getElementById('form-feedback');
+                let currentFinalists = [];
+
+                finalSelect.addEventListener('change', () => {
+                    const selectedFinal = finalSelect.value;
+                    rosterContainer.innerHTML = '';
+                    if (!selectedFinal) return;
+
+                    let finalists = appData.fClimbers
+                        .filter(fc => fc.final === selectedFinal)
+                        .map(fc => fc.climber);
+                    
+                    if (finalists.length === 0) {
+                        const compName = selectedFinal.replace(/F$/, '');
+                        finalists = appData.qStandings
+                            .filter(s => s.comp === compName)
+                            .sort((a,b) => parseInt(a.place) - parseInt(b.place))
+                            .slice(0, 8)
+                            .map(s => s.climber);
+                    }
+                    currentFinalists = finalists;
+                    renderRosterUI();
+                });
+
+                function renderRosterUI() {
+                    let html = `<h3 class="text-lg font-semibold text-gray-200 pt-4 border-t border-gray-800">Current Finalists</h3>`;
+                    
+                    html += '<div id="finalists-list" class="space-y-2">';
+                    currentFinalists.forEach(climber => {
+                        html += `
+                            <div class="flex justify-between items-center bg-gray-800 p-2 rounded-lg">
+                                <span class="text-gray-200">${climber}</span>
+                                <button type="button" data-climber="${climber}" class="remove-climber-btn text-red-500 hover:text-red-400">&times;</button>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+
+                    const availableClimbers = appData.climbers
+                        .map(c => c.name)
+                        .filter(name => !currentFinalists.includes(name))
+                        .sort();
+                    
+                    let climberOptions = availableClimbers.map(c => `<option value="${c}">${c}</option>`).join('');
+
+                    html += `
+                        <div class="pt-4 border-t border-gray-800">
+                             <label for="add-climber-select" class="block text-sm font-medium text-gray-300 mb-1">Add Climber</label>
+                             <div class="flex gap-2">
+                                <select id="add-climber-select" class="flex-grow bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3">
+                                    <option value="">-- Select a climber to add --</option>
+                                    ${climberOptions}
+                                </select>
+                                <button type="button" id="add-climber-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold p-3 rounded-lg">Add</button>
+                             </div>
+                        </div>
+
+                        <div class="pt-4">
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">Save Changes</button>
+                        </div>
+                    `;
+                    rosterContainer.innerHTML = html;
+                    rosterContainer.classList.remove('hidden');
+
+                    document.querySelectorAll('.remove-climber-btn').forEach(btn => {
+                        btn.addEventListener('click', e => {
+                            const climberToRemove = e.target.dataset.climber;
+                            currentFinalists = currentFinalists.filter(c => c !== climberToRemove);
+                            renderRosterUI();
+                        });
+                    });
+
+                    document.getElementById('add-climber-btn').addEventListener('click', () => {
+                        const select = document.getElementById('add-climber-select');
+                        const climberToAdd = select.value;
+                        if (climberToAdd && !currentFinalists.includes(climberToAdd)) {
+                            currentFinalists.push(climberToAdd);
+                            renderRosterUI();
+                        }
+                    });
+                }
+
+                document.getElementById('manage-finals-form').addEventListener('submit', e => {
+                    e.preventDefault();
+                    feedback.innerHTML = '';
+
+                    const payload = {
+                        formType: 'manageFinalists',
+                        final: finalSelect.value,
+                        climbers: currentFinalists
+                    };
+
+                    const submitButton = e.target.querySelector('button[type="submit"]');
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Saving...`;
+
+                    fetch(GOOGLE_APP_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(() => {
+                        feedback.innerHTML = `<p class="text-green-400">Finalist roster for ${finalSelect.value} has been updated!</p>`;
+                    })
+                    .catch(err => {
+                         console.error('Error!', err);
+                        feedback.innerHTML = `<p class="text-red-400">Error: Could not save roster. Check connection.</p>`;
+                    })
+                    .finally(() => {
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = `Save Changes`;
+                    });
+                });
+            }
+
 
             async function init() {
                 indicator.innerHTML = `<i class="fas fa-spinner fa-spin text-4xl text-gray-400"></i><p class="mt-4 text-lg font-medium text-gray-300">Loading All Mockomps Data...</p>`;
