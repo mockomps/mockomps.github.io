@@ -1773,10 +1773,9 @@
                         const now = new Date();
                         const liveQualis = appData.qualis.filter(quali => {
                             const startDate = new Date(quali.date);
-                            // End date is 7 days (for the week) + 12 hours (grace period) after the start date.
                             const endDate = new Date(startDate.getTime() + (7 * 24 * 60 * 60 * 1000) + (12 * 60 * 60 * 1000));
                             return now >= startDate && now <= endDate;
-                        }).sort((a, b) => new Date(b.date) - new Date(a.date)); // Show most recent first
+                        }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
                         let qualiOptionsHTML = '<option value="">-- Select Quali --</option>';
                         if(liveQualis.length > 0) {
@@ -1844,7 +1843,6 @@
                        }
                     }
 
-                    // Validation to ensure all questions are answered
                     if (answeredCount < questionCount) {
                         feedback.innerHTML = `<p class="text-red-400">Please answer all boulder questions before submitting.</p>`;
                         return;
@@ -1861,22 +1859,27 @@
                     submitButton.disabled = true;
                     submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...`;
 
+                    // --- FIX APPLIED ---
+                    // Using the "fire-and-forget" approach for the long-running script.
                     fetch(GOOGLE_APP_SCRIPT_URL, {
                         method: 'POST',
-                        mode: 'no-cors',
+                        mode: 'no-cors', // Kept to bypass preflight, but we won't read the response.
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify(payload)
                     })
                     .then(() => {
-                        feedback.innerHTML = `<p class="text-green-400">Success! Your results have been submitted.</p>`;
+                        // Assume success because the request was sent and the script will timeout anyway.
+                        // Provide immediate, positive feedback to the user.
+                        feedback.innerHTML = `<p class="text-green-400">Success! Your results have been submitted and are being processed.</p>`;
                         form.reset();
                         qualiSelectContainer.classList.add('hidden');
                         boulderQuestionsContainer.classList.add('hidden');
                         submitBtnContainer.classList.add('hidden');
                     })
                     .catch(error => {
+                        // This will only catch genuine network failures.
                         console.error('Error!', error);
                         feedback.innerHTML = `<p class="text-red-400">Error: Submission failed. Please check your connection.</p>`;
                     })
