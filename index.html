@@ -572,7 +572,6 @@
                 document.getElementById('admin-back-btn').addEventListener('click', () => navigate('home'));
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
-                // START Admin Page Revamp
                 mainContent.innerHTML = `
                         <div class="grid grid-cols-1 gap-4 text-center mt-8">
                             <button id="add-quali-boulders-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl">Manage Qualis Boulders</button>
@@ -580,7 +579,6 @@
                             <button id="judge-finals-btn" class="bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-xl">Judges App</button>
                         </div>
                 `;
-                // END Admin Page Revamp
 
                 document.getElementById('add-quali-boulders-btn').addEventListener('click', () => navigate('addBoulders'));
                 document.getElementById('manage-finals-btn').addEventListener('click', () => navigate('manageFinals'));
@@ -697,59 +695,62 @@
 
                 boulderForm.addEventListener('submit', e => {
                     e.preventDefault();
-                    boulderFeedback.innerHTML = '';
                     
-                    const qualiName = document.getElementById('quali-select').value;
-                     if (!qualiName) {
-                         boulderFeedback.innerHTML = `<p class="text-red-400">Please select a Quali round first.</p>`;
-                         return;
-                     }
+                    showConfirmationModal('Confirm Changes', 'Are you sure you want to save these boulders?', () => {
+                        boulderFeedback.innerHTML = '';
+                        
+                        const qualiName = document.getElementById('quali-select').value;
+                         if (!qualiName) {
+                             boulderFeedback.innerHTML = `<p class="text-red-400">Please select a Quali round first.</p>`;
+                             return;
+                         }
 
-                    const boulders = [];
-                    const rows = boulderList.querySelectorAll('.boulder-row');
-                    
-                    rows.forEach((row, index) => {
-                        const grade = row.querySelector('select[name="grade"]').value;
-                        const color = row.querySelector('select[name="color"]').value;
-                        const room = row.querySelector('select[name="room"]').value;
+                        const boulders = [];
+                        const rows = boulderList.querySelectorAll('.boulder-row');
+                        
+                        rows.forEach((row, index) => {
+                            const grade = row.querySelector('select[name="grade"]').value;
+                            const color = row.querySelector('select[name="color"]').value;
+                            const room = row.querySelector('select[name="room"]').value;
 
-                        boulders.push({
-                            Name: String.fromCharCode(65 + index),
-                            Grade: grade,
-                            Color: color,
-                            A: room
+                            boulders.push({
+                                Name: String.fromCharCode(65 + index),
+                                Grade: grade,
+                                Color: color,
+                                A: room
+                            });
                         });
+                        
+                        const payload = {
+                            formType: 'addBoulders',
+                            quali: qualiName,
+                            boulders: boulders
+                        };
+                        
+                        const submitButton = boulderForm.querySelector('button[type="submit"]');
+                        submitButton.disabled = true;
+                        submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...`;
+                        
+                        fetch(GOOGLE_APP_SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload)
+                        })
+                        .then(() => {
+                            boulderFeedback.innerHTML = `<p class="text-green-400">Success! Boulders for ${qualiName} have been updated.</p>`;
+                        })
+                        .catch(error => {
+                            console.error('Error!', error);
+                            boulderFeedback.innerHTML = `<p class="text-red-400">Error: Submission failed. Please check your connection.</p>`;
+                        })
+                         .finally(() => {
+                             submitButton.disabled = false;
+                             submitButton.innerHTML = `Submit All Boulders`;
+                         });
                     });
-                    
-                    const payload = {
-                        formType: 'addBoulders',
-                        quali: qualiName,
-                        boulders: boulders
-                    };
-                    
-                    const submitButton = boulderForm.querySelector('button[type="submit"]');
-                    submitButton.disabled = true;
-                    submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...`;
-                    
-                    fetch(GOOGLE_APP_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(payload)
-                    })
-                    .then(() => {
-                        boulderFeedback.innerHTML = `<p class="text-green-400">Success! Boulders for ${qualiName} have been updated.</p>`;
-                    })
-                    .catch(error => {
-                        console.error('Error!', error);
-                        boulderFeedback.innerHTML = `<p class="text-red-400">Error: Submission failed. Please check your connection.</p>`;
-                    })
-                     .finally(() => {
-                         submitButton.disabled = false;
-                         submitButton.innerHTML = `Submit All Boulders`;
-                     });
                 });
             }
 
@@ -763,14 +764,12 @@
                 pinInput.focus();
             }
 
-            // START PIN Modal Enter Key Listener
             document.getElementById('pin-input').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault(); // Prevent default form submission behavior
                     document.getElementById('pin-submit').click();
                 }
             });
-            // END PIN Modal Enter Key Listener
 
             document.getElementById('pin-submit').addEventListener('click', () => {
                 const pinInput = document.getElementById('pin-input');
@@ -947,12 +946,10 @@
                     let climberListHTML = '';
                     filteredClimbers.forEach(climber => {
                         if (climber.name) {
-                            // START Add Arrow to Climber Buttons
                             climberListHTML += `<button data-climber-name="${climber.name}" class="climber-btn w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold hover:bg-gray-800 flex justify-between items-center">
                                                     <span>${climber.name}</span>
                                                     <i class="fas fa-chevron-right text-gray-500"></i>
                                                 </button>`;
-                            // END Add Arrow to Climber Buttons
                         }
                     });
                     listContainer.innerHTML = climberListHTML;
@@ -2199,6 +2196,7 @@
                 document.getElementById('back-btn').addEventListener('click', () => navigate('judgesApp'));
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
+                // START Judges App Spacing & Button Changes
                 mainContent.innerHTML = `
                     <div class="max-w-md mx-auto space-y-4">
                         <!-- Timer Section -->
@@ -2227,22 +2225,19 @@
                             </div>
                         </div>
 
-                        <!-- Main Action Area -->
+                        <!-- Main Action Area & Footer Actions in one grid -->
                         <div class="grid grid-cols-2 gap-4 pt-4">
                             <button id="top-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-24 text-2xl rounded-lg transition flex items-center justify-center">TOP</button>
                             <button id="add-attempt-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold h-24 text-4xl rounded-lg transition flex items-center justify-center">+</button>
                             <button id="zone-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-24 text-2xl rounded-lg transition flex items-center justify-center">ZONE</button>
                             <button id="subtract-attempt-btn" class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold h-24 text-4xl rounded-lg transition flex items-center justify-center">-</button>
+                             <button id="reset-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 rounded-lg transition">Reset</button>
+                             <button id="submit-btn" class="w-full bg-blue-800 hover:bg-blue-700 text-white font-bold py-4 rounded-lg transition">Submit</button>
                         </div>
-                        
-                        <!-- Footer Actions -->
                         <div id="form-feedback" class="text-center h-6 py-2"></div>
-                        <div class="grid grid-cols-2 gap-4 pt-4">
-                             <button id="reset-attempt-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-lg transition">Reset Attempt</button>
-                             <button id="submit-btn" class="w-full bg-blue-800 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition">Submit</button>
-                        </div>
                     </div>
                 `;
+                // END Judges App Spacing & Button Changes
 
                 // --- State Management ---
                 let timeRemaining = 240; // 4 minutes in seconds
@@ -2263,7 +2258,7 @@
                 const zoneBtn = document.getElementById('zone-btn');
                 const addAttemptBtn = document.getElementById('add-attempt-btn');
                 const subtractAttemptBtn = document.getElementById('subtract-attempt-btn');
-                const resetAttemptBtn = document.getElementById('reset-attempt-btn');
+                const resetBtn = document.getElementById('reset-btn'); // Renamed
                 const submitBtn = document.getElementById('submit-btn');
                 const feedbackDiv = document.getElementById('form-feedback');
 
@@ -2284,10 +2279,7 @@
                     zoneBtn.classList.toggle('opacity-50', zoneAttempt > 0);
                 };
                 
-                const resetFullAttempt = () => {
-                    clearInterval(timerInterval);
-                    timerInterval = null;
-                    timeRemaining = 240;
+                const resetScoresAndAttempts = () => {
                     attemptCount = 0;
                     topAttempt = 0;
                     zoneAttempt = 0;
@@ -2324,7 +2316,7 @@
                     });
                 });
 
-                // --- Attempts Counter Logic (Simplified) ---
+                // --- Attempts Counter Logic ---
                 addAttemptBtn.addEventListener('click', () => {
                     attemptCount++;
                     updateUI();
@@ -2337,10 +2329,10 @@
                     }
                 });
 
-                // --- Scoring Logic (Toggleable) ---
+                // --- Scoring Logic ---
                 zoneBtn.addEventListener('click', () => {
                     if (zoneAttempt > 0) {
-                        zoneAttempt = 0; // Reset if already scored
+                        zoneAttempt = 0; 
                     } else {
                         zoneAttempt = attemptCount;
                     }
@@ -2349,10 +2341,10 @@
 
                 topBtn.addEventListener('click', () => {
                     if (topAttempt > 0) {
-                        topAttempt = 0; // Reset if already scored
+                        topAttempt = 0; 
                     } else {
                         topAttempt = attemptCount;
-                        if (zoneAttempt === 0) { // Only set zone if it hasn't been set
+                        if (zoneAttempt === 0) {
                             zoneAttempt = attemptCount;
                         }
                     }
@@ -2360,42 +2352,45 @@
                 });
                 
                 // --- Footer Actions ---
-                resetAttemptBtn.addEventListener('click', () => {
-                    showConfirmationModal('Reset Full Attempt?', 'This will reset timer, attempts, and scores.', resetFullAttempt);
+                resetBtn.addEventListener('click', () => {
+                    showConfirmationModal('Reset Scores?', 'This will reset attempts, Top, and Zone scores. The timer will not be affected.', resetScoresAndAttempts);
                 });
 
                 submitBtn.addEventListener('click', () => {
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...`;
-                    
                     const isTopAwarded = topAttempt > 0;
                     const isZoneAwarded = zoneAttempt > 0;
+                    const resultSummary = `Submit: Top(${topAttempt}), Zone(${zoneAttempt})?`;
 
-                    const payload = {
-                        formType: 'submitFinalsResult',
-                        final: final, // Correctly include the final name
-                        climber: climber,
-                        boulder: boulder,
-                        send: isTopAwarded ? 'Top' : (isZoneAwarded ? 'Zone' : 'Nothing'),
-                        topAttempts: topAttempt,
-                        zoneAttempts: zoneAttempt
-                    };
+                    showConfirmationModal('Confirm Result', resultSummary, () => {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...`;
+                        
+                        const payload = {
+                            formType: 'submitFinalsResult',
+                            final: final,
+                            climber: climber,
+                            boulder: boulder,
+                            send: isTopAwarded ? 'Top' : (isZoneAwarded ? 'Zone' : 'Nothing'),
+                            topAttempts: topAttempt,
+                            zoneAttempts: zoneAttempt
+                        };
 
-                    fetch(GOOGLE_APP_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    })
-                    .then(() => {
-                        feedbackDiv.innerHTML = `<p class="text-green-400">Result for ${climber} on Boulder ${boulder} saved!</p>`;
-                        setTimeout(() => navigate('judgesApp'), 1500);
-                    })
-                    .catch(err => {
-                        console.error('Error!', err);
-                        feedbackDiv.innerHTML = `<p class="text-red-400">Error: Submission failed.</p>`;
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = 'Submit';
+                        fetch(GOOGLE_APP_SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        })
+                        .then(() => {
+                            feedbackDiv.innerHTML = `<p class="text-green-400">Result for ${climber} on Boulder ${boulder} saved!</p>`;
+                            setTimeout(() => navigate('judgesApp'), 1500);
+                        })
+                        .catch(err => {
+                            console.error('Error!', err);
+                            feedbackDiv.innerHTML = `<p class="text-red-400">Error: Submission failed.</p>`;
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = 'Submit';
+                        });
                     });
                 });
                 
@@ -2418,7 +2413,7 @@
                  document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 const today = new Date();
-                today.setHours(0, 0, 0, 0); // Normalize today's date to midnight
+                today.setHours(0, 0, 0, 0);
                 const upcomingFinals = appData.finals.filter(f => new Date(f.date) >= today);
                 const finalOptions = upcomingFinals.map(f => `<option value="${f.final}">${f.final}</option>`).join('');
 
@@ -2529,34 +2524,37 @@
 
                 document.getElementById('manage-finals-form').addEventListener('submit', e => {
                     e.preventDefault();
-                    feedback.innerHTML = '';
 
-                    const payload = {
-                        formType: 'manageFinalists',
-                        final: finalSelect.value,
-                        climbers: currentFinalists
-                    };
+                    showConfirmationModal('Confirm Changes', 'Are you sure you want to save this finals roster?', () => {
+                        feedback.innerHTML = '';
 
-                    const submitButton = e.target.querySelector('button[type="submit"]');
-                    submitButton.disabled = true;
-                    submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Saving...`;
+                        const payload = {
+                            formType: 'manageFinalists',
+                            final: finalSelect.value,
+                            climbers: currentFinalists
+                        };
 
-                    fetch(GOOGLE_APP_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    })
-                    .then(() => {
-                        feedback.innerHTML = `<p class="text-green-400">Finalist roster for ${finalSelect.value} has been updated!</p>`;
-                    })
-                    .catch(err => {
-                         console.error('Error!', err);
-                        feedback.innerHTML = `<p class="text-red-400">Error: Could not save roster. Check connection.</p>`;
-                    })
-                    .finally(() => {
-                        submitButton.disabled = false;
-                        submitButton.innerHTML = `Save Changes`;
+                        const submitButton = e.target.querySelector('button[type="submit"]');
+                        submitButton.disabled = true;
+                        submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Saving...`;
+
+                        fetch(GOOGLE_APP_SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        })
+                        .then(() => {
+                            feedback.innerHTML = `<p class="text-green-400">Finalist roster for ${finalSelect.value} has been updated!</p>`;
+                        })
+                        .catch(err => {
+                             console.error('Error!', err);
+                            feedback.innerHTML = `<p class="text-red-400">Error: Could not save roster. Check connection.</p>`;
+                        })
+                        .finally(() => {
+                            submitButton.disabled = false;
+                            submitButton.innerHTML = `Save Changes`;
+                        });
                     });
                 });
             }
