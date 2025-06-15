@@ -204,7 +204,7 @@
 
                 if (page === 'home') {
                     renderHomePage();
-                } else if (page === 'submitResults') { // New route for the results form
+                } else if (page === 'submitResults') {
                     renderSubmitResultsPage();
                 } else if (page === 'resultsHome') {
                     renderResultsHomePage();
@@ -216,8 +216,8 @@
                     renderClimberProfilePage(context);
                 } else if (page === 'resultsComp') {
                     renderResultsCompPage(context);
-                } else if (page === 'links') {
-                    renderLinksPage();
+                } else if (page === 'about') { // Changed from 'links'
+                    renderAboutPage();
                 } else if (page === 'leaderboards') {
                     renderLeaderboardsPage();
                 } else if (page === 'rules') {
@@ -242,13 +242,13 @@
 
                 let mainHTML = `
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
-                        <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Calendar</button>
-                        <button id="results-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Results</button>
-                        <button id="climbers-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Climbers</button>
-                        <button id="leaderboards-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Leaderboards</button>
-                        <button id="rules-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Rules</button>
-                        <button id="links-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Links</button>
-                        <button id="register-btn" class="col-span-2 sm:col-span-1 bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">Sign Up</button>
+                        <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-calendar-alt mr-2"></i>Calendar</button>
+                        <button id="results-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-poll mr-2"></i>Results</button>
+                        <button id="climbers-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-users mr-2"></i>Climbers</button>
+                        <button id="leaderboards-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-trophy mr-2"></i>Leaderboards</button>
+                        <button id="rules-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-gavel mr-2"></i>Rules</button>
+                        <button id="about-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-info-circle mr-2"></i>About</button>
+                        <button id="register-btn" class="col-span-2 sm:col-span-3 bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-user-plus mr-2"></i>Sign Up</button>
                     </div>`;
                 
                 mainContent.innerHTML = mainHTML;
@@ -267,7 +267,7 @@
                     callToActionHTML += `
                         <div class="mt-12">
                             <h2 class="text-2xl font-bold text-center text-rose-400 mb-4">Live!</h2>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">`;
+                            <div class="flex flex-wrap justify-center gap-4 text-center">`; // Changed to centered flex
                     
                     liveComps.forEach(comp => {
                         callToActionHTML += `<button data-comp="${comp.comp}" class="live-comp-btn bg-rose-500/10 border border-rose-400/30 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-rose-500/20 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center">${comp.comp}</button>`;
@@ -290,7 +290,7 @@
                 document.getElementById('climbers-btn').addEventListener('click', () => navigate('climbers'));
                 document.getElementById('leaderboards-btn').addEventListener('click', () => navigate('leaderboards'));
                 document.getElementById('rules-btn').addEventListener('click', () => navigate('rules'));
-                document.getElementById('links-btn').addEventListener('click', () => navigate('links'));
+                document.getElementById('about-btn').addEventListener('click', () => navigate('about')); // Changed from links-btn
                 document.getElementById('register-btn').addEventListener('click', () => navigate('register'));
                 document.getElementById('submit-results-btn').addEventListener('click', () => navigate('submitResults'));
                 
@@ -299,12 +299,12 @@
                 });
             }
             
-            function renderLinksPage() {
+            function renderAboutPage() { // Renamed from renderLinksPage
                 headerContent.innerHTML = `
                     <div class="flex-1">
                          <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
-                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Links</h1>
+                    <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">About</h1>
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
@@ -312,10 +312,8 @@
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 mainContent.innerHTML = `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
-                        <a href="https://forms.gle/uBJpWoj7mkNycZoJ8" target="_blank" class="block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Qualis Form</a>
-                        <a href="https://forms.gle/C7vrjByfi4wnNa6x7" target="_blank" class="block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl">Finals Form</a>
-                        <a href="https://instagram.com/mockomps" target="_blank" class="md:col-span-2 block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl"><i class="fab fa-instagram mr-2"></i>Mockomps</a>
+                    <div class="text-center">
+                        <a href="https://instagram.com/mockomps" target="_blank" class="block bg-gray-900 border border-gray-800 p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-2xl"><i class="fab fa-instagram mr-2"></i>Follow us on Instagram</a>
                     </div>`;
             }
 
@@ -414,11 +412,11 @@
                          <form id="registration-form" class="space-y-4">
                              <div>
                                  <label for="Name" class="block text-sm font-medium text-gray-300 mb-1">Name</label>
-                                 <input type="text" name="Name" id="Name" placeholder="First and Last Name" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                 <input type="text" name="Name" id="Name" placeholder="first and last name" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
                              </div>
                              <div>
                                  <label for="Date of Birth" class="block text-sm font-medium text-gray-300 mb-1">Date of Birth</label>
-                                 <input type="text" name="Date of Birth" id="Date of Birth" placeholder="DD/MM/YYYY" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                 <input type="text" name="Date of Birth" id="Date of Birth" placeholder="dd/mm/yyyy" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
                              </div>
                               <div>
                                  <label for="Country" class="block text-sm font-medium text-gray-300 mb-1">Country</label>
@@ -430,7 +428,7 @@
                                  <label for="Instagram" class="block text-sm font-medium text-gray-300 mb-1">Instagram</label>
                                  <input type="text" name="Instagram" id="Instagram" placeholder="without @" class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
                              </div>
-                             <div>
+                             <div class="pt-2">
                                  <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Sign Up</button>
                              </div>
                          </form>
@@ -1859,19 +1857,15 @@
                     submitButton.disabled = true;
                     submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...`;
 
-                    // --- FIX APPLIED ---
-                    // Using the "fire-and-forget" approach for the long-running script.
                     fetch(GOOGLE_APP_SCRIPT_URL, {
                         method: 'POST',
-                        mode: 'no-cors', // Kept to bypass preflight, but we won't read the response.
+                        mode: 'no-cors',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify(payload)
                     })
                     .then(() => {
-                        // Assume success because the request was sent and the script will timeout anyway.
-                        // Provide immediate, positive feedback to the user.
                         feedback.innerHTML = `<p class="text-green-400">Success! Your results have been submitted and are being processed.</p>`;
                         form.reset();
                         qualiSelectContainer.classList.add('hidden');
@@ -1879,7 +1873,6 @@
                         submitBtnContainer.classList.add('hidden');
                     })
                     .catch(error => {
-                        // This will only catch genuine network failures.
                         console.error('Error!', error);
                         feedback.innerHTML = `<p class="text-red-400">Error: Submission failed. Please check your connection.</p>`;
                     })
