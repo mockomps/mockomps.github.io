@@ -23,6 +23,10 @@ function doPost(e) {
         response = handleManageFinalists(data);
         break;
 
+      case 'submitFinalsResult': // New case for judging
+        response = handleSubmitFinalsResult(data);
+        break;
+
       default:
         response = { result: 'error', message: 'Unknown form type specified.' };
         break;
@@ -95,7 +99,7 @@ function handleAddBoulders(data) {
 
 /**
  * Handles quali results submission. Saves the data quickly and then
- * creates a trigger to run the heavy update functions in the background.
+ * creates a trigger to run the quali-specific update functions.
  */
 function handleSubmitQualiResults(data) {
   try {
@@ -133,7 +137,8 @@ function handleSubmitQualiResults(data) {
       successMessage = 'Results submitted successfully. Leaderboards will update shortly.';
     }
 
-    createOneTimeTrigger();
+    // Schedule the quali update functions to run in the background.
+    createOneTimeTrigger('runQualiUpdates');
 
     return { result: 'success', message: successMessage };
 
@@ -148,9 +153,6 @@ function handleSubmitQualiResults(data) {
 
 /**
  * Handles managing the list of finalists for a given final.
- * Deletes all old entries for that final and replaces them with the new list.
- * @param {Object} data The parsed JSON data from the form.
- * @returns {Object} A success or error object.
  */
 function handleManageFinalists(data) {
   try {
@@ -162,14 +164,12 @@ function handleManageFinalists(data) {
     if (!finalName) throw new Error('Final name is missing from the submission data.');
 
     const values = sheet.getDataRange().getValues();
-    // Delete existing rows for this final, looping backwards.
     for (let i = values.length - 1; i >= 1; i--) {
       if (values[i][0] === finalName) {
         sheet.deleteRow(i + 1);
       }
     }
     
-    // Add the new list of climbers for this final.
     if (data.climbers && data.climbers.length > 0) {
       const rowsToAdd = data.climbers.map(climber => [finalName, climber]);
       sheet.getRange(sheet.getLastRow() + 1, 1, rowsToAdd.length, rowsToAdd[0].length).setValues(rowsToAdd);
@@ -185,34 +185,112 @@ function handleManageFinalists(data) {
   }
 }
 
+/**
+ * Handles submission of a single final boulder result from the Judges App.
+ * This version is more robust and builds the row based on sheet headers.
+ */
+function handleSubmitFinalsResult(data) {
+  try {
+    const sheetName = 'fResults'; 
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    if (!sheet) throw new Error(`Sheet "${sheetName}" not found. Please create it.`);
+
+    const allData = sheet.getDataRange().getValues();
+    const headers = allData[0].map(h => h.trim()); // Trim headers to be safe
+    
+    // Define the mapping from the data object keys to the expected header names
+    const dataMap = {
+        'Final': data.final,
+        'Climber': data.climber,
+        'Boulder': data.boulder,
+        'Send': data.send,
+        'Top Attempts': data.topAttempts,
+        'Zone Attempts': data.zoneAttempts
+    };
+
+    // Build the row dynamically based on the header order
+    const newRow = headers.map(header => {
+        return dataMap[header] !== undefined ? dataMap[header] : ''; // Use the mapped value or an empty string
+    });
+    
+    const finalColIndex = headers.indexOf('Final');
+    const climberColIndex = headers.indexOf('Climber');
+    const boulderColIndex = headers.indexOf('Boulder');
+
+    if (finalColIndex === -1 || climberColIndex === -1 || boulderColIndex === -1) {
+        throw new Error('One or more required columns (Final, Climber, Boulder) are missing from the fResults sheet.');
+    }
+
+    let existingRowIndex = -1;
+    for (let i = 1; i < allData.length; i++) {
+      if (allData[i][finalColIndex] === data.final && allData[i][climberColIndex] === data.climber && allData[i][boulderColIndex] === data.boulder) {
+        existingRowIndex = i;
+        break;
+      }
+    }
+
+    if (existingRowIndex !== -1) {
+      sheet.getRange(existingRowIndex + 1, 1, 1, newRow.length).setValues([newRow]);
+    } else {
+      sheet.appendRow(newRow);
+    }
+    
+    // Schedule the finals update functions to run in the background.
+    createOneTimeTrigger('runFinalsUpdates');
+
+    return { result: 'success', message: `Result for ${data.climber} on Boulder ${data.boulder} saved.` };
+
+  } catch (error) {
+    return { 
+      result: 'error', 
+      message: 'Failed to submit final result: ' + error.message,
+      stack: error.stack
+    };
+  }
+}
+
+
 // --- Trigger and Background Functions ---
 
 /**
- * Creates a one-time trigger to run the main update function after a short delay.
+ * Creates a one-time trigger to run a specified function after a short delay.
+ * @param {string} functionName The name of the function to trigger.
  */
-function createOneTimeTrigger() {
+function createOneTimeTrigger(functionName) {
   const allTriggers = ScriptApp.getProjectTriggers();
   for (const trigger of allTriggers) {
-    if (trigger.getHandlerFunction() === 'runAllUpdates') {
+    if (trigger.getHandlerFunction() === functionName) {
       ScriptApp.deleteTrigger(trigger);
     }
   }
-  ScriptApp.newTrigger('runAllUpdates')
+  ScriptApp.newTrigger(functionName)
     .timeBased()
-    .after(30 * 1000)
+    .after(30 * 1000) 
     .create();
 }
 
 /**
- * Contains all the long-running update processes.
+ * Contains all the long-running QUALI update processes.
  */
-function runAllUpdates() {
+function runQualiUpdates() {
   try {
     QRankStandUpdate();
     ClimberStatsUpdate();
     QLeaderboardUpdate();
     perCompGradeStatsUpdate();
   } catch (e) {
-    console.error("Error during triggered update: " + e.toString());
+    console.error("Error during triggered quali update: " + e.toString());
   }
+}
+
+/**
+ * Contains all the long-running FINALS update processes.
+ */
+function runFinalsUpdates() {
+    try {
+        FRankUpdate();
+        CStandingsUpdate();
+    } catch(e) {
+        console.error("Error during triggered finals update: " + e.toString());
+    }
 }
