@@ -303,10 +303,10 @@
                     callToActionHTML += `
                         <div class="mt-12">
                             <h2 class="text-2xl font-bold text-center text-rose-400 mb-4">Live!</h2>
-                            <div class="flex flex-wrap justify-center gap-4 text-center">`;
+                            <div class="flex justify-start sm:justify-center gap-4 text-center overflow-x-auto no-scrollbar h-scroll pb-4">`;
                     
                     liveComps.forEach(comp => {
-                        callToActionHTML += `<button data-comp="${comp.comp}" class="live-comp-btn bg-rose-500/10 border border-rose-400/30 p-6 w-48 text-center rounded-lg shadow-md hover:shadow-xl hover:bg-rose-500/20 transition-all duration-200 text-gray-100 font-bold text-xl">${comp.comp}</button>`;
+                        callToActionHTML += `<button data-comp="${comp.comp}" class="live-comp-btn flex-shrink-0 bg-rose-500/10 border border-rose-400/30 p-6 w-48 text-center rounded-lg shadow-md hover:shadow-xl hover:bg-rose-500/20 transition-all duration-200 text-gray-100 font-bold text-xl">${comp.comp}</button>`;
                     });
 
                     callToActionHTML += `</div></div>`;
