@@ -170,6 +170,13 @@
             };
 
             // --- Utility Functions ---
+            
+            // START Timezone Standardization
+            function getLondonTime() {
+                // Returns a new Date object representing the current time in the 'Europe/London' timezone.
+                return new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/London' }));
+            }
+            // END Timezone Standardization
 
             async function fetchAndParseSheet(url, isChartData = false) {
                 const cacheBustUrl = `${url}&_=${new Date().getTime()}`;
@@ -312,7 +319,7 @@
                 
                 mainContent.innerHTML = mainHTML;
                 
-                const today = new Date();
+                const today = getLondonTime(); // Use London time
                 today.setHours(0, 0, 0, 0);
 
                 const liveComps = appData.comps.filter(comp => {
@@ -597,7 +604,16 @@
                 document.getElementById('back-to-admin-btn').addEventListener('click', () => navigate('admin'));
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
                 
-                const qualiOptions = [...new Set(appData.qualis.map(q => q.quali))].reverse().map(q => `<option value="${q}">${q}</option>`).join('');
+                const now = getLondonTime(); // Use London time
+                const liveAndFutureQualis = appData.qualis
+                    .filter(q => {
+                        const endDate = new Date(new Date(q.date).getTime() + (7 * 24 * 60 * 60 * 1000) + (12 * 60 * 60 * 1000));
+                        return endDate >= now;
+                    })
+                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                const qualiOptions = liveAndFutureQualis.map(q => `<option value="${q.quali}">${q.quali}</option>`).join('');
+
                 const gradeOptions = [1,2,3,4,5,6,7].map(g => `<option value="${g}">${g}</option>`).join('');
                 const colorOptions = ["Black", "Blue", "Green", "Mint", "Purple", "Red", "White", "Yellow"].map(c => `<option value="${c}">${c}</option>`).join('');
 
@@ -1896,7 +1912,7 @@
                     qualiSelect.value = '';
                     
                     if (climberSelect.value) {
-                        const now = new Date();
+                        const now = getLondonTime(); // Use London time
                         const liveQualis = appData.qualis.filter(quali => {
                             const startDate = new Date(quali.date);
                             const endDate = new Date(startDate.getTime() + (7 * 24 * 60 * 60 * 1000) + (12 * 60 * 60 * 1000));
@@ -2085,10 +2101,10 @@
                 const nextBtnContainer = document.getElementById('next-btn-container');
                 
                 // Populate Finals
-                const now = new Date();
+                const now = getLondonTime(); // Use London time
                 const liveFinals = appData.finals.filter(final => {
                     const finalDate = new Date(final.date);
-                    const endDate = new Date(finalDate.getTime() + (24 * 60 * 60 * 1000) + (6 * 60 * 60 * 1000)); // End of day + 6 hours
+                    const endDate = new Date(finalDate.getTime() + (30 * 60 * 60 * 1000)); // End of day + 6 hours -> 30 hours total
                     return now >= finalDate && now <= endDate;
                 });
                 
@@ -2196,7 +2212,6 @@
                 document.getElementById('back-btn').addEventListener('click', () => navigate('judgesApp'));
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
-                // START Judges App Spacing & Button Changes
                 mainContent.innerHTML = `
                     <div class="max-w-md mx-auto space-y-4">
                         <!-- Timer Section -->
@@ -2237,7 +2252,6 @@
                         <div id="form-feedback" class="text-center h-6 py-2"></div>
                     </div>
                 `;
-                // END Judges App Spacing & Button Changes
 
                 // --- State Management ---
                 let timeRemaining = 240; // 4 minutes in seconds
@@ -2412,7 +2426,7 @@
                  document.getElementById('back-btn').addEventListener('click', () => navigate('admin'));
                  document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
-                const today = new Date();
+                const today = getLondonTime(); // Use London time
                 today.setHours(0, 0, 0, 0);
                 const upcomingFinals = appData.finals.filter(f => new Date(f.date) >= today);
                 const finalOptions = upcomingFinals.map(f => `<option value="${f.final}">${f.final}</option>`).join('');
