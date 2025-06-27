@@ -8,6 +8,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- PWA: Web App Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <!-- PWA: Apple Specific Meta Tags for iOS Home Screen App -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/images/icon-192x192.png">
+    <!-- Ensure you have a 192x192px icon and a 512x512px icon in an 'images' folder. -->
+
     <style>
         body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
         /* Custom CSS to hide the scrollbar but keep functionality */
@@ -368,7 +377,7 @@
             function renderAboutPage() {
                 headerContent.innerHTML = `
                     <div class="flex-1">
-                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                           <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">About</h1>
                     <div class="flex-1 text-right">
@@ -386,7 +395,7 @@
             function renderRulesPage() {
                 headerContent.innerHTML = `
                     <div class="flex-1">
-                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                           <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Rules & Format</h1>
                     <div class="flex-1 text-right">
@@ -429,7 +438,7 @@
                                 </div>
                                 <div>
                                     <h3 class="font-semibold text-lg text-gray-200">Mockomp Champions</h3>
-                                     <ul class="list-disc list-inside space-y-2 mt-2 pl-2">
+                                   <ul class="list-disc list-inside space-y-2 mt-2 pl-2">
                                         <li><strong class="text-gray-200">Who:</strong> All climbers who made it to a Final during the circuit, plus the 3 winners from the Challengers event.</li>
                                         <li><strong class="text-gray-200">Format:</strong> Two qualification weeks, followed by a Grand Final. For the 3 advancing Challengers, their score from the Challengers Quali serves as their score for the first Champions Quali week. All other competitors participate in both quali weeks. The top 8 climbers from the two Champions qualis advance to the Grand Final to decide the Circuit Champion.</li>
                                     </ul>
@@ -461,7 +470,7 @@
             function renderRegisterPage() {
                  headerContent.innerHTML = `
                     <div class="flex-1">
-                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                           <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Sign Up</h1>
                     <div class="flex-1 text-right">
@@ -474,33 +483,33 @@
                  let countryOptions = countries.map(country => `<option value="${country}" ${country === 'Portugal' ? 'selected' : ''}>${country}</option>`).join('');
 
                  mainContent.innerHTML = `
-                       <div class="max-w-md mx-auto">
-                           <form id="registration-form" class="space-y-4">
-                               <div>
-                                   <label for="Name" class="block text-sm font-medium text-gray-300 mb-1">Name</label>
-                                   <input type="text" name="Name" id="Name" placeholder="first and last name" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
-                               </div>
-                               <div>
-                                   <label for="Date of Birth" class="block text-sm font-medium text-gray-300 mb-1">Date of Birth</label>
-                                   <input type="text" name="Date of Birth" id="Date of Birth" placeholder="dd/mm/yyyy" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
-                               </div>
+                        <div class="max-w-md mx-auto">
+                            <form id="registration-form" class="space-y-4">
                                 <div>
-                                   <label for="Country" class="block text-sm font-medium text-gray-300 mb-1">Country</label>
-                                   <select name="Country" id="Country" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
-                                       ${countryOptions}
-                                   </select>
-                               </div>
-                               <div>
-                                   <label for="Instagram" class="block text-sm font-medium text-gray-300 mb-1">Instagram</label>
-                                   <input type="text" name="Instagram" id="Instagram" placeholder="without @" class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
-                               </div>
-                               <div class="pt-2">
-                                   <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Sign Up</button>
-                               </div>
-                           </form>
-                           <div id="form-feedback" class="mt-4 text-center"></div>
-                       </div>
-                 `;
+                                    <label for="Name" class="block text-sm font-medium text-gray-300 mb-1">Name</label>
+                                    <input type="text" name="Name" id="Name" placeholder="first and last name" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="Date of Birth" class="block text-sm font-medium text-gray-300 mb-1">Date of Birth</label>
+                                    <input type="text" name="Date of Birth" id="Date of Birth" placeholder="dd/mm/yyyy" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="Country" class="block text-sm font-medium text-gray-300 mb-1">Country</label>
+                                    <select name="Country" id="Country" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                        ${countryOptions}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="Instagram" class="block text-sm font-medium text-gray-300 mb-1">Instagram</label>
+                                    <input type="text" name="Instagram" id="Instagram" placeholder="without @" class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                                </div>
+                                <div class="pt-2">
+                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Sign Up</button>
+                                </div>
+                            </form>
+                            <div id="form-feedback" class="mt-4 text-center"></div>
+                        </div>
+                    `;
 
                  const form = document.getElementById('registration-form');
                  const feedback = document.getElementById('form-feedback');
@@ -514,21 +523,21 @@
 
                      const dobValue = dobInput.value.trim();
                      if(dobValue) {
-                          const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-                          if (!datePattern.test(dobValue)) {
-                              feedback.innerHTML = `<p class="text-red-400">Please enter the date of birth in DD/MM/YYYY format.</p>`;
-                              return;
-                          }
-                         const parts = dobValue.split("/");
-                         const day = parseInt(parts[0], 10);
-                         const month = parseInt(parts[1], 10);
-                         const year = parseInt(parts[2], 10);
-                         
-                         const date = new Date(year, month - 1, day);
-                         if (date.getFullYear() !== year || date.getMonth() + 1 !== month || date.getDate() !== day) {
-                             feedback.innerHTML = `<p class="text-red-400">Please enter a valid date.</p>`;
+                         const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+                         if (!datePattern.test(dobValue)) {
+                             feedback.innerHTML = `<p class="text-red-400">Please enter the date of birth in DD/MM/YYYY format.</p>`;
                              return;
                          }
+                        const parts = dobValue.split("/");
+                        const day = parseInt(parts[0], 10);
+                        const month = parseInt(parts[1], 10);
+                        const year = parseInt(parts[2], 10);
+                        
+                        const date = new Date(year, month - 1, day);
+                        if (date.getFullYear() !== year || date.getMonth() + 1 !== month || date.getDate() !== day) {
+                            feedback.innerHTML = `<p class="text-red-400">Please enter a valid date.</p>`;
+                            return;
+                        }
                      }
 
                      const cleanedName = nameInput.value
@@ -561,8 +570,8 @@
                          console.error('Error!', error);
                          feedback.innerHTML = `<p class="text-red-400">Error: Submission failed. Please check your connection.</p>`;
                      }).finally(() => {
-                          submitButton.disabled = false;
-                          submitButton.innerHTML = `Sign Up`;
+                         submitButton.disabled = false;
+                         submitButton.innerHTML = `Sign Up`;
                      });
                  });
             }
@@ -657,7 +666,7 @@
                             </select>
                         </div>
                         <div class="col-span-1 text-right">
-                             <button type="button" class="remove-boulder-btn text-red-500 hover:text-red-400 text-2xl font-bold">&times;</button>
+                            <button type="button" class="remove-boulder-btn text-red-500 hover:text-red-400 text-2xl font-bold">&times;</button>
                         </div>
                     `;
                     boulderList.appendChild(row);
@@ -667,8 +676,8 @@
                     if(boulder.a) row.querySelector('select[name="room"]').value = boulder.a;
 
                     row.querySelector('.remove-boulder-btn').addEventListener('click', () => {
-                          row.remove();
-                          updateBoulderLetters();
+                         row.remove();
+                         updateBoulderLetters();
                     });
                 }
                 
@@ -800,8 +809,8 @@
             });
 
              document.getElementById('pin-cancel').addEventListener('click', () => {
-                document.getElementById('pin-modal').classList.add('hidden');
-            });
+                 document.getElementById('pin-modal').classList.add('hidden');
+             });
 
             function showConfirmationModal(title, message, onConfirmCallback) {
                 const modal = document.getElementById('confirmation-modal');
@@ -836,7 +845,7 @@
             function renderResultsHomePage() {
                 headerContent.innerHTML = `
                     <div class="flex-1">
-                         <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
+                           <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
                     </div>
                     <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">Results</h1>
                     <div class="flex-1 text-right">
@@ -963,9 +972,9 @@
                     filteredClimbers.forEach(climber => {
                         if (climber.name) {
                             climberListHTML += `<button data-climber-name="${climber.name}" class="climber-btn w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm text-gray-100 font-semibold hover:bg-gray-800 flex justify-between items-center">
-                                                    <span>${climber.name}</span>
-                                                    <i class="fas fa-chevron-right text-gray-500"></i>
-                                                </button>`;
+                                                            <span>${climber.name}</span>
+                                                            <i class="fas fa-chevron-right text-gray-500"></i>
+                                                        </button>`;
                         }
                     });
                     listContainer.innerHTML = climberListHTML;
@@ -1154,11 +1163,11 @@
                             <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="zonesChart"></canvas></div>
                         </div>
                         <div>
-                             <h3 class="text-base font-semibold text-gray-200 text-center mb-2">Flash Percentage</h3>
+                            <h3 class="text-base font-semibold text-gray-200 text-center mb-2">Flash Percentage</h3>
                             <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="flashesChart"></canvas></div>
                         </div>
                         <div>
-                             <h3 class="text-base font-semibold text-gray-200 text-center mb-2">Qualis Placement</h3>
+                            <h3 class="text-base font-semibold text-gray-200 text-center mb-2">Qualis Placement</h3>
                             <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm"><canvas id="qualiPlacementChart"></canvas></div>
                         </div>
                          <div id="final-placement-chart-container"></div>
@@ -1248,7 +1257,7 @@
                         options: {
                             responsive: true,
                             maintainAspectRatio: true,
-                             layout: { padding: { top: 10 } },
+                            layout: { padding: { top: 10 } },
                             plugins: {
                                 title: { display: false },
                                 legend: { display: false }
@@ -1280,7 +1289,7 @@
                     .filter(s => s.climber === climberName)
                     .sort((a,b) => a.comp.localeCompare(b.comp));
                 if (qualiPlacements.length > 0) {
-                       createPlacementChart('qualiPlacementChart', qualiPlacements, '#38bdf8');
+                        createPlacementChart('qualiPlacementChart', qualiPlacements, '#38bdf8');
                 }
 
                 const finalPlacements = appData.fRankings
@@ -1404,10 +1413,10 @@
                 
                 controlsContainer.classList.remove('hidden');
                  controlsContainer.innerHTML = `<div class="flex justify-center">
-                       <div id="round-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
-                             ${roundButtonsHTML}
-                       </div>
-                 </div>`;
+                        <div id="round-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
+                                ${roundButtonsHTML}
+                        </div>
+                   </div>`;
 
                 mainContent.innerHTML = `<div id="results-container" class="w-full"></div>`;
                 
@@ -1808,7 +1817,7 @@
                                 </div>
                                 <div class="font-bold text-blue-400 text-base">${entry.circuit_points}</div>
                             </div>
-                             <div class="flex flex-wrap justify-around items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700 gap-x-4 gap-y-2">
+                           <div class="flex flex-wrap justify-around items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700 gap-x-4 gap-y-2">
                                 <div>1st <span class="block font-medium text-gray-200 text-sm">${entry['1st']}</span></div>
                                 <div>2nd <span class="block font-medium text-gray-200 text-sm">${entry['2nd']}</span></div>
                                 <div>3rd <span class="block font-medium text-gray-200 text-sm">${entry['3rd']}</span></div>
@@ -2502,11 +2511,11 @@
                         <div class="pt-4 border-t border-gray-800">
                              <label for="add-climber-select" class="block text-sm font-medium text-gray-300 mb-1">Add Climber</label>
                              <div class="flex gap-2">
-                                <select id="add-climber-select" class="flex-grow bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3">
-                                    <option value="">-- Select a climber to add --</option>
-                                    ${climberOptions}
-                                </select>
-                                <button type="button" id="add-climber-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold p-3 rounded-lg">Add</button>
+                                 <select id="add-climber-select" class="flex-grow bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3">
+                                     <option value="">-- Select a climber to add --</option>
+                                     ${climberOptions}
+                                 </select>
+                                 <button type="button" id="add-climber-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold p-3 rounded-lg">Add</button>
                              </div>
                         </div>
 
