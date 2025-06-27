@@ -258,8 +258,9 @@
                 return data;
             }
             
-            function navigate(page, context = null) {
-                window.scrollTo(0, 0);
+            // This function now *only* renders the UI based on the given page and context
+            function renderPageContent(page, context = null) {
+                window.scrollTo(0, 0); // Always scroll to top when content changes
                 mainContent.innerHTML = ''; 
                 headerContent.innerHTML = '';
                 controlsContainer.innerHTML = '';
@@ -271,44 +272,102 @@
 
                 controlsContainer.classList.add('hidden');
 
-                if (page === 'home') {
-                    renderHomePage();
-                } else if (page === 'submitResults') {
-                    renderSubmitResultsPage();
-                } else if (page === 'resultsHome') {
-                    renderResultsHomePage();
-                } else if (page === 'schedule') {
-                    renderSchedulePage();
-                } else if (page === 'climbers') {
-                    renderClimbersPage();
-                } else if (page === 'climberProfile') {
-                    renderClimberProfilePage(context);
-                } else if (page === 'resultsComp') {
-                    renderResultsCompPage(context);
-                } else if (page === 'about') {
-                    renderAboutPage();
-                } else if (page === 'leaderboards') {
-                    renderLeaderboardsPage();
-                } else if (page === 'rules') {
-                    renderRulesPage();
-                } else if (page === 'register') {
-                    renderRegisterPage();
-                } else if (page === 'admin') {
-                    renderAdminPage();
-                } else if (page === 'judgesApp') {
-                    renderJudgesAppPage();
-                } else if (page === 'judgeBoulderPage') { // New page route
-                    renderJudgeBoulderPage(context);
-                } else if (page === 'manageFinals') {
-                    renderManageFinalsPage();
-                } else if (page === 'addBoulders') {
-                    renderAddBouldersPage();
-                } else if (page === 'qualiResultDetail') {
-                    renderQualiResultDetailPage(context);
-                } else if (page === 'qualiCompResultDetail') {
-                    renderQualiCompResultDetailPage(context);
+                // Call the appropriate render function based on the page
+                switch (page) {
+                    case 'home':
+                        renderHomePage();
+                        break;
+                    case 'submitResults':
+                        renderSubmitResultsPage();
+                        break;
+                    case 'resultsHome':
+                        renderResultsHomePage();
+                        break;
+                    case 'schedule':
+                        renderSchedulePage();
+                        break;
+                    case 'climbers':
+                        renderClimbersPage();
+                        break;
+                    case 'climberProfile':
+                        renderClimberProfilePage(context);
+                        break;
+                    case 'resultsComp':
+                        renderResultsCompPage(context);
+                        break;
+                    case 'about':
+                        renderAboutPage();
+                        break;
+                    case 'leaderboards':
+                        renderLeaderboardsPage();
+                        break;
+                    case 'rules':
+                        renderRulesPage();
+                        break;
+                    case 'register':
+                        renderRegisterPage();
+                        break;
+                    case 'admin':
+                        renderAdminPage();
+                        break;
+                    case 'judgesApp':
+                        renderJudgesAppPage();
+                        break;
+                    case 'judgeBoulderPage':
+                        renderJudgeBoulderPage(context);
+                        break;
+                    case 'manageFinals':
+                        renderManageFinalsPage();
+                        break;
+                    case 'addBoulders':
+                        renderAddBouldersPage();
+                        break;
+                    case 'qualiResultDetail':
+                        renderQualiResultDetailPage(context);
+                        break;
+                    case 'qualiCompResultDetail':
+                        renderQualiCompResultDetailPage(context);
+                        break;
+                    default:
+                        // Fallback, maybe render a 404 or home page
+                        renderHomePage();
+                        break;
                 }
             }
+
+            // New function to handle navigation and browser history
+            // Use this function for all internal links/buttons that change the "page" view
+            function navigate(page, context = null) {
+                // Save the current state before pushing a new one, if needed for popstate to restore scroll
+                const currentState = history.state || { page: 'home', context: null, scrollY: 0 };
+                history.replaceState({ ...currentState, scrollY: window.scrollY }, '', window.location.hash);
+
+                // Push the new state to the browser history
+                const newState = { page: page, context: context, scrollY: 0 }; // New page starts at scrollY 0
+                history.pushState(newState, '', `#${page}`); // Use # for simple routing
+
+                // Then render the new content
+                renderPageContent(page, context);
+            }
+
+            // --- History API Event Listener ---
+            window.addEventListener('popstate', (event) => {
+                // When popstate fires (e.g., user presses back button/gesture)
+                if (event.state) {
+                    // If there's a state object, use it to restore the page
+                    const { page, context, scrollY } = event.state;
+                    renderPageContent(page, context);
+                    // Restore scroll position for the popped state
+                    window.scrollTo(0, scrollY || 0); 
+                } else {
+                    // This case might happen if the initial load was a direct URL without a hash,
+                    // or if the user navigated back past the initial history entry.
+                    // Fallback to home page if no specific state is found.
+                    renderPageContent('home', null);
+                    window.scrollTo(0, 0);
+                }
+            });
+
 
             function renderHomePage() {
                 headerContent.innerHTML = `<div class="flex-1"></div><div class="flex-1 text-center"><h1 class="text-2xl font-bold text-gray-100">Mockomps</h1></div><div class="flex-1 text-right"><button id="admin-btn" class="text-gray-600 hover:text-white"><i class="fas fa-cog text-xl"></i></button></div>`;
@@ -383,7 +442,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('home-btn').addEventListener('click', () => history.back()); // Use history.back()
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 mainContent.innerHTML = `
@@ -401,7 +460,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('home-btn').addEventListener('click', () => history.back()); // Use history.back()
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 mainContent.innerHTML = `
@@ -476,7 +535,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                 document.getElementById('home-btn').addEventListener('click', () => history.back()); // Use history.back()
                  document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                  const countries = ["Portugal", "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo, Democratic Republic of the", "Congo, Republic of the", "Costa Rica", "Cote d'Ivoire", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"];
@@ -585,7 +644,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                document.getElementById('admin-back-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('admin-back-btn').addEventListener('click', () => history.back()); // Use history.back()
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 mainContent.innerHTML = `
@@ -610,7 +669,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                document.getElementById('back-to-admin-btn').addEventListener('click', () => navigate('admin'));
+                document.getElementById('back-to-admin-btn').addEventListener('click', () => history.back()); // Use history.back()
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
                 
                 const now = getLondonTime(); // Use London time
@@ -851,7 +910,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`; 
-                document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('home-btn').addEventListener('click', () => history.back()); // Use history.back()
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 const qComps = appData.qStandings.map(s => s.comp);
@@ -880,7 +939,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                 document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                 document.getElementById('home-btn').addEventListener('click', () => history.back()); // Use history.back()
                  document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 const events = [
@@ -948,7 +1007,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('home-btn').addEventListener('click', () => history.back()); // Use history.back()
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 mainContent.innerHTML = `
@@ -1015,7 +1074,7 @@
                     </div>`;
                 
                 document.getElementById('back-btn').addEventListener('click', () => {
-                    navigate(from.page, from.context);
+                    history.back(); // Use history.back() for this back button
                 });
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
@@ -1046,6 +1105,8 @@
                 document.getElementById('climber-profile-selector').addEventListener('click', e => {
                     if (e.target.tagName === 'BUTTON' && e.target.dataset.tab !== currentClimberTab) {
                         currentClimberTab = e.target.dataset.tab;
+                        // For tab changes, we replace state to keep a clean history within profile view
+                        history.replaceState({ page: 'climberProfile', context: { ...context, tab: currentClimberTab } }, '', window.location.hash);
                         setActiveClimberTab();
                         renderClimberTabContent(climberName, context);
                     }
@@ -1394,7 +1455,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                document.getElementById('back-to-comps-btn').addEventListener('click', () => navigate(from.page, from.context));
+                document.getElementById('back-to-comps-btn').addEventListener('click', () => history.back()); // Use history.back()
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
                 
                 const individualQualiRounds = [...new Set(appData.qRankings
@@ -1437,6 +1498,8 @@
                     if (e.target.tagName === 'BUTTON' && e.target.dataset.round !== currentRound) {
                         currentRound = e.target.dataset.round;
                         pageContext.round = currentRound;
+                        // Replace state when changing tabs/rounds within the same competition view
+                        history.replaceState({ page: 'resultsComp', context: pageContext }, '', window.location.hash);
                         setActiveRoundButton();
                         renderResultsTable(pageContext);
                    }
@@ -1569,7 +1632,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                document.getElementById('back-btn').addEventListener('click', () => navigate(from.page, from.context));
+                document.getElementById('back-btn').addEventListener('click', () => history.back()); // Use history.back()
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 const qualiBoulders = appData.qBoulders.filter(b => b.quali === qualiName);
@@ -1629,7 +1692,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                document.getElementById('back-btn').addEventListener('click', () => navigate(from.page, from.context));
+                document.getElementById('back-btn').addEventListener('click', () => history.back()); // Use history.back()
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 const getResultStyling = (result) => {
@@ -1707,7 +1770,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('home-btn').addEventListener('click', () => history.back()); // Use history.back()
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 controlsContainer.classList.remove('hidden');
@@ -1737,6 +1800,8 @@
                 document.getElementById('leaderboard-selector').addEventListener('click', e => {
                     if (e.target.tagName === 'BUTTON' && e.target.dataset.leaderboard !== currentLeaderboard) {
                         currentLeaderboard = e.target.dataset.leaderboard;
+                        // Replace state when changing tabs/leaderboards
+                        history.replaceState({ page: 'leaderboards', context: { tab: currentLeaderboard } }, '', window.location.hash);
                         setActiveLeaderboardButton();
                         renderLeaderboardTable(currentLeaderboard);
                     }
@@ -1864,7 +1929,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                document.getElementById('home-btn').addEventListener('click', () => navigate('home'));
+                document.getElementById('home-btn').addEventListener('click', () => history.back()); // Use history.back()
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 const climberOptions = [...appData.climbers].sort((a,b) => a.name.localeCompare(b.name)).map(c => `<option value="${c.name}">${c.name}</option>`).join('');
@@ -2061,7 +2126,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                document.getElementById('back-btn').addEventListener('click', () => navigate('admin'));
+                document.getElementById('back-btn').addEventListener('click', () => history.back()); // Use history.back()
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 mainContent.innerHTML = `
@@ -2218,7 +2283,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                document.getElementById('back-btn').addEventListener('click', () => navigate('judgesApp'));
+                document.getElementById('back-btn').addEventListener('click', () => history.back()); // Use history.back()
                 document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 mainContent.innerHTML = `
@@ -2406,7 +2471,7 @@
                         })
                         .then(() => {
                             feedbackDiv.innerHTML = `<p class="text-green-400">Result for ${climber} on Boulder ${boulder} saved!</p>`;
-                            setTimeout(() => navigate('judgesApp'), 1500);
+                            setTimeout(() => history.back(), 1500); // Go back after successful submission
                         })
                         .catch(err => {
                             console.error('Error!', err);
@@ -2432,7 +2497,7 @@
                     <div class="flex-1 text-right">
                         <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
                     </div>`;
-                 document.getElementById('back-btn').addEventListener('click', () => navigate('admin'));
+                 document.getElementById('back-btn').addEventListener('click', () => history.back()); // Use history.back()
                  document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
                 const today = getLondonTime(); // Use London time
@@ -2469,6 +2534,13 @@
                     const selectedFinal = finalSelect.value;
                     rosterContainer.innerHTML = '';
                     if (!selectedFinal) return;
+
+                    // Update the URL hash to reflect the selected final, allowing direct linking or refresh persistence.
+                    // This replaces the current history entry to prevent an unnecessary back button press
+                    // just to deselect the final.
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.hash = `#manageFinals-final=${selectedFinal}`;
+                    history.replaceState({ page: 'manageFinals', context: { final: selectedFinal } }, '', currentUrl.hash);
 
                     let finalists = appData.fClimbers
                         .filter(fc => fc.final === selectedFinal)
@@ -2602,8 +2674,43 @@
                     stickyContainer.classList.remove('hidden');
                     mainContent.classList.remove('hidden');
 
-                    navigate('home');
-                    
+                    // Initial page load: check URL hash for page and context, otherwise default to 'home'
+                    const initialHash = window.location.hash.substring(1); // Remove '#'
+                    let initialPage = 'home';
+                    let initialContext = null;
+
+                    if (initialHash) {
+                        // Very basic hash parsing. Could be more robust for complex contexts.
+                        // Example: #page-name or #page-name-param1=value1&param2=value2
+                        const parts = initialHash.split('-');
+                        initialPage = parts[0];
+                        if (parts.length > 1) {
+                            // Attempt to reconstruct context for specific pages from hash
+                            // This part might need further refinement based on your page logic
+                            if (initialPage === 'climberProfile' && parts[1]) {
+                                initialContext = { climberName: parts[1].replace(/_/g, ' '), from: { page: 'home' } };
+                                if (parts[2] === 'tab' && parts[3]) {
+                                    initialContext.tab = parts[3];
+                                }
+                            } else if (initialPage === 'resultsComp' && parts[1]) {
+                                initialContext = { comp: parts[1].replace(/_/g, ' '), from: { page: 'home' } };
+                                if (parts[2] === 'round' && parts[3]) {
+                                    initialContext.round = parts[3].replace(/_/g, ' ');
+                                }
+                            } else if (initialPage === 'judgeBoulderPage' && parts[1] && parts[2] && parts[3]) {
+                                initialContext = { final: parts[1], climber: parts[2].replace(/_/g, ' '), boulder: parts[3] };
+                            } else if (initialPage === 'manageFinals' && parts[1] && parts[1].startsWith('final=')) {
+                                initialContext = { final: parts[1].substring('final='.length) };
+                                // Automatically select the final if navigated directly via hash
+                                document.getElementById('final-select').value = initialContext.final;
+                            }
+                        }
+                    }
+
+                    // Use replaceState for the very first load to avoid an extra history entry
+                    history.replaceState({ page: initialPage, context: initialContext, scrollY: 0 }, '', `#${initialPage}`);
+                    renderPageContent(initialPage, initialContext); // Render the initial page
+
                 } catch (error) {
                     console.error("Initialization Error:", error);
                     indicator.innerHTML = `<div class="p-10 bg-red-900/50 border border-red-500/30 text-red-300 rounded-lg"><h2 class="font-bold text-xl text-red-200">Error Loading Data</h2><p class="mt-2 text-sm">${error.message}</p><p class="mt-2 text-xs">Please check the browser console for more details, ensure all Google Sheet GIDs are correct, and that sheets are published.</p></div>`;
