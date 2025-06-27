@@ -71,6 +71,45 @@
         button:disabled {
             cursor: not-allowed;
         }
+
+        /* Custom styles for the pin pad */
+        .pin-pad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem; /* Space between buttons */
+            margin-top: 1rem;
+        }
+
+        .pin-pad-button {
+            background-color: #1f2937; /* gray-800 */
+            color: #d1d5db; /* gray-300 */
+            padding: 1.5rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 600; /* font-semibold */
+            text-align: center;
+            transition: background-color 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08); /* shadow-lg */
+        }
+
+        .pin-pad-button:hover {
+            background-color: #374151; /* gray-700 */
+        }
+
+        .pin-pad-button:active {
+            background-color: #4b5563; /* gray-600 */
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Adjust font size for icons like backspace */
+        .pin-pad-button .fa-backspace {
+            font-size: 1.5rem; /* Adjusted for visual balance */
+        }
+
+        /* Specific style for empty cell below 7 */
+        .pin-pad-grid .empty-cell {
+            visibility: hidden;
+        }
     </style>
 </head>
 <body class="bg-gray-950 text-slate-300">
@@ -108,8 +147,26 @@
         <div class="bg-gray-900 border border-gray-800 rounded-lg p-8 w-full max-w-sm mx-4">
             <h2 class="text-xl font-bold text-center text-white mb-4">Admin Access</h2>
             <p class="text-center text-gray-400 mb-6">Enter PIN to continue</p>
-            <input type="password" id="pin-input" class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 text-center text-2xl tracking-widest focus:outline-none focus:border-blue-500">
+            <!-- Pin input field modified for custom keypad -->
+            <input type="password" id="pin-input" inputmode="none" readonly class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 text-center text-2xl tracking-widest focus:outline-none focus:border-blue-500">
             <p id="pin-error" class="text-red-400 text-sm text-center mt-2 h-5"></p>
+            
+            <!-- Custom Pin Pad -->
+            <div id="pin-pad" class="pin-pad-grid">
+                <button class="pin-pad-button" data-digit="1">1</button>
+                <button class="pin-pad-button" data-digit="2">2</button>
+                <button class="pin-pad-button" data-digit="3">3</button>
+                <button class="pin-pad-button" data-digit="4">4</button>
+                <button class="pin-pad-button" data-digit="5">5</button>
+                <button class="pin-pad-button" data-digit="6">6</button>
+                <button class="pin-pad-button" data-digit="7">7</button>
+                <button class="pin-pad-button" data-digit="8">8</button>
+                <button class="pin-pad-button" data-digit="9">9</button>
+                <div class="empty-cell"></div> <!-- Empty cell for layout alignment -->
+                <button class="pin-pad-button" data-digit="0">0</button>
+                <button class="pin-pad-button" data-action="backspace"><i class="fas fa-backspace"></i></button>
+            </div>
+
             <div class="mt-4 flex space-x-4">
                 <button id="pin-cancel" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Cancel</button>
                 <button id="pin-submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Enter</button>
@@ -845,19 +902,42 @@
                 pinInput.value = '';
                 pinError.textContent = '';
                 pinModal.classList.remove('hidden');
+                // Set focus to the input, but it's readonly so it won't show the keyboard
                 pinInput.focus();
             }
 
-            document.getElementById('pin-input').addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault(); // Prevent default form submission behavior
-                    document.getElementById('pin-submit').click();
-                }
-            });
+            // Pin Pad Logic
+            const pinPad = document.getElementById('pin-pad');
+            const pinInput = document.getElementById('pin-input');
+            const pinError = document.getElementById('pin-error');
+
+            if (pinPad) { // Ensure pinPad exists before adding listeners
+                pinPad.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('pin-pad-button') || e.target.closest('.pin-pad-button')) {
+                        const button = e.target.closest('.pin-pad-button');
+                        const digit = button.dataset.digit;
+                        const action = button.dataset.action;
+
+                        pinError.textContent = ''; // Clear previous error
+
+                        if (digit) {
+                            if (pinInput.value.length < ADMIN_PIN.length) { // Limit PIN length
+                                pinInput.value += digit;
+                            }
+                        } else if (action === 'backspace') {
+                            pinInput.value = pinInput.value.slice(0, -1);
+                        }
+                    }
+                });
+            }
+
+            // Remove native keyboard event listener for Enter key from `pin-input`
+            // The submit button click is already handled by `pin-submit`
+            // document.getElementById('pin-input').removeEventListener('keydown', ...); 
+            // The previous code block for keydown on pin-input is removed.
 
             document.getElementById('pin-submit').addEventListener('click', () => {
-                const pinInput = document.getElementById('pin-input');
-                const pinError = document.getElementById('pin-error');
+                // Pin input is now controlled by custom keypad
                 if (pinInput.value === ADMIN_PIN) {
                     document.getElementById('pin-modal').classList.add('hidden');
                     navigate('admin');
@@ -2702,7 +2782,14 @@
                             } else if (initialPage === 'manageFinals' && parts[1] && parts[1].startsWith('final=')) {
                                 initialContext = { final: parts[1].substring('final='.length) };
                                 // Automatically select the final if navigated directly via hash
-                                document.getElementById('final-select').value = initialContext.final;
+                                // This requires the select element to be present in the DOM immediately.
+                                // If the select is dynamically rendered, this might need a slight adjustment
+                                // (e.g., call populate options first, then set value).
+                                // For now, assuming it's available.
+                                const finalSelectElement = document.getElementById('final-select');
+                                if (finalSelectElement) {
+                                    finalSelectElement.value = initialContext.final;
+                                }
                             }
                         }
                     }
