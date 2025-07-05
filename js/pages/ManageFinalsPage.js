@@ -1,5 +1,5 @@
 
-export function renderManageFinalsPage(headerContent, mainContent, appData, getLondonTime, showConfirmationModal, GOOGLE_APP_SCRIPT_URL) {
+export function renderManageFinalsPage(headerContent, mainContent, appData, getLondonTime, showConfirmationModal, GOOGLE_APP_SCRIPT_URL, navigate) {
     headerContent.innerHTML = `
         <div class="flex-1">
             <button id="back-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
