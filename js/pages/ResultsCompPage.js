@@ -66,9 +66,40 @@ function renderResultsTable(headerContent, mainContent, controlsContainer, appDa
 
 
         const qualiStatsHTML = `<div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '-'}</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '-'}</span></div><div>Flashes <span class="block font-medium text-gray-200 text-sm">${standing.flashes || '-'}</span></div></div>`;
-        const finalStatsHTML = `<div class="flex justify-around items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '0'}(${standing.top_attempts || '0'})</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '0'}(${standing.zone_attempts || '0'})</span></div></div>`;
         
-        mobileHTML += `<div class="rounded-lg p-3 shadow-md border border-gray-800 ${highlightClass || 'bg-gray-900'}"><div class="flex justify-between items-center"><div class="flex items-center space-x-3"><span class="font-bold text-base text-gray-200 w-6">${standing.place||'-'}</span><span class="font-medium text-gray-100 text-sm">${climberButton}</span></div>${!isFinals?`<div class="text-base">${qualiPointsHTML}</div>`:''}</div>${isFinals?finalStatsHTML:qualiStatsHTML}</div>`;
+        let finalTotalScoreHTML = '';
+        let finalBoulderScoresHTML = '';
+
+        if (isFinals) {
+            const tops = standing.tops || '0';
+            const topAttempts = standing.top_attempts || '0';
+            const zones = standing.zones || '0';
+            const zoneAttempts = standing.zone_attempts || '0';
+            finalTotalScoreHTML = `<div class="text-sm text-gray-200 font-semibold">T${tops}(${topAttempts}) Z${zones}(${zoneAttempts})</div>`;
+
+            const finalId = currentComp + 'F';
+            const climberFinalResults = appData.fResults.filter(r => r.climber === climberName && r.final === finalId);
+
+            const boulders = ['A', 'B', 'C', 'D'];
+            const boulderScoresHTML = boulders.map(b => {
+                const boulderResult = climberFinalResults.find(r => r.boulder === b);
+                const t = boulderResult ? (boulderResult.top_attempts || '0') : '0';
+                const z = boulderResult ? (boulderResult.zone_attempts || '0') : '0';
+                return `<span>${b} t${t}z${z}</span>`;
+            }).join('');
+            finalBoulderScoresHTML = `<div class="flex justify-between w-full text-xs text-gray-400 mt-1">${boulderScoresHTML}</div>`;
+        }
+        
+        mobileHTML += `<div class="rounded-lg p-3 shadow-md border border-gray-800 ${highlightClass || 'bg-gray-900'}">
+    <div class="flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <span class="font-bold text-base text-gray-200 w-6">${standing.place||'-'}</span>
+            <span class="font-medium text-gray-100 text-sm">${climberButton}</span>
+        </div>
+        ${isFinals ? finalTotalScoreHTML : `<div class="text-base">${qualiPointsHTML}</div>`}
+    </div>
+    ${isFinals ? finalBoulderScoresHTML : qualiStatsHTML}
+</div>`;
         
         const desktopRowContent = isFinals
             ? `<td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.top_attempts||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td><td class="p-3 text-left">${standing.zone_attempts||'-'}</td>`
