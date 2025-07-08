@@ -27,7 +27,7 @@ export function renderRulesPage(headerContent, mainContent, navigate) {
                     <div>
                         <h3 class="font-semibold text-lg text-gray-200">Final</h3>
                         <p>The top 8 climbers with the most Quali Points from that Mockomp's qualification phase advance to Final. The format is 4 boulders with a 4+ minute time limit per boulder. Climbers are held in <strong class="text-white">competitor isolation</strong>, meaning they do not see the boulders being climbed before their turn.</p>
-                        <p class="mt-2"><strong class="text-gray-200">Ranking:</strong> Climbers are ranked based on the following criteria, in order: 1. Most Tops, 2. Fewest Attempts to Top, 3. Most Zones, 4. Fewest Attempts to Zone.</p>
+                        <p class="mt-2"><strong class="text-gray-200">Ranking:</strong> Climbers are ranked based on the following criteria, in order: 1. Most Tops, 2. Most Zones, 3. Fewest Attempts to Top, 4. Fewest Attempts to Zone.</p>
                     </div>
                 </div>
             </div>
