@@ -85,9 +85,9 @@ function renderResultsTable(headerContent, mainContent, controlsContainer, appDa
                 const boulderResult = climberFinalResults.find(r => r.boulder === b);
                 const t = boulderResult ? (boulderResult.top_attempts || '0') : '0';
                 const z = boulderResult ? (boulderResult.zone_attempts || '0') : '0';
-                return `<span>${b} t${t}z${z}</span>`;
+                return `<span>${b} <span class="text-gray-200">t${t}z${z}</span></span>`;
             }).join('');
-            finalBoulderScoresHTML = `<div class="flex justify-between w-full text-xs text-gray-400 mt-1">${boulderScoresHTML}</div>`;
+            finalBoulderScoresHTML = `<div class="flex justify-between w-full text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700">${boulderScoresHTML}</div>`;
         }
         
         mobileHTML += `<div class="rounded-lg p-3 shadow-md border border-gray-800 ${highlightClass || 'bg-gray-900'}">

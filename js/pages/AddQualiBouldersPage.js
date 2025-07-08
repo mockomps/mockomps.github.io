@@ -22,6 +22,8 @@ export function renderAddQualiBouldersPage(headerContent, mainContent, appData, 
 
     const gradeOptions = [1,2,3,4,5,6,7].map(g => `<option value="${g}">${g}</option>`).join('');
     const colorOptions = ["Black", "Blue", "Green", "Mint", "Purple", "Red", "White", "Yellow"].map(c => `<option value="${c}">${c}</option>`).join('');
+    const wallOptions = ["45º Overhang ", "30º Overhang", "20º Overhang ", "10º Overhang", "Vertical", "Slab", "Roof"].map(w => `<option value="${w}">${w}</option>`).join('');
+    const styleOptions = ["Fingers", "Physical", "Power", "Dynamic", "Coordination", "Balance", "Ladder"].map(s => `<option value="${s}">${s}</option>`).join('');
 
 
     mainContent.innerHTML = `
@@ -54,9 +56,11 @@ export function renderAddQualiBouldersPage(headerContent, mainContent, appData, 
         row.className = "boulder-row grid grid-cols-12 gap-2 items-center";
         row.innerHTML = `
             <div class="col-span-1 text-center font-bold text-xl text-gray-400">${letter}</div>
-            <div class="col-span-3"><select name="grade" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-md">${gradeOptions}</select></div>
-            <div class="col-span-4"><select name="color" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-md">${colorOptions}</select></div>
-            <div class="col-span-3">
+            <div class="col-span-2"><select name="grade" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-md">${gradeOptions}</select></div>
+            <div class="col-span-2"><select name="color" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-md">${colorOptions}</select></div>
+            <div class="col-span-2"><select name="wall" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-md">${wallOptions}</select></div>
+            <div class="col-span-2"><select name="style" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-md">${styleOptions}</select></div>
+            <div class="col-span-2">
                 <select name="room" class="w-full bg-gray-800 border border-gray-700 p-2 rounded-md">
                     <option>A1</option>
                     <option>A2</option>
@@ -70,6 +74,8 @@ export function renderAddQualiBouldersPage(headerContent, mainContent, appData, 
 
         if(boulder.grade) row.querySelector('select[name="grade"]').value = boulder.grade;
         if(boulder.color) row.querySelector('select[name="color"]').value = boulder.color;
+        if(boulder.wall) row.querySelector('select[name="wall"]').value = boulder.wall;
+        if(boulder.style) row.querySelector('select[name="style"]').value = boulder.style;
         if(boulder.a) row.querySelector('select[name="room"]').value = boulder.a;
 
         row.querySelector('.remove-boulder-btn').addEventListener('click', () => {
@@ -133,12 +139,16 @@ export function renderAddQualiBouldersPage(headerContent, mainContent, appData, 
             rows.forEach((row, index) => {
                 const grade = row.querySelector('select[name="grade"]').value;
                 const color = row.querySelector('select[name="color"]').value;
+                const wall = row.querySelector('select[name="wall"]').value;
+                const style = row.querySelector('select[name="style"]').value;
                 const room = row.querySelector('select[name="room"]').value;
 
                 boulders.push({
                     Name: String.fromCharCode(65 + index),
                     Grade: grade,
                     Color: color,
+                    Wall: wall,
+                    Style: style,
                     A: room
                 });
             });

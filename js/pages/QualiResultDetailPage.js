@@ -1,4 +1,3 @@
-
 function getResultStyling(result) {
     switch(result) {
         case 'Flash': return 'bg-yellow-500/10 border-yellow-500 text-yellow-400';
@@ -38,14 +37,16 @@ export function renderQualiResultDetailPage(headerContent, mainContent, appData,
         const result = climberResults[boulder.name.toLowerCase()] || 'Nothing';
         const grade = boulder.grade || '';
         const room = boulder.a || '';
+        const wall = boulder.wall || '';
+        const style = boulder.style || '';
 
         resultsHTML += `
             <div class="bg-gray-900 border border-gray-800 px-4 py-3 rounded-lg shadow-sm flex items-center justify-between space-x-4">
                 <div class="flex items-center space-x-4">
                     <div class="font-bold text-xl text-gray-200 w-8 text-center">${boulder.name}</div>
                     <div>
-                        <p class="font-semibold text-gray-200">${grade} ${boulder.color}</p>
-                        <p class="text-sm text-gray-400">${room}</p>
+                        <p class="font-semibold text-gray-200">${grade} ${boulder.color} ${room}</p>
+                        ${(wall || style) ? `<div class="flex items-center space-x-2 mt-1.5">${wall ? `<span class="bg-gray-700/50 border border-gray-600/80 text-gray-300 px-2 py-0.5 rounded-full text-xs font-medium">${wall}</span>` : ''}${style ? `<span class="bg-gray-700/50 border border-gray-600/80 text-gray-300 px-2 py-0.5 rounded-full text-xs font-medium">${style}</span>` : ''}</div>` : ''}
                     </div>
                 </div>
                 <div class="text-right">
@@ -104,14 +105,16 @@ export function renderQualiCompResultDetailPage(headerContent, mainContent, appD
                 const result = climberResults[boulder.name.toLowerCase()] || 'Nothing';
                 const grade = boulder.grade || '';
                 const room = boulder.a || '';
+                const wall = boulder.wall || '';
+                const style = boulder.style || '';
 
                 resultsHTML += `
                     <div class="bg-gray-900 border border-gray-800 px-4 py-3 rounded-lg shadow-sm flex items-center justify-between space-x-4">
                         <div class="flex items-center space-x-4">
                             <div class="font-bold text-xl text-gray-200 w-8 text-center">${boulder.name}</div>
                             <div>
-                                <p class="font-semibold text-gray-200">${grade} ${boulder.color}</p>
-                                <p class="text-sm text-gray-400">${room}</p>
+                                <p class="font-semibold text-gray-200">${grade} ${boulder.color} ${room}</p>
+                                ${(wall || style) ? `<div class="flex items-center space-x-2 mt-1.5">${wall ? `<span class="bg-gray-700/50 border border-gray-600/80 text-gray-300 px-2 py-0.5 rounded-full text-xs font-medium">${wall}</span>` : ''}${style ? `<span class="bg-gray-700/50 border border-gray-600/80 text-gray-300 px-2 py-0.5 rounded-full text-xs font-medium">${style}</span>` : ''}</div>` : ''}
                             </div>
                         </div>
                         <div class="text-right">
