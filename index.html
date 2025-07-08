@@ -215,6 +215,9 @@
         import { renderJudgesAppPage, renderJudgeBoulderPage } from './js/pages/JudgesAppPage.js';
         import { renderManageFinalsPage } from './js/pages/ManageFinalsPage.js';
         import { renderAddQualiBouldersPage } from './js/pages/AddQualiBouldersPage.js';
+        import { renderRoutesettingPage } from './js/pages/RoutesettingPage.js';
+        import { renderQualiBouldersPage } from './js/pages/QualiBouldersPage.js';
+        import { renderBoulderPage } from './js/pages/BoulderPage.js';
         
         document.addEventListener('DOMContentLoaded', () => {
             // --- DOM Elements ---
@@ -399,6 +402,15 @@
                         break;
                     case 'addBoulders':
                         renderAddQualiBouldersPage(headerContent, mainContent, appData, getLondonTime, showConfirmationModal, GOOGLE_APP_SCRIPT_URL, navigate);
+                        break;
+                    case 'routesetting':
+                        renderRoutesettingPage(headerContent, mainContent, appData, navigate);
+                        break;
+                    case 'qualiBouldersPage':
+                        renderQualiBouldersPage(headerContent, mainContent, appData, navigate, context);
+                        break;
+                    case 'boulderPage':
+                        renderBoulderPage(headerContent, mainContent, appData, navigate, context);
                         break;
                     case 'qualiResultDetail':
                         renderQualiResultDetailPage(headerContent, mainContent, appData, navigate, context);

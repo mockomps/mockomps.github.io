@@ -7,11 +7,11 @@ export function renderHomePage(headerContent, mainContent, appData, getLondonTim
     let mainHTML = `
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
             <button id="schedule-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-calendar-alt mr-2"></i>Calendar</button>
-            <button id="results-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-poll mr-2"></i>Results</button>
+            <button id="rules-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-gavel mr-2"></i>Rules</button>
             <button id="climbers-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-users mr-2"></i>Climbers</button>
             <button id="leaderboards-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-trophy mr-2"></i>Leaderboards</button>
-            <button id="rules-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-gavel mr-2"></i>Rules</button>
-            <button id="about-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-info-circle mr-2"></i>About</button>
+            <button id="results-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-poll mr-2"></i>Results</button>
+            <button id="routesetting-btn" class="bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-screwdriver-wrench mr-2"></i>Routesetting</button>
             <button id="register-btn" class="col-span-2 sm:col-span-3 bg-gray-900 border border-gray-800 p-6 md:p-8 rounded-lg shadow-md hover:shadow-xl hover:bg-gray-800 transition-all duration-200 text-gray-100 font-bold text-lg md:text-xl flex items-center justify-center"><i class="fas fa-user-plus mr-2"></i>Sign Up</button>
         </div>`;
     
@@ -54,7 +54,7 @@ export function renderHomePage(headerContent, mainContent, appData, getLondonTim
     mainContent.querySelector('#climbers-btn').addEventListener('click', () => navigate('climbers'));
     mainContent.querySelector('#leaderboards-btn').addEventListener('click', () => navigate('leaderboards'));
     mainContent.querySelector('#rules-btn').addEventListener('click', () => navigate('rules'));
-    mainContent.querySelector('#about-btn').addEventListener('click', () => navigate('about'));
+    mainContent.querySelector('#routesetting-btn').addEventListener('click', () => navigate('routesetting'));
     mainContent.querySelector('#register-btn').addEventListener('click', () => navigate('register'));
     mainContent.querySelector('#submit-results-btn').addEventListener('click', () => navigate('submitResults'));
     
