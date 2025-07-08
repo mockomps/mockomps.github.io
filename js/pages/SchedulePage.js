@@ -30,7 +30,7 @@ export function renderSchedulePage(headerContent, mainContent, appData, navigate
         
         if (month !== currentMonth) {
             currentMonth = month;
-            scheduleHTML += `<h2 class="text-lg font-bold text-gray-300 mt-5 mb-1 border-b border-gray-700 pb-1">${month}</h2>`;
+            scheduleHTML += `<h2 class="text-lg font-bold text-gray-300 mt-0 mb-1 border-b border-gray-700 pb-1">${month}</h2>`;
         }
 
         const compName = event.title.replace(/(Q\d*|F)$/, '');
