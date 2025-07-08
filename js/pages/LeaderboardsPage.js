@@ -1,16 +1,16 @@
-
 let currentLeaderboard = 'qualis';
+let currentCircuit = 'MC01'; // Default to MC01
 
-function renderLeaderboardTable(container, appData, navigate, leaderboardType) {
+function renderLeaderboardTable(container, appData, navigate, leaderboardType, circuitType) {
     let data, headers, scoreKey;
 
     if (leaderboardType === 'qualis') {
-        data = [...appData.qLeaderboard];
+        data = appData.qLeaderboard.filter(entry => entry.circuit === circuitType);
         headers = ['Circuit', 'Place', 'Climber', 'Quali Points', 'Tops', 'Zones', 'Flashes', 'Qualis'];
         scoreKey = 'quali_points';
         data.sort((a, b) => parseFloat(b[scoreKey]) - parseFloat(a[scoreKey]));
     } else {
-        data = [...appData.cStandings];
+        data = appData.cStandings.filter(entry => entry.circuit === circuitType);
         headers = ['Circuit', 'Place', 'Climber', 'Circuit Points', '1st', '2nd', '3rd', 'Finals', 'Flashes'];
         scoreKey = 'circuit_points';
         data.sort((a, b) => parseFloat(b[scoreKey]) - parseFloat(a[scoreKey]));
@@ -124,10 +124,14 @@ export function renderLeaderboardsPage(headerContent, mainContent, controlsConta
     document.getElementById('go-home-btn').addEventListener('click', () => navigate('home'));
 
     controlsContainer.classList.remove('hidden');
-    controlsContainer.innerHTML = `<div class="flex justify-center">
+    controlsContainer.innerHTML = `<div class="flex flex-col items-center space-y-2">
         <div id="leaderboard-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
             <button data-leaderboard="qualis" class="leaderboard-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Qualis</button>
             <button data-leaderboard="finals" class="leaderboard-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Finals</button>
+        </div>
+        <div id="circuit-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
+            <button data-circuit="MC01" class="circuit-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">MC01</button>
+            <button data-circuit="MC02" class="circuit-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">MC02</button>
         </div>
     </div>`;
     
@@ -143,16 +147,37 @@ export function renderLeaderboardsPage(headerContent, mainContent, controlsConta
         });
     }
 
+    function setActiveCircuitButton() {
+        document.querySelectorAll('.circuit-btn').forEach(btn => {
+            const isSelected = btn.dataset.circuit === currentCircuit;
+            btn.classList.toggle('bg-blue-600', isSelected);
+            btn.classList.toggle('text-white', isSelected);
+            btn.classList.toggle('shadow-md', isSelected);
+            btn.classList.toggle('text-gray-300', !isSelected);
+        });
+    }
+
     currentLeaderboard = 'qualis';
+    currentCircuit = 'MC02'; // Initialize with default circuit
     setActiveLeaderboardButton();
-    renderLeaderboardTable(document.getElementById('leaderboard-container'), appData, navigate, currentLeaderboard);
+    setActiveCircuitButton();
+    renderLeaderboardTable(document.getElementById('leaderboard-container'), appData, navigate, currentLeaderboard, currentCircuit);
 
     controlsContainer.querySelector('#leaderboard-selector').addEventListener('click', e => {
         if (e.target.tagName === 'BUTTON' && e.target.dataset.leaderboard !== currentLeaderboard) {
             currentLeaderboard = e.target.dataset.leaderboard;
-            history.replaceState({ page: 'leaderboards', context: { tab: currentLeaderboard } }, '', window.location.hash);
+            history.replaceState({ page: 'leaderboards', context: { tab: currentLeaderboard, circuit: currentCircuit } }, '', window.location.hash);
             setActiveLeaderboardButton();
-            renderLeaderboardTable(document.getElementById('leaderboard-container'), appData, navigate, currentLeaderboard);
+            renderLeaderboardTable(document.getElementById('leaderboard-container'), appData, navigate, currentLeaderboard, currentCircuit);
+        }
+    });
+
+    controlsContainer.querySelector('#circuit-selector').addEventListener('click', e => {
+        if (e.target.tagName === 'BUTTON' && e.target.dataset.circuit !== currentCircuit) {
+            currentCircuit = e.target.dataset.circuit;
+            history.replaceState({ page: 'leaderboards', context: { tab: currentLeaderboard, circuit: currentCircuit } }, '', window.location.hash);
+            setActiveCircuitButton();
+            renderLeaderboardTable(document.getElementById('leaderboard-container'), appData, navigate, currentLeaderboard, currentCircuit);
         }
     });
 }
