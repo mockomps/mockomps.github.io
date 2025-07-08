@@ -110,6 +110,18 @@
         .pin-pad-grid .empty-cell {
             visibility: hidden;
         }
+
+        /* Hide dropdown arrow for specific select fields in boulder form */
+        .boulder-row select[name="grade"],
+        .boulder-row select[name="color"],
+        .boulder-row select[name="wall"],
+        .boulder-row select[name="style"],
+        .boulder-row select[name="room"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: none;
+        }
     </style>
 </head>
 <body class="bg-gray-950 text-slate-300">
