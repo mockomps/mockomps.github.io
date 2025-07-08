@@ -16,7 +16,7 @@ export function renderAddQualiBouldersPage(headerContent, mainContent, appData, 
             const endDate = new Date(new Date(q.date).getTime() + (7 * 24 * 60 * 60 * 1000) + (12 * 60 * 60 * 1000));
             return endDate >= now;
         })
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const qualiOptions = liveAndFutureQualis.map(q => `<option value="${q.quali}">${q.quali}</option>`).join('');
 
