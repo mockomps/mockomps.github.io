@@ -4,18 +4,20 @@ A web application for managing and displaying results for a climbing competition
 
 ## Table of Contents
 
-- [About](#about)
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Running the Application](#running-the-application)
-- [Usage](#usage)
-- [Admin Features](#admin-features)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
+- [Mockomps](#mockomps)
+  - [Table of Contents](#table-of-contents)
+  - [About](#about)
+  - [Features](#features)
+  - [Technologies Used](#technologies-used)
+  - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Running the Application](#running-the-application)
+  - [Usage](#usage)
+  - [Admin Features](#admin-features)
+  - [Contributing](#contributing)
+  - [License](#license)
+  - [Contact](#contact)
 
 ## About
 
@@ -110,5 +112,5 @@ This project is licensed under the [MIT License](LICENSE.md) - see the [LICENSE.
 
 For questions or feedback, please reach out:
 
-- Mockomps Team - [mockomps@example.com](mailto:mockomps@example.com) (Placeholder - replace with actual contact)
+- Mockomps Team - [mockomps@gmail.com](mailto:mockomps@gmail.com) (Placeholder - replace with actual contact)
 - Project Link: [https://github.com/mockomps/mockomps.github.io](https://github.com/mockomps/mockomps.github.io)
