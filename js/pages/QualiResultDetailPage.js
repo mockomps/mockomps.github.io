@@ -41,7 +41,7 @@ export function renderQualiResultDetailPage(headerContent, mainContent, appData,
         const style = boulder.style || '';
 
         resultsHTML += `
-            <div class="bg-gray-900 border border-gray-800 px-4 py-3 rounded-lg shadow-sm flex items-center justify-between space-x-4">
+            <div class="bg-gray-900 border border-gray-800 px-4 py-3 rounded-lg shadow-sm flex items-center justify-between space-x-4 cursor-pointer" id="boulder-${boulder.name}" data-boulder-name="${boulder.name}" data-quali-name="${qualiName}">
                 <div class="flex items-center space-x-4">
                     <div class="font-bold text-xl text-gray-200 w-8 text-center">${boulder.name}</div>
                     <div>
@@ -58,6 +58,15 @@ export function renderQualiResultDetailPage(headerContent, mainContent, appData,
     resultsHTML += '</div>';
 
     mainContent.innerHTML = resultsHTML;
+
+    qualiBoulders.forEach(boulder => {
+        const boulderElement = mainContent.querySelector(`#boulder-${boulder.name}`);
+        if (boulderElement) {
+            boulderElement.addEventListener('click', () => {
+                navigate('boulderPage', { qualiName: qualiName, boulderName: boulder.name });
+            });
+        }
+    });
 }
 
 export function renderQualiCompResultDetailPage(headerContent, mainContent, appData, navigate, context) {
@@ -109,7 +118,7 @@ export function renderQualiCompResultDetailPage(headerContent, mainContent, appD
                 const style = boulder.style || '';
 
                 resultsHTML += `
-                    <div class="bg-gray-900 border border-gray-800 px-4 py-3 rounded-lg shadow-sm flex items-center justify-between space-x-4">
+                    <div class="bg-gray-900 border border-gray-800 px-4 py-3 rounded-lg shadow-sm flex items-center justify-between space-x-4 cursor-pointer" id="comp-boulder-${qualiName}-${boulder.name}" data-boulder-name="${boulder.name}" data-quali-name="${qualiName}">
                         <div class="flex items-center space-x-4">
                             <div class="font-bold text-xl text-gray-200 w-8 text-center">${boulder.name}</div>
                             <div>
@@ -133,4 +142,17 @@ export function renderQualiCompResultDetailPage(headerContent, mainContent, appD
 
     finalHTML += '</div>';
     mainContent.innerHTML = finalHTML;
+
+    // Attach event listeners after the HTML has been rendered
+    individualQualiRounds.forEach(qualiName => {
+        const qualiBoulders = appData.qBoulders.filter(b => b.quali === qualiName);
+        qualiBoulders.forEach(boulder => {
+            const boulderElement = mainContent.querySelector(`#comp-boulder-${qualiName}-${boulder.name}`);
+            if (boulderElement) {
+                boulderElement.addEventListener('click', () => {
+                    navigate('boulderPage', { qualiName: qualiName, boulderName: boulder.name });
+                });
+            }
+        });
+    });
 }
