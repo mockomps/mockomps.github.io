@@ -66,7 +66,7 @@ export function renderBoulderPage(headerContent, mainContent, appData, navigate,
                                     <button data-climber-name="${climberResult.climber}" class="profile-link-btn text-left font-semibold text-gray-200 hover:text-blue-400 transition-colors duration-150">${climberResult.climber}</button>
                                 </div>
                                 <div class="text-right">
-                                    <span class="font-bold text-sm px-3 py-1 rounded-full border ${getResultStyling(result)}">${result}</span>
+                                    <span class="font-bold text-xs px-2 py-0.5 rounded-md border ${getResultStyling(result)}">${result}</span>
                                 </div>
                             </div>
                         `;

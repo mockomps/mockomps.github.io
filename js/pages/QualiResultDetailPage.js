@@ -46,11 +46,11 @@ export function renderQualiResultDetailPage(headerContent, mainContent, appData,
                     <div class="font-bold text-xl text-gray-200 w-8 text-center">${boulder.name}</div>
                     <div>
                         <p class="font-semibold text-gray-200">${grade} ${boulder.color} ${room}</p>
-                        ${(wall || style) ? `<div class="flex items-center space-x-2 mt-1.5">${wall ? `<span class="bg-gray-700/50 border border-gray-600/80 text-gray-300 px-2 py-0.5 rounded-full text-xs font-medium">${wall}</span>` : ''}${style ? `<span class="bg-gray-700/50 border border-gray-600/80 text-gray-300 px-2 py-0.5 rounded-full text-xs font-medium">${style}</span>` : ''}</div>` : ''}
+                        ${(wall || style) ? `<div class="flex items-center space-x-2 mt-1.5">${wall ? `<span class="bg-gray-700/50 border border-gray-600/80 text-gray-300 px-1.5 py-0.25 rounded-md text-xs font-medium">${wall}</span>` : ''}${style ? `<span class="bg-gray-700/50 border border-gray-600/80 text-gray-300 px-1.5 py-0.25 rounded-md text-xs font-medium">${style}</span>` : ''}</div>` : ''}
                     </div>
                 </div>
                 <div class="text-right">
-                    <span class="font-bold text-sm px-3 py-1 rounded-full border ${getResultStyling(result)}">${result}</span>
+                    <span class="font-bold text-xs px-2 py-0.5 rounded-md border ${getResultStyling(result)}">${result}</span>
                 </div>
             </div>
         `;
@@ -123,11 +123,11 @@ export function renderQualiCompResultDetailPage(headerContent, mainContent, appD
                             <div class="font-bold text-xl text-gray-200 w-8 text-center">${boulder.name}</div>
                             <div>
                                 <p class="font-semibold text-gray-200">${grade} ${boulder.color} ${room}</p>
-                                ${(wall || style) ? `<div class="flex items-center space-x-2 mt-1.5">${wall ? `<span class="bg-gray-700/50 border border-gray-600/80 text-gray-300 px-2 py-0.5 rounded-full text-xs font-medium">${wall}</span>` : ''}${style ? `<span class="bg-gray-700/50 border border-gray-600/80 text-gray-300 px-2 py-0.5 rounded-full text-xs font-medium">${style}</span>` : ''}</div>` : ''}
+                                ${(wall || style) ? `<div class="flex items-center space-x-2 mt-1.5">${wall ? `<span class="bg-gray-700/50 border border-gray-600/80 text-gray-300 px-1.5 py-0.25 rounded-md text-xs font-medium">${wall}</span>` : ''}${style ? `<span class="bg-gray-700/50 border border-gray-600/80 text-gray-300 px-1.5 py-0.25 rounded-md text-xs font-medium">${style}</span>` : ''}</div>` : ''}
                             </div>
                         </div>
                         <div class="text-right">
-                            <span class="font-bold text-sm px-3 py-1 rounded-full border ${getResultStyling(result)}">${result}</span>
+                            <span class="font-bold text-xs px-2 py-0.5 rounded-md border ${getResultStyling(result)}">${result}</span>
                         </div>
                     </div>
                 `;
