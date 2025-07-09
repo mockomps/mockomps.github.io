@@ -63,7 +63,7 @@ export function renderBoulderPage(headerContent, mainContent, appData, navigate,
                         return `
                             <div class="bg-gray-800/50 px-4 py-3 rounded-lg shadow-sm flex items-center justify-between space-x-4">
                                 <div class="flex items-center space-x-4">
-                                    <p class="font-semibold text-gray-200">${climberResult.climber}</p>
+                                    <button data-climber-name="${climberResult.climber}" class="profile-link-btn text-left font-semibold text-gray-200 hover:text-blue-400 transition-colors duration-150">${climberResult.climber}</button>
                                 </div>
                                 <div class="text-right">
                                     <span class="font-bold text-sm px-3 py-1 rounded-full border ${getResultStyling(result)}">${result}</span>
@@ -105,4 +105,14 @@ export function renderBoulderPage(headerContent, mainContent, appData, navigate,
             ${climberListHTML}
         </div>
     `;
+
+    mainContent.querySelectorAll('.profile-link-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const climberName = e.currentTarget.dataset.climberName;
+            navigate('climberProfile', {
+                climberName: climberName,
+                from: { page: 'boulderPage', context: context }
+            });
+        });
+    });
 }

@@ -55,14 +55,7 @@ function renderResultsTable(headerContent, mainContent, controlsContainer, appDa
         const climberName = standing.climber || '-';
         const climberButton = `<button data-climber-name="${climberName}" class="profile-link-btn text-left hover:text-blue-400 transition-colors duration-150">${climberName}</button>`;
 
-        let qualiPointsHTML;
-        if (isIndividualQuali) {
-            qualiPointsHTML = `<button data-climber-name="${climberName}" data-quali-name="${currentRound}" class="quali-detail-link font-bold text-blue-400 hover:text-blue-300">${standing.quali_points || '-'}</button>`;
-        } else if (isOverallQualis) {
-            qualiPointsHTML = `<button data-climber-name="${climberName}" data-comp-name="${currentComp}" class="quali-comp-detail-link font-bold text-blue-400 hover:text-blue-300">${standing.quali_points || '-'}</button>`;
-        } else {
-            qualiPointsHTML = `<span class="font-bold text-blue-400">${standing.quali_points || '-'}</span>`;
-        }
+        const qualiPointsDisplay = `<span class="font-bold text-blue-400">${standing.quali_points || '-'}</span>`;
 
 
         const qualiStatsHTML = `<div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '-'}</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '-'}</span></div><div>Flashes <span class="block font-medium text-gray-200 text-sm">${standing.flashes || '-'}</span></div></div>`;
@@ -90,22 +83,30 @@ function renderResultsTable(headerContent, mainContent, controlsContainer, appDa
             finalBoulderScoresHTML = `<div class="flex justify-between w-full text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700">${boulderScoresHTML}</div>`;
         }
         
-        mobileHTML += `<div class="rounded-lg p-3 shadow-md border border-gray-800 ${highlightClass || 'bg-gray-900'}">
+        mobileHTML += `<div class="rounded-lg p-3 shadow-md border border-gray-800 ${highlightClass || 'bg-gray-900'} result-box-link"
+    data-climber-name="${climberName}"
+    data-quali-name="${isIndividualQuali ? currentRound : ''}"
+    data-comp-name="${isOverallQualis ? currentComp : ''}">
     <div class="flex justify-between items-center">
         <div class="flex items-center space-x-3">
             <span class="font-bold text-base text-gray-200 w-6">${standing.place||'-'}</span>
             <span class="font-medium text-gray-100 text-sm">${climberButton}</span>
         </div>
-        ${isFinals ? finalTotalScoreHTML : `<div class="text-base">${qualiPointsHTML}</div>`}
+        ${isFinals ? finalTotalScoreHTML : `<div class="text-base">${qualiPointsDisplay}</div>`}
     </div>
     ${isFinals ? finalBoulderScoresHTML : qualiStatsHTML}
 </div>`;
         
         const desktopRowContent = isFinals
             ? `<td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.top_attempts||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td><td class="p-3 text-left">${standing.zone_attempts||'-'}</td>`
-            : `<td class="p-3 font-semibold text-blue-400 text-left">${qualiPointsHTML}</td><td class="p-3 text-left">${standing.flashes||'-'}</td><td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td>`;
+            : `<td class="p-3 font-semibold text-blue-400 text-left">${qualiPointsDisplay}</td><td class="p-3 text-left">${standing.flashes||'-'}</td><td class="p-3 text-left">${standing.tops||'-'}</td><td class="p-3 text-left">${standing.zones||'-'}</td>`;
 
-        desktopHTML += `<tr class="border-b border-gray-800 last:border-b-0 hover:bg-gray-800/50 ${highlightClass}"><td class="p-3 font-bold text-gray-100">${standing.place||'-'}</td><td class="p-3 font-medium text-gray-200">${climberButton}</td>${desktopRowContent}</tr>`;
+        desktopHTML += `<tr class="border-b border-gray-800 last:border-b-0 hover:bg-gray-800/50 ${highlightClass} result-box-link"
+    data-climber-name="${climberName}"
+    data-quali-name="${isIndividualQuali ? currentRound : ''}"
+    data-comp-name="${isOverallQualis ? currentComp : ''}">
+    <td class="p-3 font-bold text-gray-100">${standing.place||'-'}</td>
+    <td class="p-3 font-medium text-gray-200">${climberButton}</td>${desktopRowContent}</tr>`;
     }
 
     mobileHTML += '</div>';
@@ -121,28 +122,33 @@ function renderResultsTable(headerContent, mainContent, controlsContainer, appDa
             });
         });
     });
-    
-    resultsContainer.querySelectorAll('.quali-detail-link').forEach(btn => {
-        btn.addEventListener('click', e => {
-            const { climberName, qualiName } = e.currentTarget.dataset;
-            Maps.navigate('qualiResultDetail', {
-                climberName,
-                qualiName,
-                from: { page: 'resultsComp', context: pageContext }
-            });
-        });
-    });
 
-    resultsContainer.querySelectorAll('.quali-comp-detail-link').forEach(btn => {
-        btn.addEventListener('click', e => {
-            const { climberName, compName } = e.currentTarget.dataset;
-            Maps.navigate('qualiCompResultDetail', {
-                climberName,
-                compName,
-                from: { page: 'resultsComp', context: pageContext }
-            });
+    resultsContainer.querySelectorAll('.result-box-link').forEach(element => {
+        element.addEventListener('click', e => {
+            // Prevent navigation if a child button (like climber name) was clicked
+            if (e.target.closest('.profile-link-btn')) {
+                return;
+            }
+
+            const { climberName, qualiName, compName } = e.currentTarget.dataset;
+
+            if (qualiName) {
+                Maps.navigate('qualiResultDetail', {
+                    climberName,
+                    qualiName,
+                    from: { page: 'resultsComp', context: pageContext }
+                });
+            } else if (compName) {
+                Maps.navigate('qualiCompResultDetail', {
+                    climberName,
+                    compName,
+                    from: { page: 'resultsComp', context: pageContext }
+                });
+            }
         });
     });
+    
+    
 }
 
 export function renderResultsCompPage(headerContent, mainContent, controlsContainer, appData, Maps, context) {

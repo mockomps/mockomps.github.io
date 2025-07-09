@@ -5,7 +5,10 @@ export function renderQualiBouldersPage(headerContent, mainContent, appData, nav
         <div class="flex-1">
             <button id="back-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
         </div>
-        <h1 class="text-2xl font-bold text-gray-100 flex-1 text-center">${qualiName} Boulders</h1>
+        <div class="flex-1 text-center">
+            <h1 class="text-2xl font-bold text-gray-100">${qualiName}</h1>
+            <h2 class="text-sm font-medium text-gray-400 mt-1 whitespace-nowrap">Boulders</h2>
+        </div>
         <div class="flex-1 text-right">
             <button id="go-home-btn" class="text-gray-400 hover:text-white"><i class="fas fa-home text-xl"></i></button>
         </div>`;
