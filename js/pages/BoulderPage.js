@@ -61,7 +61,7 @@ export function renderBoulderPage(headerContent, mainContent, appData, navigate,
                     ${climberResultsForBoulder.map(climberResult => {
                         const result = climberResult[boulderName.toLowerCase()];
                         return `
-                            <div class="bg-gray-900 border border-gray-800 px-4 py-3 rounded-lg shadow-sm flex items-center justify-between space-x-4">
+                            <div class="bg-gray-800/50 px-4 py-3 rounded-lg shadow-sm flex items-center justify-between space-x-4">
                                 <div class="flex items-center space-x-4">
                                     <p class="font-semibold text-gray-200">${climberResult.climber}</p>
                                 </div>
