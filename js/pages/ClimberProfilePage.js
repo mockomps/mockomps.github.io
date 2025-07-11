@@ -177,7 +177,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
                 <div id="climber-attributes-chart-area" class="h-80 md:h-80 flex items-center justify-center">
                     <canvas id="climberAttributesChart"></canvas>
                 </div>
-                <p class="text-xs text-gray-500 mt-2">The data points on the chart represent the average of all submitted ratings.</p>
+                <p class="text-xs text-gray-500 mt-2">The data points on the chart represent the average of all community submitted ratings.</p>
             </div>
         `;
 
@@ -379,7 +379,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
         } else {
             // Clear the canvas and display a message within the chart area
             ctx.remove(); // Remove the canvas element
-            chartArea.innerHTML = '<div class="p-4 text-left text-gray-400">The Attributes chart requires a minimum of 5 rating submissions to be displayed. The data points on the chart will represent the average of all submitted ratings. Be one of the firsts to contribute and help build a comprehensive profile for this climber!</div>';
+            chartArea.innerHTML = '<div class="p-4 text-left text-gray-400">The Attributes chart requires a minimum of 5 rating submissions to be displayed. Be one of the first to contribute and help build a comprehensive profile for this climber!</div>';
         }
     }
 }
@@ -674,8 +674,8 @@ function renderClimberProfile_HistoryTab(container, climberName, profilePageCont
 
     let historyHTML = '<div class="space-y-4">';
     sortedHistory.forEach(([compName, data]) => {
-        historyHTML += `<div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm">
-            <button data-comp="${compName}" class="history-comp-link font-bold text-lg text-left text-gray-100 mb-2 hover:text-blue-400">${compName}</button>
+        historyHTML += `<div data-comp="${compName}" class="history-comp-box bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm cursor-pointer hover:bg-gray-800 transition duration-200">
+            <h3 class="font-bold text-lg text-left text-gray-100 mb-2">${compName}</h3>
             <div class="space-y-1 text-gray-200">`;
         data.results.forEach(resultText => {
             historyHTML += `<p>${resultText}</p>`;
@@ -685,8 +685,8 @@ function renderClimberProfile_HistoryTab(container, climberName, profilePageCont
     historyHTML += '</div>';
     container.innerHTML = historyHTML;
 
-    container.querySelectorAll('.history-comp-link').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+    container.querySelectorAll('.history-comp-box').forEach(box => {
+        box.addEventListener('click', (e) => {
             const compName = e.currentTarget.dataset.comp;
             const newFromContext = {
                 ...profilePageContext,
