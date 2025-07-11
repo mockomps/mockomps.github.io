@@ -103,6 +103,49 @@ function createGradeStatBox(grade, stats, color) {
     </div>`;
 }
 
+function createRatingModalHTML(climbers) {
+    const attributes = ['Power', 'Fingers', 'Coordination', 'Balance', 'Technique', 'Reading', 'Commitment'];
+    let slidersHTML = '';
+    attributes.forEach(attr => {
+        const attrId = attr.toLowerCase().replace(/\./g, '');
+        slidersHTML += `
+            <div class="mb-3">
+                <label for="${attrId}-slider" class="block text-sm font-medium text-gray-300">${attr}</label>
+                <div class="flex items-center space-x-3">
+                    <input type="range" id="${attrId}-slider" name="${attrId}" min="0" max="10" value="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                    <span id="${attrId}-value" class="text-gray-200 font-semibold w-6 text-center">5</span>
+                </div>
+            </div>
+        `;
+    });
+
+    const climberOptions = climbers.map(climber => `<option value="${climber.name}">${climber.name}</option>`).join('');
+
+    return `
+        <div id="rating-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+            <div class="bg-gray-900 border border-gray-700 rounded-lg shadow-xl p-6 w-full max-w-md relative">
+                <button id="close-modal-btn" class="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+                <h2 class="text-xl font-bold text-white mb-4">Rate Attributes</h2>
+                <form id="rating-form">
+                    <div class="mb-4">
+                        <label for="rater-name" class="block text-sm font-medium text-gray-300 mb-1">Your Name</label>
+                        <select id="rater-name" name="raterName" class="w-full bg-gray-800 border border-gray-600 text-white rounded-md p-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select your name</option>
+                            ${climberOptions}
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        ${slidersHTML}
+                    </div>
+                    <div class="mt-6 text-right">
+                        <button type="submit" id="submit-rating-btn" class="bg-blue-600 text-white font-bold py-2 px-5 rounded-md hover:bg-blue-700">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+}
+
 function renderClimberProfile_ProfileTab(container, climberName, appData) {
     const climberInfo = appData.climbers.find(c => c.name === climberName);
 
@@ -127,7 +170,10 @@ function renderClimberProfile_ProfileTab(container, climberName, appData) {
         // Add chart container here
         profileHTML += `
             <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
-                <h3 class="text-lg font-bold text-gray-200 mb-3">Attributes</h3>
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-lg font-bold text-gray-200">Attributes</h3>
+                    <button id="rate-attributes-btn" class="bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-md hover:bg-blue-700">Rate</button>
+                </div>
                 <div class="h-80 md:h-80">
                     <canvas id="climberAttributesChart"></canvas>
                 </div>
@@ -139,7 +185,59 @@ function renderClimberProfile_ProfileTab(container, climberName, appData) {
     }
     
     profileHTML += '</div>';
+    profileHTML += createRatingModalHTML(appData.climbers); // Add modal to the DOM
     container.innerHTML = profileHTML;
+
+    // --- Modal Logic ---
+    const modal = container.querySelector('#rating-modal');
+    if (modal) {
+        const openModalBtn = container.querySelector('#rate-attributes-btn');
+        const closeModalBtn = container.querySelector('#close-modal-btn');
+        const ratingForm = container.querySelector('#rating-form');
+
+        if (openModalBtn) {
+            openModalBtn.addEventListener('click', () => {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            });
+        }
+
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            });
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) { // Click on backdrop
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        });
+
+        if (ratingForm) {
+            ratingForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                console.log('Rating submitted (no action).');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            });
+        }
+
+        // Update slider value displays
+        const attributes = ['Power', 'Fingers', 'Coordination', 'Balance', 'Technique', 'Reading', 'Commitment'];
+        attributes.forEach(attr => {
+            const attrId = attr.toLowerCase().replace(/\./g, '');
+            const slider = container.querySelector(`#${attrId}-slider`);
+            const valueSpan = container.querySelector(`#${attrId}-value`);
+            if (slider && valueSpan) {
+                slider.addEventListener('input', () => {
+                    valueSpan.textContent = slider.value;
+                });
+            }
+        });
+    }
 
     // Render the Chart.js radar chart
     const ctx = container.querySelector('#climberAttributesChart');
