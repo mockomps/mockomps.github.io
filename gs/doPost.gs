@@ -27,6 +27,10 @@ function doPost(e) {
         response = handleSubmitFinalsResult(data);
         break;
 
+      case 'submitAttributeRating':
+        response = handleSubmitAttributeRating(data);
+        break;
+
       default:
         response = { result: 'error', message: 'Unknown form type specified.' };
         break;
@@ -51,6 +55,45 @@ function doPost(e) {
 }
 
 // --- Handler Functions ---
+
+/**
+ * Handles submission of climber attribute ratings.
+ */
+function handleSubmitAttributeRating(data) {
+  try {
+    const sheetName = 'ClimberAttributesRatings';
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    if (!sheet) throw new Error(`Sheet "${sheetName}" not found.`);
+
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const newRow = [];
+
+    // Map data to headers
+    headers.forEach(header => {
+      const h = header.trim();
+      if (h === 'Timestamp') {
+        newRow.push(new Date());
+      } else if (h === 'Rater Name') {
+        newRow.push(data.raterName || '');
+      } else if (h === 'Climber Name') {
+        newRow.push(data.climberName || '');
+      } else {
+        // For attributes, use the lowercase version of the header as the key in data
+        newRow.push(data[h.toLowerCase()] !== undefined ? data[h.toLowerCase()] : '');
+      }
+    });
+
+    sheet.appendRow(newRow);
+
+    return { result: 'success', message: `Attribute rating for ${data.climberName} by ${data.raterName} submitted successfully.` };
+  } catch (error) {
+    return {
+      result: 'error',
+      message: 'Failed to submit attribute rating: ' + error.message,
+      stack: error.stack
+    };
+  }
+}
 
 /**
  * Handles climber registration submissions.

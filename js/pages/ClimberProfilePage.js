@@ -1,6 +1,6 @@
 let currentClimberTab = 'profile'; // Module-level state
 
-export function renderClimberProfilePage(headerContent, mainContent, controlsContainer, appData, navigate, context) {
+export function renderClimberProfilePage(headerContent, mainContent, controlsContainer, appData, navigate, context, GOOGLE_APP_SCRIPT_URL) {
     const { climberName, from, tab } = context;
 
     currentClimberTab = tab || 'profile';
@@ -42,7 +42,7 @@ export function renderClimberProfilePage(headerContent, mainContent, controlsCon
     }
 
     setActiveClimberTab();
-    renderClimberTabContent(mainContent, climberName, context, appData, navigate);
+    renderClimberTabContent(mainContent, climberName, context, appData, navigate, GOOGLE_APP_SCRIPT_URL);
 
     controlsContainer.querySelector('#climber-profile-selector').addEventListener('click', e => {
         if (e.target.tagName === 'BUTTON' && e.target.dataset.tab !== currentClimberTab) {
@@ -50,16 +50,16 @@ export function renderClimberProfilePage(headerContent, mainContent, controlsCon
             // For tab changes, we replace state to keep a clean history within profile view
             history.replaceState({ page: 'climberProfile', context: { ...context, tab: currentClimberTab } }, '', window.location.hash);
             setActiveClimberTab();
-            renderClimberTabContent(mainContent, climberName, context, appData, navigate);
+            renderClimberTabContent(mainContent, climberName, context, appData, navigate, GOOGLE_APP_SCRIPT_URL);
         }
     });
 }
 
-function renderClimberTabContent(mainContent, climberName, profilePageContext, appData, navigate) {
+function renderClimberTabContent(mainContent, climberName, profilePageContext, appData, navigate, GOOGLE_APP_SCRIPT_URL) {
     const container = mainContent.querySelector('#climber-tab-content');
     container.innerHTML = '';
     if (currentClimberTab === 'profile') {
-        renderClimberProfile_ProfileTab(container, climberName, appData);
+        renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE_APP_SCRIPT_URL);
     } else if (currentClimberTab === 'stats') {
         renderClimberProfile_StatsTab(container, climberName, appData);
     } else if (currentClimberTab === 'progress') {
@@ -146,7 +146,7 @@ function createRatingModalHTML(climbers) {
     `;
 }
 
-function renderClimberProfile_ProfileTab(container, climberName, appData) {
+function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE_APP_SCRIPT_URL) {
     const climberInfo = appData.climbers.find(c => c.name === climberName);
 
     let profileHTML = '<div class="space-y-4">';
@@ -194,6 +194,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData) {
         const openModalBtn = container.querySelector('#rate-attributes-btn');
         const closeModalBtn = container.querySelector('#close-modal-btn');
         const ratingForm = container.querySelector('#rating-form');
+        const submitRatingBtn = container.querySelector('#submit-rating-btn');
 
         if (openModalBtn) {
             openModalBtn.addEventListener('click', () => {
@@ -217,11 +218,49 @@ function renderClimberProfile_ProfileTab(container, climberName, appData) {
         });
 
         if (ratingForm) {
-            ratingForm.addEventListener('submit', (e) => {
+            ratingForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                console.log('Rating submitted (no action).');
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
+                submitRatingBtn.disabled = true;
+                submitRatingBtn.textContent = 'Submitting...';
+
+                const formData = new FormData(ratingForm);
+                const payload = {
+                    formType: 'submitAttributeRating',
+                    climberName: climberName,
+                    raterName: formData.get('raterName'),
+                };
+
+                const attributes = ['Power', 'Fingers', 'Coordination', 'Balance', 'Technique', 'Reading', 'Commitment'];
+                attributes.forEach(attr => {
+                    const attrId = attr.toLowerCase().replace(/\./g, '');
+                    payload[attrId] = formData.get(attrId);
+                });
+
+                try {
+                    const response = await fetch(GOOGLE_APP_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors', // Required for Google Apps Script
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    // For no-cors, response.ok will always be true, and status will be 0.
+                    // You'll need to rely on the Apps Script to confirm success/failure
+                    // via other means (e.g., checking the spreadsheet).
+                    console.log('Attribute rating submitted.', response);
+                    alert('Rating submitted successfully!');
+
+                } catch (error) {
+                    console.error('Error submitting rating:', error);
+                    alert('Failed to submit rating. Please try again.');
+                } finally {
+                    submitRatingBtn.disabled = false;
+                    submitRatingBtn.textContent = 'Submit';
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
             });
         }
 
