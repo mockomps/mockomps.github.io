@@ -59,7 +59,15 @@ function ClimberStatsUpdate() {
       grade6Boulders: 0,
       grade6Flashes: 0,
       grade6Tops: 0,
-      grade6Zones: 0
+      grade6Zones: 0,
+      grade1Boulders: 0,
+      grade1Flashes: 0,
+      grade1Tops: 0,
+      grade1Zones: 0,
+      grade2Boulders: 0,
+      grade2Flashes: 0,
+      grade2Tops: 0,
+      grade2Zones: 0
     };
   });
 
@@ -91,6 +99,8 @@ function ClimberStatsUpdate() {
       }
 
       // Update grade-specific boulder attempts
+      if (grade == 1) climberStats[climber].grade1Boulders++;
+      if (grade == 2) climberStats[climber].grade2Boulders++;
       if (grade == 3) climberStats[climber].grade3Boulders++;
       if (grade == 4) climberStats[climber].grade4Boulders++;
       if (grade == 5) climberStats[climber].grade5Boulders++;
@@ -101,6 +111,8 @@ function ClimberStatsUpdate() {
         climberStats[climber].flashes++;
         climberStats[climber].tops++;
         climberStats[climber].zones++;
+        if (grade == 1) { climberStats[climber].grade1Flashes++; climberStats[climber].grade1Tops++; climberStats[climber].grade1Zones++; }
+        if (grade == 2) { climberStats[climber].grade2Flashes++; climberStats[climber].grade2Tops++; climberStats[climber].grade2Zones++; }
         if (grade == 3) { climberStats[climber].grade3Flashes++; climberStats[climber].grade3Tops++; climberStats[climber].grade3Zones++; }
         if (grade == 4) { climberStats[climber].grade4Flashes++; climberStats[climber].grade4Tops++; climberStats[climber].grade4Zones++; }
         if (grade == 5) { climberStats[climber].grade5Flashes++; climberStats[climber].grade5Tops++; climberStats[climber].grade5Zones++; }
@@ -108,12 +120,16 @@ function ClimberStatsUpdate() {
       } else if (result === "Top") {
         climberStats[climber].tops++;
         climberStats[climber].zones++;
+        if (grade == 1) { climberStats[climber].grade1Tops++; climberStats[climber].grade1Zones++; }
+        if (grade == 2) { climberStats[climber].grade2Tops++; climberStats[climber].grade2Zones++; }
         if (grade == 3) { climberStats[climber].grade3Tops++; climberStats[climber].grade3Zones++; }
         if (grade == 4) { climberStats[climber].grade4Tops++; climberStats[climber].grade4Zones++; }
         if (grade == 5) { climberStats[climber].grade5Tops++; climberStats[climber].grade5Zones++; }
         if (grade == 6) { climberStats[climber].grade6Tops++; climberStats[climber].grade6Zones++; }
       } else if (result === "Zone") {
         climberStats[climber].zones++;
+        if (grade == 1) climberStats[climber].grade1Zones++;
+        if (grade == 2) climberStats[climber].grade2Zones++;
         if (grade == 3) climberStats[climber].grade3Zones++;
         if (grade == 4) climberStats[climber].grade4Zones++;
         if (grade == 5) climberStats[climber].grade5Zones++;
@@ -131,6 +147,14 @@ function ClimberStatsUpdate() {
     var stats = climberStats[climber];
 
     // Calculate percentages for flashes, tops, and zones for each grade, rounded and formatted as a percentage
+    var grade1FlashPercentage = stats.grade1Boulders > 0 ? Math.round((stats.grade1Flashes / stats.grade1Boulders) * 100) + "%" : "0%";
+    var grade1TopPercentage = stats.grade1Boulders > 0 ? Math.round((stats.grade1Tops / stats.grade1Boulders) * 100) + "%" : "0%";
+    var grade1ZonePercentage = stats.grade1Boulders > 0 ? Math.round((stats.grade1Zones / stats.grade1Boulders) * 100) + "%" : "0%";
+
+    var grade2FlashPercentage = stats.grade2Boulders > 0 ? Math.round((stats.grade2Flashes / stats.grade2Boulders) * 100) + "%" : "0%";
+    var grade2TopPercentage = stats.grade2Boulders > 0 ? Math.round((stats.grade2Tops / stats.grade2Boulders) * 100) + "%" : "0%";
+    var grade2ZonePercentage = stats.grade2Boulders > 0 ? Math.round((stats.grade2Zones / stats.grade2Boulders) * 100) + "%" : "0%";
+
     var grade3FlashPercentage = stats.grade3Boulders > 0 ? Math.round((stats.grade3Flashes / stats.grade3Boulders) * 100) + "%" : "0%";
     var grade3TopPercentage = stats.grade3Boulders > 0 ? Math.round((stats.grade3Tops / stats.grade3Boulders) * 100) + "%" : "0%";
     var grade3ZonePercentage = stats.grade3Boulders > 0 ? Math.round((stats.grade3Zones / stats.grade3Boulders) * 100) + "%" : "0%";
@@ -154,6 +178,20 @@ function ClimberStatsUpdate() {
       stats.flashes,
       stats.tops,
       stats.zones,
+      stats.grade1Boulders,
+      stats.grade1Flashes,
+      grade1FlashPercentage,
+      stats.grade1Tops,
+      grade1TopPercentage,
+      stats.grade1Zones,
+      grade1ZonePercentage,
+      stats.grade2Boulders,
+      stats.grade2Flashes,
+      grade2FlashPercentage,
+      stats.grade2Tops,
+      grade2TopPercentage,
+      stats.grade2Zones,
+      grade2ZonePercentage,
       stats.grade3Boulders,
       stats.grade3Flashes,
       grade3FlashPercentage,

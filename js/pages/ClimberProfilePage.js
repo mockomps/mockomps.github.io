@@ -1,4 +1,3 @@
-
 let currentClimberTab = 'profile'; // Module-level state
 
 export function renderClimberProfilePage(headerContent, mainContent, controlsContainer, appData, navigate, context) {
@@ -24,6 +23,7 @@ export function renderClimberProfilePage(headerContent, mainContent, controlsCon
     controlsContainer.innerHTML = `<div class="flex justify-center">
         <div id="climber-profile-selector" class="inline-flex bg-gray-800 p-1 rounded-md gap-1 overflow-x-auto no-scrollbar h-scroll">
             <button data-tab="profile" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Profile</button>
+            <button data-tab="stats" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Stats</button>
             <button data-tab="progress" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">Progress</button>
             <button data-tab="history" class="climber-tab-btn whitespace-nowrap text-gray-300 font-semibold py-1 px-4 rounded-md">History</button>
         </div>
@@ -60,6 +60,8 @@ function renderClimberTabContent(mainContent, climberName, profilePageContext, a
     container.innerHTML = '';
     if (currentClimberTab === 'profile') {
         renderClimberProfile_ProfileTab(container, climberName, appData);
+    } else if (currentClimberTab === 'stats') {
+        renderClimberProfile_StatsTab(container, climberName, appData);
     } else if (currentClimberTab === 'progress') {
         renderClimberProfile_ProgressTab(container, climberName, appData);
     } else if (currentClimberTab === 'history') {
@@ -67,9 +69,35 @@ function renderClimberTabContent(mainContent, climberName, profilePageContext, a
     }
 }
 
+function formatPercentage(value, total) {
+    if (total === 0) return '0%';
+    return Math.round((value / total) * 100) + '%';
+}
+
+function createGradeStatBox(grade, stats) {
+    const gradeBoulders = stats[`grade_${grade}_b`] || '0';
+    const gradeFlashes = stats[`grade_${grade}_f`] || '0';
+    const gradeTops = stats[`grade_${grade}_t`] || '0';
+    const gradeZones = stats[`grade_${grade}_z`] || '0';
+
+    const flashPct = stats[`grade_${grade}_f_pct`] || '0';
+    const topPct = stats[`grade_${grade}_t_pct`] || '0';
+    const zonePct = stats[`grade_${grade}_z_pct`] || '0';
+
+    return `
+    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+        <h3 class="text-lg font-bold text-gray-200 mb-3">Grade ${grade} Stats</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+            <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${gradeBoulders}</div></div>
+            <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${gradeFlashes}${parseInt(gradeBoulders) > 0 ? `/${flashPct}%` : ''}</div></div>
+            <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${gradeTops}${parseInt(gradeBoulders) > 0 ? `/${topPct}%` : ''}</div></div>
+            <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Zones</div><div class="font-bold text-xl text-gray-100">${gradeZones}${parseInt(gradeBoulders) > 0 ? `/${zonePct}%` : ''}</div></div>
+        </div>
+    </div>`;
+}
+
 function renderClimberProfile_ProfileTab(container, climberName, appData) {
     const climberInfo = appData.climbers.find(c => c.name === climberName);
-    const climberStats = appData.climberStats.find(s => s.climber === climberName);
 
     let profileHTML = '<div class="space-y-4">';
 
@@ -88,7 +116,18 @@ function renderClimberProfile_ProfileTab(container, climberName, appData) {
                     <p><span class="font-semibold text-gray-400">Instagram:</span> ${instaHTML || 'N/A'}</p>
                 </div>
             </div>`;
+    } else {
+        profileHTML += `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No profile information available for this climber.</div>`;
     }
+    
+    profileHTML += '</div>';
+    container.innerHTML = profileHTML;
+}
+
+function renderClimberProfile_StatsTab(container, climberName, appData) {
+    const climberStats = appData.climberStats.find(s => s.climber === climberName);
+
+    let statsHTML = '<div class="space-y-4">';
 
     if (climberStats) {
         const totalBoulders = parseInt(climberStats.all_time_b || '0');
@@ -97,12 +136,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData) {
         const totalZones = parseInt(climberStats.all_time_z || '0');
         const totalNothings = totalBoulders - totalZones;
 
-        const formatPercentage = (value, total) => {
-            if (total === 0) return '0%';
-            return Math.round((value / total) * 100) + '%';
-        };
-
-        profileHTML += `
+        statsHTML += `
             <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
                 <h3 class="text-lg font-bold text-gray-200 mb-3">All-Time Stats</h3>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
@@ -115,40 +149,20 @@ function renderClimberProfile_ProfileTab(container, climberName, appData) {
                 </div>
             </div>`;
 
-        const createGradeStatBox = (grade, stats) => {
-            const gradeBoulders = stats[`grade_${grade}_b`] || '0';
-            const gradeFlashes = stats[`grade_${grade}_f`] || '0';
-            const gradeTops = stats[`grade_${grade}_t`] || '0';
-            const gradeZones = stats[`grade_${grade}_z`] || '0';
-
-            const flashPct = stats[`grade_${grade}_f_pct`] || '0';
-            const topPct = stats[`grade_${grade}_t_pct`] || '0';
-            const zonePct = stats[`grade_${grade}_z_pct`] || '0';
-
-            return `
-            <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
-                <h3 class="text-lg font-bold text-gray-200 mb-3">Grade ${grade} Stats</h3>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${gradeBoulders}</div></div>
-                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${gradeFlashes}${parseInt(gradeBoulders) > 0 ? `/${flashPct}%` : ''}</div></div>
-                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${gradeTops}${parseInt(gradeBoulders) > 0 ? `/${topPct}%` : ''}</div></div>
-                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Zones</div><div class="font-bold text-xl text-gray-100">${gradeZones}${parseInt(gradeBoulders) > 0 ? `/${zonePct}%` : ''}</div></div>
-                </div>
-            </div>`;
-        };
-
-        profileHTML += `<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">`;
-        profileHTML += createGradeStatBox(3, climberStats);
-        profileHTML += createGradeStatBox(4, climberStats);
-        profileHTML += createGradeStatBox(5, climberStats);
-        profileHTML += createGradeStatBox(6, climberStats);
-        profileHTML += `</div>`;
-    } else if (!climberInfo) {
-        profileHTML += `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No profile information available for this climber.</div>`;
+        statsHTML += `<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">`;
+        statsHTML += createGradeStatBox(1, climberStats);
+        statsHTML += createGradeStatBox(2, climberStats);
+        statsHTML += createGradeStatBox(3, climberStats);
+        statsHTML += createGradeStatBox(4, climberStats);
+        statsHTML += createGradeStatBox(5, climberStats);
+        statsHTML += createGradeStatBox(6, climberStats);
+        statsHTML += `</div>`;
+    } else {
+        statsHTML += `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No stats information available for this climber.</div>`;
     }
     
-    profileHTML += '</div>';
-    container.innerHTML = profileHTML;
+    statsHTML += '</div>';
+    container.innerHTML = statsHTML;
 }
 
 function renderClimberProfile_ProgressTab(container, climberName, appData) {
