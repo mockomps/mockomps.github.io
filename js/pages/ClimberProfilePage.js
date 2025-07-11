@@ -250,11 +250,9 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
                     // You'll need to rely on the Apps Script to confirm success/failure
                     // via other means (e.g., checking the spreadsheet).
                     console.log('Attribute rating submitted.', response);
-                    alert('Rating submitted successfully!');
 
                 } catch (error) {
                     console.error('Error submitting rating:', error);
-                    alert('Failed to submit rating. Please try again.');
                 } finally {
                     submitRatingBtn.disabled = false;
                     submitRatingBtn.textContent = 'Submit';
