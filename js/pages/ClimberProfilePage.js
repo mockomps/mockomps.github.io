@@ -177,6 +177,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
                 <div id="climber-attributes-chart-area" class="h-80 md:h-80 flex items-center justify-center">
                     <canvas id="climberAttributesChart"></canvas>
                 </div>
+                <p class="text-xs text-gray-500 mt-2">The data points on the chart represent the average of all submitted ratings.</p>
             </div>
         `;
 
@@ -378,7 +379,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
         } else {
             // Clear the canvas and display a message within the chart area
             ctx.remove(); // Remove the canvas element
-            chartArea.innerHTML = '<div class="p-4 text-left text-gray-400">The attribute chart requires a minimum of 5 ratings to be displayed. The data points on the chart represent the average of all submitted ratings. Be the first to contribute your rating and help build a comprehensive profile for this climber!</div>';
+            chartArea.innerHTML = '<div class="p-4 text-left text-gray-400">The Attributes chart requires a minimum of 5 rating submissions to be displayed. The data points on the chart will represent the average of all submitted ratings. Be one of the firsts to contribute and help build a comprehensive profile for this climber!</div>';
         }
     }
 }
