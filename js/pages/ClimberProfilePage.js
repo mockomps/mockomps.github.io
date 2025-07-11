@@ -116,12 +116,111 @@ function renderClimberProfile_ProfileTab(container, climberName, appData) {
                     <p><span class="font-semibold text-gray-400">Instagram:</span> ${instaHTML || 'N/A'}</p>
                 </div>
             </div>`;
+        
+        // Add chart container here
+        profileHTML += `
+            <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+                <h3 class="text-lg font-bold text-gray-200 mb-3">Climber Attributes</h3>
+                <div class="h-64 md:h-80">
+                    <canvas id="climberAttributesChart"></canvas>
+                </div>
+            </div>
+        `;
+
     } else {
         profileHTML += `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No profile information available for this climber.</div>`;
     }
     
     profileHTML += '</div>';
     container.innerHTML = profileHTML;
+
+    // Render the Chart.js radar chart
+    const ctx = container.querySelector('#climberAttributesChart');
+    if (ctx) {
+        const labels = ['Power', 'Fingers', 'Coordination', 'Balance', 'Technique', 'Reading', 'Commitment'];
+        const dummyData = [7, 8, 6, 9, 7, 6, 6]; // Placeholder data, with a value of 1 to test innermost layer
+
+        const backgroundColors = [
+            'rgba(30, 64, 175, 1)',   // for value 2 (innermost), fully opaque
+            'rgba(30, 64, 175, 0.7)',   // for value 4
+            'rgba(30, 64, 175, 0.5)',   // for value 6
+            'rgba(30, 64, 175, 0.3)',   // for value 8
+            'rgba(30, 64, 175, 0.1)'    // for value 10 (outermost), more transparent
+        ];
+
+        const datasets = [];
+
+        // Add background layers (from innermost to outermost for correct layering)
+        for (let i = 1; i <= 5; i++) { // i goes from 1 (value 2) up to 5 (value 10)
+            const value = i * 2;
+            datasets.push({
+                label: `Level ${value}`,
+                data: Array(labels.length).fill(value),
+                backgroundColor: backgroundColors[i - 1],
+                borderColor: 'transparent',
+                pointBackgroundColor: 'transparent',
+                pointBorderColor: 'transparent',
+                fill: true,
+                borderWidth: 0,
+                pointRadius: 0,
+                hoverBorderWidth: 0,
+                hoverBackgroundColor: backgroundColors[i - 1],
+                hoverBorderColor: 'transparent',
+                order: i // Assign order for layering: 1 for innermost (value 2), 5 for outermost (value 10)
+            });
+        }
+
+        // Add the actual climber data layer
+        datasets.push({
+            label: 'Climbing Attributes',
+            data: dummyData,
+            backgroundColor: 'rgba(59, 130, 246, 0.7)', // blue-500 with transparency
+            borderColor: 'rgba(59, 130, 246, 1)',
+            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(59, 130, 246, 1)',
+            fill: false,
+            borderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            order: 0 // Ensure this layer is on top of all background layers
+        });
+
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false, // Disable animation
+                scales: {
+                    r: {
+                        angleLines: { color: 'transparent' },
+                        grid: { color: 'transparent' },
+                        pointLabels: { color: '#cbd5e1', font: { size: 10 } }, // slate-300
+                        ticks: {
+                            display: false, // Hide numerical labels
+                            min: 0,
+                            max: 10,
+                            beginAtZero: true,
+                            stepSize: 2,
+                            color: '#cbd5e1', // slate-300
+                            backdropColor: 'transparent',
+                            showLabelBackdrop: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: true }
+                }
+            }
+        });
+    }
 }
 
 function renderClimberProfile_StatsTab(container, climberName, appData) {
