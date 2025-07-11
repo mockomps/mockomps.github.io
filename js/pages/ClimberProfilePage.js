@@ -378,7 +378,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
         } else {
             // Clear the canvas and display a message within the chart area
             ctx.remove(); // Remove the canvas element
-            chartArea.innerHTML = '<div class="p-4 text-center text-gray-400">Not enough ratings to display attribute chart (minimum 5 required).</div>';
+            chartArea.innerHTML = '<div class="p-4 text-center text-gray-400">The attribute chart requires a minimum of 5 ratings to be displayed. The data points on the chart represent the average of all submitted ratings. Be the first to contribute your rating and help build a comprehensive profile for this climber!</div>';
         }
     }
 }
