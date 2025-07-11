@@ -174,7 +174,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
                     <h3 class="text-lg font-bold text-gray-200">Attributes</h3>
                     <button id="rate-attributes-btn" class="bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-md hover:bg-blue-700">Rate</button>
                 </div>
-                <div class="h-80 md:h-80">
+                <div id="climber-attributes-chart-area" class="h-80 md:h-80 flex items-center justify-center">
                     <canvas id="climberAttributesChart"></canvas>
                 </div>
             </div>
@@ -280,7 +280,9 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
 
     // Render the Chart.js radar chart
     const ctx = container.querySelector('#climberAttributesChart');
-    if (ctx) {
+    const chartArea = container.querySelector('#climber-attributes-chart-area');
+
+    if (ctx && chartArea) {
         const attributes = ['Power', 'Fingers', 'Coordination', 'Balance', 'Technique', 'Reading', 'Commitment'];
         const climberRatings = appData.climberAttributesRatings.filter(r => r.climber_name === climberName);
 
@@ -376,8 +378,9 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
                 }
             });
         } else {
-            // Hide the chart container if not enough ratings
-            ctx.closest('.bg-gray-900').innerHTML = '<div class="p-4 text-center text-gray-400">Not enough ratings to display attribute chart (minimum 5 required).</div>';
+            // Clear the canvas and display a message within the chart area
+            ctx.remove(); // Remove the canvas element
+            chartArea.innerHTML = '<div class="p-4 text-center text-gray-400">Not enough ratings to display attribute chart (minimum 5 required).</div>';
         }
     }
 }
