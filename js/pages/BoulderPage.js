@@ -79,15 +79,12 @@ export function renderBoulderPage(headerContent, mainContent, appData, navigate,
     mainContent.innerHTML = `
         <div class="space-y-4">
             <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4 space-y-4">
-                <div class="grid grid-cols-2 gap-4 mb-3">
-                    <h2 class="text-xl font-bold text-gray-100">Boulder ${boulderDetails.name}</h2>
-                    ${boulderDetails.a ? `<div class="bg-gray-800/50 p-2 rounded-md text-center"><div class="text-xs text-gray-400">Area</div><div class="font-bold text-xl text-gray-100">${boulderDetails.a}</div></div>` : ''}
-                </div>
-                <div class="grid grid-cols-2 gap-4 text-center">
+                <h2 class="text-lg font-bold text-gray-100 mb-3">Boulder Details</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
+                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulder</div><div class="font-bold text-xl text-gray-100">${boulderDetails.name}</div></div>
+                    ${boulderDetails.a ? `<div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Area</div><div class="font-bold text-xl text-gray-100">${boulderDetails.a}</div></div>` : ''}
                     <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Grade</div><div class="font-bold text-xl text-gray-100">${boulderDetails.grade}</div></div>
                     <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Color</div><div class="font-bold text-xl text-gray-100">${boulderDetails.color}</div></div>
-                </div>
-                <div class="grid grid-cols-2 gap-4 text-center">
                     ${boulderDetails.wall ? `<div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Wall</div><div class="font-bold text-xl text-gray-100">${boulderDetails.wall}</div></div>` : ''}
                     ${boulderDetails.style ? `<div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Style</div><div class="font-bold text-xl text-gray-100">${boulderDetails.style}</div></div>` : ''}
                 </div>

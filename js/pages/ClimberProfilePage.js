@@ -91,27 +91,48 @@ function renderClimberProfile_ProfileTab(container, climberName, appData) {
     }
 
     if (climberStats) {
+        const totalBoulders = parseInt(climberStats.all_time_b || '0');
+        const totalFlashes = parseInt(climberStats.all_time_f || '0');
+        const totalTops = parseInt(climberStats.all_time_t || '0');
+        const totalZones = parseInt(climberStats.all_time_z || '0');
+        const totalNothings = totalBoulders - totalZones;
+
+        const formatPercentage = (value, total) => {
+            if (total === 0) return '0%';
+            return Math.round((value / total) * 100) + '%';
+        };
+
         profileHTML += `
             <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
                 <h3 class="text-lg font-bold text-gray-200 mb-3">All-Time Stats</h3>
-                <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
                     <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Qualis</div><div class="font-bold text-xl text-gray-100">${climberStats.all_time_q || '0'}</div></div>
-                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${climberStats.all_time_b || '0'}</div></div>
-                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${climberStats.all_time_f || '0'}</div></div>
-                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${climberStats.all_time_t || '0'}</div></div>
-                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Zones</div><div class="font-bold text-xl text-gray-100">${climberStats.all_time_z || '0'}</div></div>
+                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${totalBoulders}</div></div>
+                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${totalFlashes}${totalBoulders > 0 ? `/${formatPercentage(totalFlashes, totalBoulders)}` : ''}</div></div>
+                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${totalTops}${totalBoulders > 0 ? `/${formatPercentage(totalTops, totalBoulders)}` : ''}</div></div>
+                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Zones</div><div class="font-bold text-xl text-gray-100">${totalZones}${totalBoulders > 0 ? `/${formatPercentage(totalZones, totalBoulders)}` : ''}</div></div>
+                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Nothing</div><div class="font-bold text-xl text-gray-100">${totalNothings}${totalBoulders > 0 ? `/${formatPercentage(totalNothings, totalBoulders)}` : ''}</div></div>
                 </div>
             </div>`;
 
         const createGradeStatBox = (grade, stats) => {
+            const gradeBoulders = stats[`grade_${grade}_b`] || '0';
+            const gradeFlashes = stats[`grade_${grade}_f`] || '0';
+            const gradeTops = stats[`grade_${grade}_t`] || '0';
+            const gradeZones = stats[`grade_${grade}_z`] || '0';
+
+            const flashPct = stats[`grade_${grade}_f_pct`] || '0';
+            const topPct = stats[`grade_${grade}_t_pct`] || '0';
+            const zonePct = stats[`grade_${grade}_z_pct`] || '0';
+
             return `
             <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
                 <h3 class="text-lg font-bold text-gray-200 mb-3">Grade ${grade} Stats</h3>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${stats[`grade_${grade}_b`] || '0'}</div></div>
-                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${stats[`grade_${grade}_f`] || '0'}</div></div>
-                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${stats[`grade_${grade}_t`] || '0'}</div></div>
-                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops %</div><div class="font-bold text-xl text-gray-100">${stats[`grade_${grade}_t_pct`] || '0%'}</div></div>
+                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${gradeBoulders}</div></div>
+                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Flashes</div><div class="font-bold text-xl text-gray-100">${gradeFlashes}${parseInt(gradeBoulders) > 0 ? `/${flashPct}%` : ''}</div></div>
+                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Tops</div><div class="font-bold text-xl text-gray-100">${gradeTops}${parseInt(gradeBoulders) > 0 ? `/${topPct}%` : ''}</div></div>
+                    <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Zones</div><div class="font-bold text-xl text-gray-100">${gradeZones}${parseInt(gradeBoulders) > 0 ? `/${zonePct}%` : ''}</div></div>
                 </div>
             </div>`;
         };
@@ -177,7 +198,13 @@ function renderClimberProfile_ProgressTab(container, climberName, appData) {
         </div>
     </div>`;
 
-    const climberComps = [...new Set(climberData.map(d => d.comp))].sort();
+    const compDateMap = new Map(appData.comps.map(c => [c.comp, new Date(c.start)]));
+
+    const climberComps = [...new Set(climberData.map(d => d.comp))].sort((a, b) => {
+        const dateA = compDateMap.get(a) || 0;
+        const dateB = compDateMap.get(b) || 0;
+        return dateA - dateB;
+    });
 
     const createPercentageChart = (canvasId, statKey) => {
         const isMobile = window.innerWidth <= 768;
@@ -290,14 +317,24 @@ function renderClimberProfile_ProgressTab(container, climberName, appData) {
 
     const qualiPlacements = appData.qStandings
         .filter(s => s.climber === climberName)
-        .sort((a,b) => a.comp.localeCompare(b.comp));
+        .sort((a, b) => {
+            const dateA = compDateMap.get(a.comp) || 0;
+            const dateB = compDateMap.get(b.comp) || 0;
+            return dateA - dateB;
+        });
     if (qualiPlacements.length > 0) {
             createPlacementChart('qualiPlacementChart', qualiPlacements, '#38bdf8');
     }
 
     const finalPlacements = appData.fRankings
         .filter(s => s.climber === climberName)
-        .sort((a,b) => a.final.localeCompare(b.final));
+        .sort((a, b) => {
+            const compA = (a.final || '').replace(/F$/, '');
+            const compB = (b.final || '').replace(/F$/, '');
+            const dateA = compDateMap.get(compA) || 0;
+            const dateB = compDateMap.get(compB) || 0;
+            return dateA - dateB;
+        });
     if (finalPlacements.length > 0) {
         container.querySelector('#final-placement-chart-container').innerHTML = `
             <div>

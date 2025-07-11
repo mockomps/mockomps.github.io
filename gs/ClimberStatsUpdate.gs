@@ -47,15 +47,19 @@ function ClimberStatsUpdate() {
       grade3Boulders: 0,
       grade3Flashes: 0,
       grade3Tops: 0,
+      grade3Zones: 0,
       grade4Boulders: 0,
       grade4Flashes: 0,
       grade4Tops: 0,
+      grade4Zones: 0,
       grade5Boulders: 0,
       grade5Flashes: 0,
       grade5Tops: 0,
+      grade5Zones: 0,
       grade6Boulders: 0,
       grade6Flashes: 0,
-      grade6Tops: 0
+      grade6Tops: 0,
+      grade6Zones: 0
     };
   });
 
@@ -97,23 +101,23 @@ function ClimberStatsUpdate() {
         climberStats[climber].flashes++;
         climberStats[climber].tops++;
         climberStats[climber].zones++;
-        if (grade == 3) climberStats[climber].grade3Flashes++;
-        if (grade == 4) climberStats[climber].grade4Flashes++;
-        if (grade == 5) climberStats[climber].grade5Flashes++;
-        if (grade == 6) climberStats[climber].grade6Flashes++;
-        if (grade == 3) climberStats[climber].grade3Tops++;
-        if (grade == 4) climberStats[climber].grade4Tops++;
-        if (grade == 5) climberStats[climber].grade5Tops++;
-        if (grade == 6) climberStats[climber].grade6Tops++;
+        if (grade == 3) { climberStats[climber].grade3Flashes++; climberStats[climber].grade3Tops++; climberStats[climber].grade3Zones++; }
+        if (grade == 4) { climberStats[climber].grade4Flashes++; climberStats[climber].grade4Tops++; climberStats[climber].grade4Zones++; }
+        if (grade == 5) { climberStats[climber].grade5Flashes++; climberStats[climber].grade5Tops++; climberStats[climber].grade5Zones++; }
+        if (grade == 6) { climberStats[climber].grade6Flashes++; climberStats[climber].grade6Tops++; climberStats[climber].grade6Zones++; }
       } else if (result === "Top") {
         climberStats[climber].tops++;
         climberStats[climber].zones++;
-        if (grade == 3) climberStats[climber].grade3Tops++;
-        if (grade == 4) climberStats[climber].grade4Tops++;
-        if (grade == 5) climberStats[climber].grade5Tops++;
-        if (grade == 6) climberStats[climber].grade6Tops++;
+        if (grade == 3) { climberStats[climber].grade3Tops++; climberStats[climber].grade3Zones++; }
+        if (grade == 4) { climberStats[climber].grade4Tops++; climberStats[climber].grade4Zones++; }
+        if (grade == 5) { climberStats[climber].grade5Tops++; climberStats[climber].grade5Zones++; }
+        if (grade == 6) { climberStats[climber].grade6Tops++; climberStats[climber].grade6Zones++; }
       } else if (result === "Zone") {
         climberStats[climber].zones++;
+        if (grade == 3) climberStats[climber].grade3Zones++;
+        if (grade == 4) climberStats[climber].grade4Zones++;
+        if (grade == 5) climberStats[climber].grade5Zones++;
+        if (grade == 6) climberStats[climber].grade6Zones++;
       }
     }
 
@@ -126,15 +130,22 @@ function ClimberStatsUpdate() {
   Object.keys(climberStats).forEach(function(climber) {
     var stats = climberStats[climber];
 
-    // Calculate percentages for flashes and tops for each grade, rounded and formatted as a percentage
+    // Calculate percentages for flashes, tops, and zones for each grade, rounded and formatted as a percentage
     var grade3FlashPercentage = stats.grade3Boulders > 0 ? Math.round((stats.grade3Flashes / stats.grade3Boulders) * 100) + "%" : "0%";
     var grade3TopPercentage = stats.grade3Boulders > 0 ? Math.round((stats.grade3Tops / stats.grade3Boulders) * 100) + "%" : "0%";
+    var grade3ZonePercentage = stats.grade3Boulders > 0 ? Math.round((stats.grade3Zones / stats.grade3Boulders) * 100) + "%" : "0%";
+    
     var grade4FlashPercentage = stats.grade4Boulders > 0 ? Math.round((stats.grade4Flashes / stats.grade4Boulders) * 100) + "%" : "0%";
     var grade4TopPercentage = stats.grade4Boulders > 0 ? Math.round((stats.grade4Tops / stats.grade4Boulders) * 100) + "%" : "0%";
+    var grade4ZonePercentage = stats.grade4Boulders > 0 ? Math.round((stats.grade4Zones / stats.grade4Boulders) * 100) + "%" : "0%";
+
     var grade5FlashPercentage = stats.grade5Boulders > 0 ? Math.round((stats.grade5Flashes / stats.grade5Boulders) * 100) + "%" : "0%";
     var grade5TopPercentage = stats.grade5Boulders > 0 ? Math.round((stats.grade5Tops / stats.grade5Boulders) * 100) + "%" : "0%";
+    var grade5ZonePercentage = stats.grade5Boulders > 0 ? Math.round((stats.grade5Zones / stats.grade5Boulders) * 100) + "%" : "0%";
+
     var grade6FlashPercentage = stats.grade6Boulders > 0 ? Math.round((stats.grade6Flashes / stats.grade6Boulders) * 100) + "%" : "0%";
     var grade6TopPercentage = stats.grade6Boulders > 0 ? Math.round((stats.grade6Tops / stats.grade6Boulders) * 100) + "%" : "0%";
+    var grade6ZonePercentage = stats.grade6Boulders > 0 ? Math.round((stats.grade6Zones / stats.grade6Boulders) * 100) + "%" : "0%";
 
     statsData.push([
       climber,
@@ -148,21 +159,29 @@ function ClimberStatsUpdate() {
       grade3FlashPercentage,
       stats.grade3Tops,
       grade3TopPercentage,
+      stats.grade3Zones,
+      grade3ZonePercentage,
       stats.grade4Boulders,
       stats.grade4Flashes,
       grade4FlashPercentage,
       stats.grade4Tops,
       grade4TopPercentage,
+      stats.grade4Zones,
+      grade4ZonePercentage,
       stats.grade5Boulders,
       stats.grade5Flashes,
       grade5FlashPercentage,
       stats.grade5Tops,
       grade5TopPercentage,
+      stats.grade5Zones,
+      grade5ZonePercentage,
       stats.grade6Boulders,
       stats.grade6Flashes,
       grade6FlashPercentage,
       stats.grade6Tops,
-      grade6TopPercentage
+      grade6TopPercentage,
+      stats.grade6Zones,
+      grade6ZonePercentage
     ]);
   });
 
