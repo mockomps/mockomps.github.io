@@ -281,89 +281,104 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
     // Render the Chart.js radar chart
     const ctx = container.querySelector('#climberAttributesChart');
     if (ctx) {
-        const labels = ['Power', 'Fingers', 'Coord.', 'Balance', 'Tech.', 'Reading', 'Commit.'];
-        const dummyData = [7, 8, 6, 2, 7, 6, 6]; // Placeholder data, with a value of 1 to test innermost layer
+        const attributes = ['Power', 'Fingers', 'Coordination', 'Balance', 'Technique', 'Reading', 'Commitment'];
+        const climberRatings = appData.climberAttributesRatings.filter(r => r.climber_name === climberName);
 
-        const backgroundColors = [
-            'rgba(30, 64, 175, 1)',   // for value 2 (innermost), fully opaque
-            'rgba(30, 64, 175, 0.6)',   // for value 4
-            'rgba(30, 64, 175, 0.4)',   // for value 6
-            'rgba(30, 64, 175, 0.15)',   // for value 8
-            'rgba(30, 64, 175, 0.07)'    // for value 10 (outermost), more transparent
-        ];
-
-        const datasets = [];
-
-        // Add background layers (from innermost to outermost for correct layering)
-        for (let i = 1; i <= 5; i++) { // i goes from 1 (value 2) up to 5 (value 10)
-            const value = i * 2;
-            datasets.push({
-                label: `Level ${value}`,
-                data: Array(labels.length).fill(value),
-                backgroundColor: backgroundColors[i - 1],
-                borderColor: 'transparent',
-                pointBackgroundColor: 'transparent',
-                pointBorderColor: 'transparent',
-                fill: true,
-                borderWidth: 0,
-                pointRadius: 0,
-                hoverBorderWidth: 0,
-                hoverBackgroundColor: backgroundColors[i - 1],
-                hoverBorderColor: 'transparent',
-                order: i // Assign order for layering: 1 for innermost (value 2), 5 for outermost (value 10)
+        if (climberRatings.length >= 5) {
+            const averagedData = {};
+            attributes.forEach(attr => {
+                const attrKey = attr.toLowerCase();
+                const sum = climberRatings.reduce((acc, curr) => acc + parseInt(curr[attrKey] || 0), 0);
+                averagedData[attrKey] = sum / climberRatings.length;
             });
-        }
 
-        // Add the actual climber data layer
-        datasets.push({
-            label: 'Climbing Attributes',
-            data: dummyData,
-            backgroundColor: 'rgba(59, 130, 246, 0.7)', // blue-500 with transparency
-            borderColor: 'rgba(59, 130, 246, 1)',
-            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
-            pointBorderColor: '#fff',
-            pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: 'rgba(59, 130, 246, 1)',
-            fill: false,
-            borderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            order: 0 // Ensure this layer is on top of all background layers
-        });
+            const labels = ['Power', 'Fingers', 'Coord.', 'Balance', 'Tech.', 'Reading', 'Commit.'];
+            const chartData = attributes.map(attr => averagedData[attr.toLowerCase()]);
 
-        new Chart(ctx, {
-            type: 'radar',
-            data: {
-                labels: labels,
-                datasets: datasets
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false, // Disable animation
-                scales: {
-                    r: {
-                        angleLines: { color: 'transparent' },
-                        grid: { color: 'transparent' },
-                        pointLabels: { color: '#cbd5e1', font: { size: 12 } }, // slate-300
-                        min: 0,
-                        max: 10,
-                        beginAtZero: true,
-                        ticks: {
-                            display: false, // Hide numerical labels
-                            stepSize: 2,
-                            color: '#cbd5e1', // slate-300
-                            backdropColor: 'transparent',
-                            showLabelBackdrop: false
-                        }
-                    }
-                },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { enabled: true }
-                }
+            const backgroundColors = [
+                'rgba(30, 64, 175, 1)',   // for value 2 (innermost), fully opaque
+                'rgba(30, 64, 175, 0.6)',   // for value 4
+                'rgba(30, 64, 175, 0.4)',   // for value 6
+                'rgba(30, 64, 175, 0.15)',   // for value 8
+                'rgba(30, 64, 175, 0.07)'    // for value 10 (outermost), more transparent
+            ];
+
+            const datasets = [];
+
+            // Add background layers (from innermost to outermost for correct layering)
+            for (let i = 1; i <= 5; i++) { // i goes from 1 (value 2) up to 5 (value 10)
+                const value = i * 2;
+                datasets.push({
+                    label: `Level ${value}`,
+                    data: Array(labels.length).fill(value),
+                    backgroundColor: backgroundColors[i - 1],
+                    borderColor: 'transparent',
+                    pointBackgroundColor: 'transparent',
+                    pointBorderColor: 'transparent',
+                    fill: true,
+                    borderWidth: 0,
+                    pointRadius: 0,
+                    hoverBorderWidth: 0,
+                    hoverBackgroundColor: backgroundColors[i - 1],
+                    hoverBorderColor: 'transparent',
+                    order: i // Assign order for layering: 1 for innermost (value 2), 5 for outermost (value 10)
+                });
             }
-        });
+
+            // Add the actual climber data layer
+            datasets.push({
+                label: 'Climbing Attributes',
+                data: chartData,
+                backgroundColor: 'rgba(59, 130, 246, 0.7)', // blue-500 with transparency
+                borderColor: 'rgba(59, 130, 246, 1)',
+                pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgba(59, 130, 246, 1)',
+                fill: false,
+                borderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                order: 0 // Ensure this layer is on top of all background layers
+            });
+
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false, // Disable animation
+                    scales: {
+                        r: {
+                            angleLines: { color: 'transparent' },
+                            grid: { color: 'transparent' },
+                            pointLabels: { color: '#cbd5e1', font: { size: 12 } }, // slate-300
+                            min: 0,
+                            max: 10,
+                            beginAtZero: true,
+                            ticks: {
+                                display: false, // Hide numerical labels
+                                stepSize: 2,
+                                color: '#cbd5e1', // slate-300
+                                backdropColor: 'transparent',
+                                showLabelBackdrop: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: true }
+                    }
+                }
+            });
+        } else {
+            // Hide the chart container if not enough ratings
+            ctx.closest('.bg-gray-900').innerHTML = '<div class="p-4 text-center text-gray-400">Not enough ratings to display attribute chart (minimum 5 required).</div>';
+        }
     }
 }
 
