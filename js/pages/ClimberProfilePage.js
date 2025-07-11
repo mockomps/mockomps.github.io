@@ -120,8 +120,8 @@ function renderClimberProfile_ProfileTab(container, climberName, appData) {
         // Add chart container here
         profileHTML += `
             <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
-                <h3 class="text-lg font-bold text-gray-200 mb-3">Climber Attributes</h3>
-                <div class="h-64 md:h-80">
+                <h3 class="text-lg font-bold text-gray-200 mb-3">Attributes</h3>
+                <div class="h-80 md:h-80">
                     <canvas id="climberAttributesChart"></canvas>
                 </div>
             </div>
@@ -137,15 +137,15 @@ function renderClimberProfile_ProfileTab(container, climberName, appData) {
     // Render the Chart.js radar chart
     const ctx = container.querySelector('#climberAttributesChart');
     if (ctx) {
-        const labels = ['Power', 'Fingers', 'Coordination', 'Balance', 'Technique', 'Reading', 'Commitment'];
-        const dummyData = [7, 8, 6, 9, 7, 6, 6]; // Placeholder data, with a value of 1 to test innermost layer
+        const labels = ['Power', 'Fingers', 'Coord.', 'Balance', 'Tech.', 'Reading', 'Commit.'];
+        const dummyData = [7, 8, 6, 2, 7, 6, 6]; // Placeholder data, with a value of 1 to test innermost layer
 
         const backgroundColors = [
             'rgba(30, 64, 175, 1)',   // for value 2 (innermost), fully opaque
-            'rgba(30, 64, 175, 0.7)',   // for value 4
-            'rgba(30, 64, 175, 0.5)',   // for value 6
-            'rgba(30, 64, 175, 0.3)',   // for value 8
-            'rgba(30, 64, 175, 0.1)'    // for value 10 (outermost), more transparent
+            'rgba(30, 64, 175, 0.6)',   // for value 4
+            'rgba(30, 64, 175, 0.4)',   // for value 6
+            'rgba(30, 64, 175, 0.15)',   // for value 8
+            'rgba(30, 64, 175, 0.07)'    // for value 10 (outermost), more transparent
         ];
 
         const datasets = [];
@@ -201,12 +201,12 @@ function renderClimberProfile_ProfileTab(container, climberName, appData) {
                     r: {
                         angleLines: { color: 'transparent' },
                         grid: { color: 'transparent' },
-                        pointLabels: { color: '#cbd5e1', font: { size: 10 } }, // slate-300
+                        pointLabels: { color: '#cbd5e1', font: { size: 12 } }, // slate-300
+                        min: 0,
+                        max: 10,
+                        beginAtZero: true,
                         ticks: {
                             display: false, // Hide numerical labels
-                            min: 0,
-                            max: 10,
-                            beginAtZero: true,
                             stepSize: 2,
                             color: '#cbd5e1', // slate-300
                             backdropColor: 'transparent',
