@@ -74,7 +74,7 @@ function formatPercentage(value, total) {
     return Math.round((value / total) * 100) + '%';
 }
 
-function createGradeStatBox(grade, stats) {
+function createGradeStatBox(grade, stats, color) {
     const gradeBoulders = stats[`grade_${grade}_b`] || '0';
     const gradeFlashes = stats[`grade_${grade}_f`] || '0';
     const gradeTops = stats[`grade_${grade}_t`] || '0';
@@ -84,8 +84,15 @@ function createGradeStatBox(grade, stats) {
     const topPct = stats[`grade_${grade}_t_pct`] || '0';
     const zonePct = stats[`grade_${grade}_z_pct`] || '0';
 
+    const hexToRgba = (hex, alpha) => {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    };
+
     return `
-    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+    <div class="border border-gray-800 rounded-lg shadow-md p-4" style="background-color: ${hexToRgba(color, 0.08)};">
         <h3 class="text-lg font-bold text-gray-200 mb-3">Grade ${grade} Stats</h3>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             <div class="bg-gray-800/50 p-2 rounded-md"><div class="text-xs text-gray-400">Boulders</div><div class="font-bold text-xl text-gray-100">${gradeBoulders}</div></div>
@@ -235,6 +242,15 @@ function renderClimberProfile_StatsTab(container, climberName, appData) {
         const totalZones = parseInt(climberStats.all_time_z || '0');
         const totalNothings = totalBoulders - totalZones;
 
+        const gradeColors = {
+            1: '#4ade80', // green-400
+            2: '#60a5fa', // blue-400
+            3: '#facc15', // yellow-400
+            4: '#fb923c', // orange-400
+            5: '#f87171', // red-400
+            6: '#c084fc', // purple-400
+        };
+
         statsHTML += `
             <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
                 <h3 class="text-lg font-bold text-gray-200 mb-3">All-Time Stats</h3>
@@ -249,12 +265,12 @@ function renderClimberProfile_StatsTab(container, climberName, appData) {
             </div>`;
 
         statsHTML += `<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">`;
-        statsHTML += createGradeStatBox(1, climberStats);
-        statsHTML += createGradeStatBox(2, climberStats);
-        statsHTML += createGradeStatBox(3, climberStats);
-        statsHTML += createGradeStatBox(4, climberStats);
-        statsHTML += createGradeStatBox(5, climberStats);
-        statsHTML += createGradeStatBox(6, climberStats);
+        statsHTML += createGradeStatBox(1, climberStats, gradeColors[1]);
+        statsHTML += createGradeStatBox(2, climberStats, gradeColors[2]);
+        statsHTML += createGradeStatBox(3, climberStats, gradeColors[3]);
+        statsHTML += createGradeStatBox(4, climberStats, gradeColors[4]);
+        statsHTML += createGradeStatBox(5, climberStats, gradeColors[5]);
+        statsHTML += createGradeStatBox(6, climberStats, gradeColors[6]);
         statsHTML += `</div>`;
     } else {
         statsHTML += `<div class="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-md text-center text-gray-400">No stats information available for this climber.</div>`;
