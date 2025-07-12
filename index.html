@@ -433,9 +433,36 @@
                 const currentState = history.state || { page: 'home', context: null, scrollY: 0 };
                 history.replaceState({ ...currentState, scrollY: window.scrollY }, '', window.location.hash);
 
-                // Serialize context for URL hash
-                const serializedContext = context ? encodeURIComponent(JSON.stringify(context)) : '';
-                const hash = serializedContext ? `#${page}?context=${serializedContext}` : `#${page}`;
+                let hash = `#${page}`;
+                switch (page) {
+                    case 'climberProfile':
+                        if (context && context.climberName) {
+                            const encodedClimberName = encodeURIComponent(context.climberName.replace(/ /g, '_'));
+                            const tab = context.tab || 'profile';
+                            hash = `#${page}/${encodedClimberName}/${tab}`;
+                        }
+                        break;
+                    case 'resultsComp':
+                        if (context && context.comp) {
+                            const encodedComp = encodeURIComponent(context.comp.replace(/ /g, '_'));
+                            const round = context.round ? `/${encodeURIComponent(context.round.replace(/ /g, '_'))}` : '';
+                            hash = `#${page}/${encodedComp}${round}`;
+                        }
+                        break;
+                    case 'judgeBoulderPage':
+                        if (context && context.final && context.climber && context.boulder) {
+                            const encodedFinal = encodeURIComponent(context.final);
+                            const encodedClimber = encodeURIComponent(context.climber.replace(/ /g, '_'));
+                            const encodedBoulder = encodeURIComponent(context.boulder);
+                            hash = `#${page}/${encodedFinal}/${encodedClimber}/${encodedBoulder}`;
+                        }
+                        break;
+                    case 'manageFinals':
+                        if (context && context.final) {
+                            hash = `#${page}/final=${encodeURIComponent(context.final)}`;
+                        }
+                        break;
+                }
 
                 // Push the new state to the browser history
                 const newState = { page: page, context: context, scrollY: 0 }; // New page starts at scrollY 0
@@ -575,15 +602,47 @@
                     let initialContext = null;
 
                     if (initialHash) {
-                        const hashParts = initialHash.split('?context=');
+                        const hashParts = initialHash.split('/');
                         initialPage = hashParts[0];
-                        if (hashParts.length > 1) {
-                            try {
-                                initialContext = JSON.parse(decodeURIComponent(hashParts[1]));
-                            } catch (e) {
-                                console.error("Error parsing context from URL hash:", e);
-                                initialContext = null; // Fallback to null context on error
-                            }
+
+                        // Parse context based on page type
+                        switch (initialPage) {
+                            case 'climberProfile':
+                                if (hashParts[1]) {
+                                    initialContext = {
+                                        climberName: decodeURIComponent(hashParts[1]).replace(/_/g, ' '),
+                                        from: { page: 'home' } // Default 'from' for direct access
+                                    };
+                                    if (hashParts[2]) {
+                                        initialContext.tab = hashParts[2];
+                                    }
+                                }
+                                break;
+                            case 'resultsComp':
+                                if (hashParts[1]) {
+                                    initialContext = {
+                                        comp: decodeURIComponent(hashParts[1]).replace(/_/g, ' '),
+                                        from: { page: 'home' }
+                                    };
+                                    if (hashParts[2]) {
+                                        initialContext.round = decodeURIComponent(hashParts[2]).replace(/_/g, ' ');
+                                    }
+                                }
+                                break;
+                            case 'judgeBoulderPage':
+                                if (hashParts[1] && hashParts[2] && hashParts[3]) {
+                                    initialContext = {
+                                        final: decodeURIComponent(hashParts[1]),
+                                        climber: decodeURIComponent(hashParts[2]).replace(/_/g, ' '),
+                                        boulder: decodeURIComponent(hashParts[3])
+                                    };
+                                }
+                                break;
+                            case 'manageFinals':
+                                if (hashParts[1] && hashParts[1].startsWith('final=')) {
+                                    initialContext = { final: decodeURIComponent(hashParts[1].substring('final='.length)) };
+                                }
+                                break;
                         }
                     }
 
