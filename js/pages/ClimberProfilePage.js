@@ -119,7 +119,8 @@ function createRatingModalHTML(climbers) {
         `;
     });
 
-    const climberOptions = climbers.map(climber => `<option value="${climber.name}">${climber.name}</option>`).join('');
+    const sortedClimbers = [...climbers].sort((a, b) => a.name.localeCompare(b.name));
+    const climberOptions = sortedClimbers.map(climber => `<option value="${climber.name}">${climber.name}</option>`).join('');
 
     return `
         <div id="rating-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
@@ -129,8 +130,8 @@ function createRatingModalHTML(climbers) {
                 <form id="rating-form">
                     <div class="mb-4">
                         <label for="rater-name" class="block text-sm font-medium text-gray-300 mb-1">Your Name</label>
-                        <select id="rater-name" name="raterName" class="w-full bg-gray-800 border border-gray-600 text-white rounded-md p-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Select your name</option>
+                        <select id="rater-name" name="raterName" required class="w-full bg-gray-800 border border-gray-600 text-white rounded-md p-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="" disabled selected>Select your name</option>
                             ${climberOptions}
                         </select>
                     </div>
