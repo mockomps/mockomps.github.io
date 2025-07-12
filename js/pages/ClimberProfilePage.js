@@ -181,7 +181,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
                 ${climberGrade !== null ? `
                 <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-md text-center flex-shrink-0 flex flex-col justify-center self-stretch" style="width: 120px;">
                     <div class="text-xs text-gray-400">Climber Grade</div>
-                    <div class="font-bold text-2xl text-gray-100">${climberGrade.toFixed(2)}</div>
+                    <div class="font-bold text-2xl text-gray-100">${climberGrade.toFixed(1)}</div>
                 </div>` : ''}
             </div>`;
         
