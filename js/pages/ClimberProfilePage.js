@@ -173,9 +173,9 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
                 <div class="flex-1 bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4 h-full">
                     <h2 class="text-xl font-bold text-gray-100 mb-2">${climberInfo.name}</h2>
                     <div class="text-sm space-y-1 text-gray-300">
-                        <p><span class="font-semibold text-gray-400">Country:</span> ${climberInfo.country || 'N/A'}</p>
-                        <p><span class="font-semibold text-gray-400">Born:</span> ${climberInfo.date_of_birth || 'N/A'}</p>
-                        <p><span class="font-semibold text-gray-400">Instagram:</span> ${instaHTML || 'N/A'}</p>
+                        <p><span class="font-semibold text-gray-400">${climberInfo.country || 'N/A'}</p>
+                        <p><span class="font-semibold text-gray-400">${climberInfo.date_of_birth || 'N/A'}</p>
+                        <p><span class="font-semibold text-gray-400">${instaHTML || 'N/A'}</p>
                     </div>
                 </div>
                 ${climberGrade !== null ? `
