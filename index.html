@@ -643,6 +643,10 @@
                                     initialContext = { final: decodeURIComponent(hashParts[1].substring('final='.length)) };
                                 }
                                 break;
+                            case 'routesetting':
+                                // No specific context to parse for routesetting page currently
+                                initialContext = null;
+                                break;
                         }
                     }
 
