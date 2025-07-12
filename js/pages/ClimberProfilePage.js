@@ -154,7 +154,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
     if (climberStats) {
         let totalTopPercentage = 0;
         for (let i = 1; i <= 6; i++) {
-            const topPct = parseFloat(climberStats[`grade_${i}_t_pct`] || '0');
+            const topPct = parseFloat(climberStats[`grade_${i}_t_pct`] || '0') / 100;
             totalTopPercentage += topPct;
         }
         climberGrade = totalTopPercentage;
@@ -169,14 +169,20 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
             instaHTML = `<a href="https://instagram.com/${handle}" target="_blank" class="text-blue-400 hover:underline">@${handle}</a>`;
         }
         profileHTML += `
-            <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
-                <h2 class="text-xl font-bold text-gray-100 mb-2">${climberInfo.name}</h2>
-                <div class="text-sm space-y-1 text-gray-300">
-                    <p><span class="font-semibold text-gray-400">Country:</span> ${climberInfo.country || 'N/A'}</p>
-                    <p><span class="font-semibold text-gray-400">Born:</span> ${climberInfo.date_of_birth || 'N/A'}</p>
-                    <p><span class="font-semibold text-gray-400">Instagram:</span> ${instaHTML || 'N/A'}</p>
-                    <p><span class="font-semibold text-gray-400">Climber Grade:</span> ${climberGrade !== null ? climberGrade.toFixed(2) : 'N/A'}</p>
+            <div class="flex items-start space-x-4">
+                <div class="flex-1 bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+                    <h2 class="text-xl font-bold text-gray-100 mb-2">${climberInfo.name}</h2>
+                    <div class="text-sm space-y-1 text-gray-300">
+                        <p><span class="font-semibold text-gray-400">Country:</span> ${climberInfo.country || 'N/A'}</p>
+                        <p><span class="font-semibold text-gray-400">Born:</span> ${climberInfo.date_of_birth || 'N/A'}</p>
+                        <p><span class="font-semibold text-gray-400">Instagram:</span> ${instaHTML || 'N/A'}</p>
+                    </div>
                 </div>
+                ${climberGrade !== null ? `
+                <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-md text-center flex-shrink-0" style="width: 120px;">
+                    <div class="text-xs text-gray-400">Climber Grade</div>
+                    <div class="font-bold text-2xl text-gray-100">${climberGrade.toFixed(2)}</div>
+                </div>` : ''}
             </div>`;
         
         // Add chart container here
