@@ -151,14 +151,19 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
     const climberInfo = appData.climbers.find(c => c.name === climberName);
     const climberStats = appData.climberStats.find(s => s.climber === climberName);
 
-    let climberGrade = null;
+    let topGrade = null;
+    let flashGrade = null;
     if (climberStats) {
         let totalTopPercentage = 0;
+        let totalFlashPercentage = 0;
         for (let i = 1; i <= 6; i++) {
             const topPct = parseFloat(climberStats[`grade_${i}_t_pct`] || '0') / 100;
             totalTopPercentage += topPct;
+            const flashPct = parseFloat(climberStats[`grade_${i}_f_pct`] || '0') / 100;
+            totalFlashPercentage += flashPct;
         }
-        climberGrade = totalTopPercentage;
+        topGrade = totalTopPercentage;
+        flashGrade = totalFlashPercentage;
     }
 
     let profileHTML = '<div class="space-y-4">';
@@ -179,11 +184,12 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
                         <p><span class="font-semibold text-gray-400">${instaHTML || 'N/A'}</p>
                     </div>
                 </div>
-                ${climberGrade !== null ? `
                 <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-md text-center flex-shrink-0 flex flex-col justify-center self-stretch" style="width: 120px;">
-                    <div class="text-xs text-gray-400">Climber Grade</div>
-                    <div class="font-bold text-2xl text-gray-100">${climberGrade.toFixed(1)}</div>
-                </div>` : ''}
+                    <div class="text-xs text-gray-400">Top Grade</div>
+                    <div class="font-bold text-2xl text-gray-100 mb-2">${topGrade.toFixed(1)}</div>
+                    <div class="text-xs text-gray-400">Flash Grade</div>
+                    <div class="font-bold text-2xl text-gray-100">${flashGrade.toFixed(1)}</div>
+                </div>
             </div>`;
         
         // Add chart container here
