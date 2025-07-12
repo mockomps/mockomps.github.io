@@ -169,8 +169,8 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
             instaHTML = `<a href="https://instagram.com/${handle}" target="_blank" class="text-blue-400 hover:underline">@${handle}</a>`;
         }
         profileHTML += `
-            <div class="flex items-start space-x-4">
-                <div class="flex-1 bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+            <div class="flex items-stretch space-x-4">
+                <div class="flex-1 bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4 h-full">
                     <h2 class="text-xl font-bold text-gray-100 mb-2">${climberInfo.name}</h2>
                     <div class="text-sm space-y-1 text-gray-300">
                         <p><span class="font-semibold text-gray-400">Country:</span> ${climberInfo.country || 'N/A'}</p>
@@ -179,7 +179,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
                     </div>
                 </div>
                 ${climberGrade !== null ? `
-                <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-md text-center flex-shrink-0" style="width: 120px;">
+                <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-md text-center flex-shrink-0 flex flex-col justify-center" style="width: 120px; height: 100%;">
                     <div class="text-xs text-gray-400">Climber Grade</div>
                     <div class="font-bold text-2xl text-gray-100">${climberGrade.toFixed(2)}</div>
                 </div>` : ''}
