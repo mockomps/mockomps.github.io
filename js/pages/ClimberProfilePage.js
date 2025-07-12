@@ -148,6 +148,17 @@ function createRatingModalHTML(climbers) {
 
 function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE_APP_SCRIPT_URL) {
     const climberInfo = appData.climbers.find(c => c.name === climberName);
+    const climberStats = appData.climberStats.find(s => s.climber === climberName);
+
+    let climberGrade = null;
+    if (climberStats) {
+        let totalTopPercentage = 0;
+        for (let i = 1; i <= 6; i++) {
+            const topPct = parseFloat(climberStats[`grade_${i}_t_pct`] || '0');
+            totalTopPercentage += topPct;
+        }
+        climberGrade = totalTopPercentage;
+    }
 
     let profileHTML = '<div class="space-y-4">';
 
@@ -164,6 +175,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
                     <p><span class="font-semibold text-gray-400">Country:</span> ${climberInfo.country || 'N/A'}</p>
                     <p><span class="font-semibold text-gray-400">Born:</span> ${climberInfo.date_of_birth || 'N/A'}</p>
                     <p><span class="font-semibold text-gray-400">Instagram:</span> ${instaHTML || 'N/A'}</p>
+                    <p><span class="font-semibold text-gray-400">Climber Grade:</span> ${climberGrade !== null ? climberGrade.toFixed(2) : 'N/A'}</p>
                 </div>
             </div>`;
         
