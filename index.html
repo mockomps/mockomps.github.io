@@ -462,6 +462,18 @@
                             hash = `#${page}/final=${encodeURIComponent(context.final)}`;
                         }
                         break;
+                    case 'qualiBouldersPage':
+                        if (context && context.qualiName) {
+                            hash = `#${page}/${encodeURIComponent(context.qualiName.replace(/ /g, '_'))}`;
+                        }
+                        break;
+                    case 'boulderPage':
+                        if (context && context.qualiName && context.boulderName) {
+                            const encodedQualiName = encodeURIComponent(context.qualiName.replace(/ /g, '_'));
+                            const encodedBoulderName = encodeURIComponent(context.boulderName.replace(/ /g, '_'));
+                            hash = `#${page}/${encodedQualiName}/${encodedBoulderName}`;
+                        }
+                        break;
                 }
 
                 // Push the new state to the browser history
@@ -646,6 +658,19 @@
                             case 'routesetting':
                                 // No specific context to parse for routesetting page currently
                                 initialContext = null;
+                                break;
+                            case 'qualiBouldersPage':
+                                if (hashParts[1]) {
+                                    initialContext = { qualiName: decodeURIComponent(hashParts[1]).replace(/_/g, ' ') };
+                                }
+                                break;
+                            case 'boulderPage':
+                                if (hashParts[1] && hashParts[2]) {
+                                    initialContext = {
+                                        qualiName: decodeURIComponent(hashParts[1]).replace(/_/g, ' '),
+                                        boulderName: decodeURIComponent(hashParts[2]).replace(/_/g, ' ')
+                                    };
+                                }
                                 break;
                         }
                     }
