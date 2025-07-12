@@ -433,9 +433,13 @@
                 const currentState = history.state || { page: 'home', context: null, scrollY: 0 };
                 history.replaceState({ ...currentState, scrollY: window.scrollY }, '', window.location.hash);
 
+                // Serialize context for URL hash
+                const serializedContext = context ? encodeURIComponent(JSON.stringify(context)) : '';
+                const hash = serializedContext ? `#${page}?context=${serializedContext}` : `#${page}`;
+
                 // Push the new state to the browser history
                 const newState = { page: page, context: context, scrollY: 0 }; // New page starts at scrollY 0
-                history.pushState(newState, '', `#${page}`); // Use # for simple routing
+                history.pushState(newState, '', hash);
 
                 // Then render the new content
                 renderPageContent(page, context);
@@ -571,36 +575,14 @@
                     let initialContext = null;
 
                     if (initialHash) {
-                        // Very basic hash parsing. Could be more robust for complex contexts.
-                        // Example: #page-name or #page-name-param1=value1&param2=value2
-                        const parts = initialHash.split('-');
-                        initialPage = parts[0];
-                        if (parts.length > 1) {
-                            // Attempt to reconstruct context for specific pages from hash
-                            // This part might need further refinement based on your page logic
-                            if (initialPage === 'climberProfile' && parts[1]) {
-                                initialContext = { climberName: parts[1].replace(/_/g, ' '), from: { page: 'home' } };
-                                if (parts[2] === 'tab' && parts[3]) {
-                                    initialContext.tab = parts[3];
-                                }
-                            } else if (initialPage === 'resultsComp' && parts[1]) {
-                                initialContext = { comp: parts[1].replace(/_/g, ' '), from: { page: 'home' } };
-                                if (parts[2] === 'round' && parts[3]) {
-                                    initialContext.round = parts[3].replace(/_/g, ' ');
-                                }
-                            } else if (initialPage === 'judgeBoulderPage' && parts[1] && parts[2] && parts[3]) {
-                                initialContext = { final: parts[1], climber: parts[2].replace(/_/g, ' '), boulder: parts[3] };
-                            } else if (initialPage === 'manageFinals' && parts[1] && parts[1].startsWith('final=')) {
-                                initialContext = { final: parts[1].substring('final='.length) };
-                                // Automatically select the final if navigated directly via hash
-                                // This requires the select element to be present in the DOM immediately.
-                                // If the select is dynamically rendered, this might need a slight adjustment
-                                // (e.g., call populate options first, then set value).
-                                // For now, assuming it's available.
-                                const finalSelectElement = document.getElementById('final-select');
-                                if (finalSelectElement) {
-                                    finalSelectElement.value = initialContext.final;
-                                }
+                        const hashParts = initialHash.split('?context=');
+                        initialPage = hashParts[0];
+                        if (hashParts.length > 1) {
+                            try {
+                                initialContext = JSON.parse(decodeURIComponent(hashParts[1]));
+                            } catch (e) {
+                                console.error("Error parsing context from URL hash:", e);
+                                initialContext = null; // Fallback to null context on error
                             }
                         }
                     }
