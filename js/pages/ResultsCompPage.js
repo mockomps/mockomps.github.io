@@ -68,7 +68,7 @@ function renderResultsTable(headerContent, mainContent, controlsContainer, appDa
             const topAttempts = standing.top_attempts || '0';
             const zones = standing.zones || '0';
             const zoneAttempts = standing.zone_attempts || '0';
-            finalTotalScoreHTML = `<div class="text-sm text-gray-200 font-semibold">T${tops}(${topAttempts}) Z${zones}(${zoneAttempts})</div>`;
+            finalTotalScoreHTML = `<div class="text-base font-bold text-blue-400">T${tops}(${topAttempts}) Z${zones}(${zoneAttempts})</div>`;
 
             const finalId = currentComp + 'F';
             const climberFinalResults = appData.fResults.filter(r => r.climber === climberName && r.final === finalId);
