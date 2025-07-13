@@ -1,4 +1,4 @@
-export function renderRegisterPage(headerContent, mainContent, navigate, GOOGLE_APP_SCRIPT_URL) {
+export function renderRegisterPage(headerContent, mainContent, navigate, GOOGLE_APP_SCRIPT_URL, appData) {
     headerContent.innerHTML = `
         <div class="flex-1">
                <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
@@ -21,8 +21,8 @@ export function renderRegisterPage(headerContent, mainContent, navigate, GOOGLE_
                     <input type="text" name="Name" id="Name" placeholder="first and last name" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
                 </div>
                 <div>
-                    <label for="Date of Birth" class="block text-sm font-medium text-gray-300 mb-1">Date of Birth</label>
-                    <input type="text" name="Date of Birth" id="Date of Birth" placeholder="dd/mm/yyyy" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
+                    <label for="date-of-birth" class="block text-sm font-medium text-gray-300 mb-1">Date of Birth</label>
+                    <input type="text" name="Date of Birth" id="date-of-birth" placeholder="dd/mm/yyyy" required class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 focus:outline-none focus:border-blue-500">
                 </div>
                 <div>
                     <label for="Country" class="block text-sm font-medium text-gray-300 mb-1">Country</label>
@@ -50,7 +50,7 @@ export function renderRegisterPage(headerContent, mainContent, navigate, GOOGLE_
         feedback.innerHTML = ``;
 
         const nameInput = mainContent.querySelector('#Name');
-        const dobInput = mainContent.querySelector('#Date of Birth');
+        const dobInput = mainContent.querySelector('#date-of-birth');
 
         const dobValue = dobInput.value.trim();
         if(dobValue) {
@@ -80,7 +80,17 @@ export function renderRegisterPage(headerContent, mainContent, navigate, GOOGLE_
         
         const submitButton = form.querySelector('button[type="submit"]');
         submitButton.disabled = true;
-        submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...`;
+        submitButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Checking...`;
+
+        // Check if climber already exists
+        const climberExists = appData.climbers.some(c => c.name.toLowerCase() === cleanedName.toLowerCase());
+
+        if (climberExists) {
+            feedback.innerHTML = `<p class="text-red-400">A climber with this name is already registered.</p>`;
+            submitButton.disabled = false;
+            submitButton.innerHTML = `Sign Up`;
+            return;
+        }
         
         const plainFormData = Object.fromEntries(new FormData(form).entries());
         plainFormData.Name = cleanedName;

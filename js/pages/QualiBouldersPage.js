@@ -44,7 +44,7 @@ export function renderQualiBouldersPage(headerContent, mainContent, appData, nav
                         ${(wall || style) ? `<div class="flex items-center space-x-2 mt-1.5">${wall ? `<span class="bg-gray-700/50 border border-gray-600/80 text-gray-300 px-1.5 py-0.25 rounded-md text-xs font-medium">${wall}</span>` : ''}${style ? `<span class="bg-gray-700/50 border border-gray-600/80 text-gray-300 px-1.5 py-0.25 rounded-md text-xs font-medium">${style}</span>` : ''}</div>` : ''}
                     </div>
                 </div>
-                
+                <i class="fas fa-chevron-right text-gray-500"></i>
             </div>
         `;
     });
