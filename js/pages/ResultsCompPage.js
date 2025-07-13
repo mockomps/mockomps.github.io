@@ -58,7 +58,7 @@ function renderResultsTable(headerContent, mainContent, controlsContainer, appDa
         const qualiPointsDisplay = `<span class="font-bold text-blue-400">${standing.quali_points || '-'}</span>`;
 
 
-        const qualiStatsHTML = `<div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="block font-medium text-gray-200 text-sm">${standing.tops || '-'}</span></div><div>Zones <span class="block font-medium text-gray-200 text-sm">${standing.zones || '-'}</span></div><div>Flashes <span class="block font-medium text-gray-200 text-sm">${standing.flashes || '-'}</span></div></div>`;
+        const qualiStatsHTML = `<div class="flex justify-between items-center text-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-700"><div>Tops <span class="font-medium text-gray-200 text-xs">${standing.tops || '-'}</span></div><div>Zones <span class="font-medium text-gray-200 text-xs">${standing.zones || '-'}</span></div><div>Flashes <span class="font-medium text-gray-200 text-xs">${standing.flashes || '-'}</span></div></div>`;
         
         let finalTotalScoreHTML = '';
         let finalBoulderScoresHTML = '';
