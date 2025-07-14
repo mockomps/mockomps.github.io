@@ -44,21 +44,34 @@ export function renderSchedulePage(headerContent, mainContent, appData, navigate
         }
 
         scheduleHTML += `
-            <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm flex items-center space-x-3">
-                <div class="text-center w-14">
-                    <div class="font-bold text-lg text-gray-200">${eventDate.getDate()}</div>
-                    <div class="text-xs text-gray-400">${eventDate.toLocaleString('default', { weekday: 'short' })}</div>
+            <div class="bg-gray-900 border border-gray-800 p-3 rounded-lg shadow-sm flex items-center justify-between space-x-3">
+                <div class="flex items-center space-x-3">
+                    <div class="text-center w-14">
+                        <div class="font-bold text-lg text-gray-200">${eventDate.getDate()}</div>
+                        <div class="text-xs text-gray-400">${eventDate.toLocaleString('default', { weekday: 'short' })}</div>
+                    </div>
+                    <div>
+                        ${titleHTML}
+                        <p class="text-xs ${event.type === 'Final' ? 'text-cyan-400' : 'text-gray-400'}">${event.type}</p>
+                    </div>
                 </div>
-                <div>
-                    ${titleHTML}
-                    <p class="text-xs ${event.type === 'Final' ? 'text-cyan-400' : 'text-gray-400'}">${event.type}</p>
+                <div class="flex space-x-2">
+                    ${event.type === 'Quali' ? `<button data-quali-name="${event.title}" class="routesetting-btn w-10 h-10 flex items-center justify-center p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors duration-150"><i class="fas fa-screwdriver-wrench"></i></button>` : ''}
+                    <button data-comp="${compName}" data-round="${event.type === 'Final' ? 'finals' : event.title}" class="results-btn w-10 h-10 flex items-center justify-center p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors duration-150"><i class="fas fa-poll"></i></button>
                 </div>
             </div>`;
     });
     scheduleHTML += '</div>';
     mainContent.innerHTML = scheduleHTML;
 
-    mainContent.querySelectorAll('.schedule-comp-link').forEach(btn => {
+    mainContent.querySelectorAll('.routesetting-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const qualiName = e.currentTarget.dataset.qualiName;
+            navigate('qualiBouldersPage', { qualiName: qualiName });
+        });
+    });
+
+    mainContent.querySelectorAll('.results-btn').forEach(btn => {
         btn.addEventListener('click', e => {
             const compName = e.currentTarget.dataset.comp;
             const roundName = e.currentTarget.dataset.round;
