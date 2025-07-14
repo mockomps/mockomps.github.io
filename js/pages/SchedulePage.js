@@ -1,5 +1,5 @@
 
-export function renderSchedulePage(headerContent, mainContent, appData, navigate) {
+export function renderSchedulePage(headerContent, mainContent, appData, navigate, getLondonTime) {
     headerContent.innerHTML = `
         <div class="flex-1">
             <button id="home-btn" class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium"><i class="fas fa-arrow-left"></i><span class="hidden sm:inline">Back</span></button>
@@ -11,9 +11,40 @@ export function renderSchedulePage(headerContent, mainContent, appData, navigate
     headerContent.querySelector('#home-btn').addEventListener('click', () => history.back()); // Use history.back()
     headerContent.querySelector('#go-home-btn').addEventListener('click', () => navigate('home'));
 
+    const today = getLondonTime();
+    today.setHours(0, 0, 0, 0);
+
+    let currentCompName = null;
+    // Find the current competition where today's date is between its start and end dates
+    for (const comp of appData.comps) {
+        const compStartDate = new Date(comp.start);
+        const compEndDate = new Date(comp.end);
+        compStartDate.setHours(0, 0, 0, 0);
+        compEndDate.setHours(23, 59, 59, 999);
+
+        if (today >= compStartDate && today <= compEndDate) {
+            currentCompName = comp.comp;
+            break;
+        }
+    }
+
+    const filteredQualis = appData.qualis.filter(q => {
+        const qualiDate = new Date(q.date);
+        qualiDate.setHours(0, 0, 0, 0);
+        const compName = q.quali.replace(/( Quali \d*|Q\d*)$/, '');
+        return qualiDate <= today || compName === currentCompName;
+    });
+
+    const filteredFinals = appData.finals.filter(f => {
+        const finalDate = new Date(f.date);
+        finalDate.setHours(0, 0, 0, 0);
+        const compName = f.final.replace(/F$/, '');
+        return finalDate <= today || compName === currentCompName;
+    });
+
     const events = [
-        ...appData.qualis.map(q => ({ date: q.date, title: q.quali, type: 'Quali' })),
-        ...appData.finals.map(f => ({ date: f.date, title: f.final, type: 'Final' })),
+        ...filteredQualis.map(q => ({ date: q.date, title: q.quali, type: 'Quali' })),
+        ...filteredFinals.map(f => ({ date: f.date, title: f.final, type: 'Final' })),
     ];
     events.sort((a,b) => new Date(b.date) - new Date(a.date));
 
