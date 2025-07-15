@@ -1,4 +1,6 @@
 export function renderQualiBouldersPage(headerContent, mainContent, appData, navigate, context) {
+
+
     const { qualiName } = context;
 
     headerContent.innerHTML = `
@@ -81,7 +83,7 @@ export function renderQualiBouldersPage(headerContent, mainContent, appData, nav
                 }
                 return cleanUrl;
             }).filter(url => url);
-            console.log('Image URLs:', imageUrls); // Debugging line
+            
             imageUrls.forEach(url => {
                 const img = document.createElement('img');
                 img.src = url;

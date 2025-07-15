@@ -377,6 +377,11 @@
             
             // This function now *only* renders the UI based on the given page and context
             function renderPageContent(page, context = null) {
+                // Hide any open modals before rendering new content
+                const boulderImagesModal = document.getElementById('boulder-images-modal');
+                if (boulderImagesModal) {
+                    boulderImagesModal.classList.add('hidden');
+                }
                 window.scrollTo(0, 0); // Always scroll to top when content changes
                 mainContent.innerHTML = ''; 
                 headerContent.innerHTML = '';
