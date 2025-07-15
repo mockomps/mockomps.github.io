@@ -22,7 +22,13 @@ export function renderQualiBouldersPage(headerContent, mainContent, appData, nav
         return;
     }
 
-    let bouldersHTML = '<div class="space-y-3">';
+    let bouldersHTML = `
+        <div class="flex justify-center mb-4">
+            <button id="view-boulder-images-btn" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white p-2 rounded-md bg-gray-800 hover:bg-gray-700">
+                <i class="fas fa-images text-xl"></i>
+            </button>
+        </div>
+        <div class="space-y-3">`;
     boulders.forEach(boulder => {
         const grade = boulder.grade || '';
         const room = boulder.a || '';
@@ -56,5 +62,46 @@ export function renderQualiBouldersPage(headerContent, mainContent, appData, nav
             const boulderName = e.currentTarget.dataset.boulderName;
             navigate('boulderPage', { qualiName: qualiName, boulderName: boulderName });
         });
+    });
+
+    const viewImagesBtn = mainContent.querySelector('#view-boulder-images-btn');
+    const imagesModal = document.getElementById('boulder-images-modal');
+    const imagesContainer = document.getElementById('boulder-images-container');
+    const closeImagesModalBtn = document.getElementById('close-images-modal-btn');
+
+    viewImagesBtn.addEventListener('click', () => {
+        const imagesData = appData.qBoulderImages.find(img => img.quali === qualiName);
+        if (imagesData && imagesData.boulder_images) {
+            imagesContainer.innerHTML = ''; // Clear previous images
+            const imageUrls = imagesData.boulder_images.split(',').map(url => {
+                let cleanUrl = url.trim().replace(/^"|"$/g, ''); // Remove quotes
+                if (cleanUrl.includes('drive.google.com/open?id=')) {
+                    const fileId = cleanUrl.split('id=')[1];
+                    cleanUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
+                }
+                return cleanUrl;
+            }).filter(url => url);
+            console.log('Image URLs:', imageUrls); // Debugging line
+            imageUrls.forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'w-full h-auto rounded-lg';
+                imagesContainer.appendChild(img);
+            });
+            imagesModal.classList.remove('hidden');
+        } else {
+            alert('No images found for this quali.');
+        }
+    });
+
+    const closeModal = () => {
+        imagesModal.classList.add('hidden');
+    };
+
+    closeImagesModalBtn.addEventListener('click', closeModal);
+    imagesModal.addEventListener('click', (e) => {
+        if (e.target === imagesModal) {
+            closeModal();
+        }
     });
 }

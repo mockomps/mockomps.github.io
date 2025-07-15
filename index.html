@@ -198,6 +198,14 @@
         </div>
     </div>
 
+    <!-- Boulder Images Modal -->
+    <div id="boulder-images-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
+        <button id="close-images-modal-btn" class="absolute top-4 right-4 text-white text-4xl font-bold">&times;</button>
+        <div id="boulder-images-container" class="w-full max-w-lg h-full overflow-y-auto p-4 space-y-4">
+            <!-- Images will be loaded here -->
+        </div>
+    </div>
+
     <script type="module">
         import { renderHomePage } from './js/pages/HomePage.js';
         import { renderResultsHomePage } from './js/pages/ResultsHomePage.js';
@@ -256,6 +264,7 @@
                 cStandings: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1940156851&single=true&output=csv',
                 perCompGradeStats: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=98853432&single=true&output=csv',
                 qBoulders: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=1513683934&single=true&output=csv',
+                qBoulderImages: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=710619911&single=true&output=csv',
                 qResults: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=36605401&single=true&output=csv',
                 fClimbers: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-85zdma8XbhoanF6eOYTwlcld3Qg7mJ2xmf2YMY8N2u_Pk2G-6fnDBEPPfIWr0QBKl4bpMX0QX9B/pub?gid=704595417&single=true&output=csv'
             };
@@ -275,26 +284,52 @@
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const text = await response.text();
                 if (text.trim().startsWith('<')) throw new Error(`Received an HTML page instead of CSV from ${url}`);
-                
+
                 const lines = text.trim().split(/\r?\n/);
                 if (lines.length < 2) return [];
-                
-                const header = lines[0].split(',').map(h => 
+
+                const parseCsvLine = (line) => {
+                    const values = [];
+                    let current = '';
+                    let inQuotes = false;
+                    for (let i = 0; i < line.length; i++) {
+                        const char = line[i];
+                        if (char === '"' && !inQuotes) {
+                            inQuotes = true;
+                            continue;
+                        }
+                        if (char === '"' && inQuotes) {
+                            inQuotes = false;
+                            continue;
+                        }
+                        if (char === ',' && !inQuotes) {
+                            values.push(current);
+                            current = '';
+                        } else {
+                            current += char;
+                        }
+                    }
+                    values.push(current);
+                    return values;
+                };
+
+                const headerLine = lines[0];
+                const header = parseCsvLine(headerLine).map(h =>
                     h.trim().toLowerCase()
                     .replace(/ %/g, '_pct')
                     .replace(/[\s-]+/g, '_')
                     .replace(/# /g, 'number_of_')
                 );
-                
+
                 const data = lines.slice(1).map(line => {
                     if (line.trim() === '') return null;
-                    const values = line.split(',').map(v => v.trim().replace('%',''));
+                    const values = parseCsvLine(line);
                     return header.reduce((obj, nextKey, index) => {
-                        obj[nextKey] = values[index];
+                        obj[nextKey] = (values[index] || '').trim().replace(/%/g, '');
                         return obj;
                     }, {});
                 }).filter(Boolean);
-                
+
                 return data;
             }
 
