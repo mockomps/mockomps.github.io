@@ -10,9 +10,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- PWA: Web App Manifest -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="public/manifest.json">
     <!-- PWA: Apple Specific Meta Tags for iOS Home Screen App -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="/images/icon-192x192.png">
     <!-- Ensure you have a 192x192px icon and a 512x512px icon in an 'images' folder. -->
@@ -159,30 +159,32 @@
         <div class="bg-gray-900 border border-gray-800 rounded-lg p-8 w-full max-w-sm mx-4">
             <h2 class="text-xl font-bold text-center text-white mb-4">Admin Access</h2>
             <p class="text-center text-gray-400 mb-6">Enter PIN to continue</p>
-            <!-- Pin input field modified for custom keypad -->
-            <input type="password" id="pin-input" inputmode="none" readonly class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 text-center text-2xl tracking-widest focus:outline-none focus:border-blue-500">
-            <p id="pin-error" class="text-red-400 text-sm text-center mt-2 h-5"></p>
-            
-            <!-- Custom Pin Pad -->
-            <div id="pin-pad" class="pin-pad-grid">
-                <button class="pin-pad-button" data-digit="1">1</button>
-                <button class="pin-pad-button" data-digit="2">2</button>
-                <button class="pin-pad-button" data-digit="3">3</button>
-                <button class="pin-pad-button" data-digit="4">4</button>
-                <button class="pin-pad-button" data-digit="5">5</button>
-                <button class="pin-pad-button" data-digit="6">6</button>
-                <button class="pin-pad-button" data-digit="7">7</button>
-                <button class="pin-pad-button" data-digit="8">8</button>
-                <button class="pin-pad-button" data-digit="9">9</button>
+            <form id="pin-form">
+                <!-- Pin input field modified for custom keypad -->
+                <input type="password" id="pin-input" inputmode="none" readonly autocomplete="off" class="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded-lg p-3 text-center text-2xl tracking-widest focus:outline-none focus:border-blue-500">
+                <p id="pin-error" class="text-red-400 text-sm text-center mt-2 h-5"></p>
+                
+                <!-- Custom Pin Pad -->
+                <div id="pin-pad" class="pin-pad-grid">
+                <button type="button" class="pin-pad-button" data-digit="1">1</button>
+                <button type="button" class="pin-pad-button" data-digit="2">2</button>
+                <button type="button" class="pin-pad-button" data-digit="3">3</button>
+                <button type="button" class="pin-pad-button" data-digit="4">4</button>
+                <button type="button" class="pin-pad-button" data-digit="5">5</button>
+                <button type="button" class="pin-pad-button" data-digit="6">6</button>
+                <button type="button" class="pin-pad-button" data-digit="7">7</button>
+                <button type="button" class="pin-pad-button" data-digit="8">8</button>
+                <button type="button" class="pin-pad-button" data-digit="9">9</button>
                 <div class="empty-cell"></div> <!-- Empty cell for layout alignment -->
-                <button class="pin-pad-button" data-digit="0">0</button>
-                <button class="pin-pad-button" data-action="backspace"><i class="fas fa-backspace"></i></button>
+                <button type="button" class="pin-pad-button" data-digit="0">0</button>
+                <button type="button" class="pin-pad-button" data-action="backspace"><i class="fas fa-backspace"></i></button>
             </div>
 
-            <div class="mt-4 flex space-x-4">
-                <button id="pin-cancel" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Cancel</button>
-                <button id="pin-submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Enter</button>
-            </div>
+                <div class="mt-4 flex space-x-4">
+                    <button type="button" id="pin-cancel" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Cancel</button>
+                    <button type="submit" id="pin-submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Enter</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -588,6 +590,11 @@
                     pinError.textContent = 'Incorrect PIN.';
                     pinInput.value = '';
                 }
+            });
+
+            // Prevent form submission on Enter key press
+            document.getElementById('pin-form').addEventListener('submit', (e) => {
+                e.preventDefault();
             });
 
              document.getElementById('pin-cancel').addEventListener('click', () => {
