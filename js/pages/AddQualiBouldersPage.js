@@ -22,7 +22,7 @@ export function renderAddQualiBouldersPage(headerContent, mainContent, appData, 
 
     const gradeOptions = [1,2,3,4,5,6,7].map(g => `<option value="${g}">${g}</option>`).join('');
     const colorOptions = ["Black", "Blue", "Green", "Mint", "Purple", "Red", "White", "Yellow"].map(c => `<option value="${c}">${c}</option>`).join('');
-    const wallOptions = ["45º Overhang ", "30º Overhang", "20º Overhang ", "10º Overhang", "Vertical", "Slab", "Roof"].map(w => `<option value="${w}">${w}</option>`).join('');
+    const wallOptions = ["45º Overhang", "30º Overhang", "20º Overhang", "10º Overhang", "Vertical", "Slab", "Roof"].map(w => `<option value="${w}">${w}</option>`).join('');
     const styleOptions = ["Fingers", "Physical", "Power", "Dynamic", "Coordination", "Balance", "Mobility", "Ladder"].map(s => `<option value="${s}">${s}</option>`).join('');
 
 
