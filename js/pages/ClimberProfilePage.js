@@ -1,3 +1,5 @@
+import { calculateDataAttributes } from '../modules/attributeCalculator.js';
+
 let currentClimberTab = 'profile'; // Module-level state
 
 export function renderClimberProfilePage(headerContent, mainContent, controlsContainer, appData, navigate, context, GOOGLE_APP_SCRIPT_URL) {
@@ -104,7 +106,7 @@ function createGradeStatBox(grade, stats, color) {
 }
 
 function createRatingModalHTML(climbers) {
-    const attributes = ['Power', 'Fingers', 'Coordination', 'Balance', 'Technique', 'Reading', 'Commitment'];
+    const attributes = ['Power', 'Fingers', 'Coordination', 'Balance', 'Technique', 'Reading'];
     let slidersHTML = '';
     attributes.forEach(attr => {
         const attrId = attr.toLowerCase().replace(/\./g, '');
@@ -196,13 +198,22 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
         profileHTML += `
             <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-lg font-bold text-gray-200">Attributes</h3>
+                    <h3 class="text-lg font-bold text-gray-200">Community Attributes</h3>
                     <button id="rate-attributes-btn" class="bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-md hover:bg-blue-700">Rate</button>
                 </div>
                 <div id="climber-attributes-chart-area" class="h-80 md:h-80 flex items-center justify-center">
                     <canvas id="climberAttributesChart"></canvas>
                 </div>
                 <p class="text-xs text-gray-500 mt-2">The data points on the chart represent the average of all community submitted ratings.</p>
+            </div>
+            <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-lg font-bold text-gray-200">Data Attributes</h3>
+                </div>
+                <div id="climber-data-attributes-chart-area" class="h-80 md:h-80 flex items-center justify-center">
+                    <canvas id="climberDataAttributesChart"></canvas>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">The data points on this chart are calculated based on the climber's performance data.</p>
             </div>
         `;
 
@@ -256,7 +267,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
                     raterName: formData.get('raterName'),
                 };
 
-                const attributes = ['Power', 'Fingers', 'Coordination', 'Balance', 'Technique', 'Reading', 'Commitment'];
+                const attributes = ['Power', 'Fingers', 'Coordination', 'Balance', 'Technique', 'Reading'];
                 attributes.forEach(attr => {
                     const attrId = attr.toLowerCase().replace(/\./g, '');
                     payload[attrId] = formData.get(attrId);
@@ -289,7 +300,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
         }
 
         // Update slider value displays
-        const attributes = ['Power', 'Fingers', 'Coordination', 'Balance', 'Technique', 'Reading', 'Commitment'];
+        const attributes = ['Power', 'Fingers', 'Coordination', 'Balance', 'Technique', 'Reading'];
         attributes.forEach(attr => {
             const attrId = attr.toLowerCase().replace(/\./g, '');
             const slider = container.querySelector(`#${attrId}-slider`);
@@ -307,7 +318,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
     const chartArea = container.querySelector('#climber-attributes-chart-area');
 
     if (ctx && chartArea) {
-        const attributes = ['Power', 'Fingers', 'Coordination', 'Balance', 'Technique', 'Reading', 'Commitment'];
+        const attributes = ['Power', 'Fingers', 'Coordination', 'Balance', 'Technique', 'Reading'];
         const climberRatings = appData.climberAttributesRatings.filter(r => r.climber_name === climberName);
 
         if (climberRatings.length >= 5) {
@@ -318,7 +329,7 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
                 averagedData[attrKey] = sum / climberRatings.length;
             });
 
-            const labels = ['Power', 'Fingers', 'Coord.', 'Balance', 'Tech.', 'Reading', 'Commit.'];
+            const labels = ['Power', 'Fingers', 'Coord.', 'Balance', 'Tech.', 'Reading'];
             const chartData = attributes.map(attr => averagedData[attr.toLowerCase()]);
 
             const backgroundColors = [
@@ -406,6 +417,99 @@ function renderClimberProfile_ProfileTab(container, climberName, appData, GOOGLE
             ctx.remove(); // Remove the canvas element
             chartArea.innerHTML = '<div class="p-4 text-left text-gray-400">The Attributes chart requires a minimum of 5 rating submissions to be displayed. Be one of the first to contribute and help build a comprehensive profile for this climber!</div>';
         }
+    }
+
+    // Render the Data Attributes Chart
+    const dataCtx = container.querySelector('#climberDataAttributesChart');
+    const dataChartArea = container.querySelector('#climber-data-attributes-chart-area');
+
+    if (dataCtx && dataChartArea) {
+        const calculatedData = calculateDataAttributes(climberName, appData.qResults, appData.qBoulders);
+
+        const labels = ['Power', 'Fingers', 'Coord.', 'Balance', 'Tech.', 'Reading'];
+        // Placeholder data for now
+        const chartData = Object.values(calculatedData);
+
+        const backgroundColors = [
+            'rgba(22, 163, 74, 1)',   // for value 2 (innermost), fully opaque
+            'rgba(22, 163, 74, 0.6)',   // for value 4
+            'rgba(22, 163, 74, 0.4)',   // for value 6
+            'rgba(22, 163, 74, 0.15)',   // for value 8
+            'rgba(22, 163, 74, 0.07)'    // for value 10 (outermost), more transparent
+        ];
+
+        const datasets = [];
+
+        // Add background layers (from innermost to outermost for correct layering)
+        for (let i = 1; i <= 5; i++) { // i goes from 1 (value 2) up to 5 (value 10)
+            const value = i * 2;
+            datasets.push({
+                label: `Level ${value}`,
+                data: Array(labels.length).fill(value),
+                backgroundColor: backgroundColors[i - 1],
+                borderColor: 'transparent',
+                pointBackgroundColor: 'transparent',
+                pointBorderColor: 'transparent',
+                fill: true,
+                borderWidth: 0,
+                pointRadius: 0,
+                hoverBorderWidth: 0,
+                hoverBackgroundColor: backgroundColors[i - 1],
+                hoverBorderColor: 'transparent',
+                order: i // Assign order for layering: 1 for innermost (value 2), 5 for outermost (value 10)
+            });
+        }
+
+        // Add the actual climber data layer
+        datasets.push({
+            label: 'Data Attributes',
+            data: chartData,
+            backgroundColor: 'rgba(34, 197, 94, 0.7)', // green-500 with transparency
+            borderColor: 'rgba(34, 197, 94, 1)',
+            pointBackgroundColor: 'rgba(34, 197, 94, 1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(34, 197, 94, 1)',
+            fill: false,
+            borderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            order: 0 // Ensure this layer is on top of all background layers
+        });
+
+        new Chart(dataCtx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false, // Disable animation
+                scales: {
+                    r: {
+                        angleLines: { color: 'transparent' },
+                        grid: { color: 'transparent' },
+                        pointLabels: { color: '#cbd5e1', font: { size: 12 } }, // slate-300
+                        min: 0,
+                        max: 10,
+                        beginAtZero: true,
+                        ticks: {
+                            display: false, // Hide numerical labels
+                            stepSize: 2,
+                            color: '#cbd5e1', // slate-300
+                            backdropColor: 'transparent',
+                            showLabelBackdrop: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: true }
+                }
+            }
+        });
     }
 }
 
