@@ -68,7 +68,7 @@ export function renderSubmitResultsPage(headerContent, mainContent, appData, nav
             const now = getLondonTime(); // Use London time
             const liveQualis = appData.qualis.filter(quali => {
                 const startDate = new Date(quali.date);
-                const endDate = new Date(startDate.getTime() + (7 * 24 * 60 * 60 * 1000) + (12 * 60 * 60 * 1000));
+                const endDate = new Date(startDate.getTime() + (10 * 24 * 60 * 60 * 1000) + (12 * 60 * 60 * 1000));
                 return now >= startDate && now <= endDate;
             }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
