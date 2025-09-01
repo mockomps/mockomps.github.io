@@ -103,7 +103,17 @@ export function renderQualiCompResultDetailPage(headerContent, mainContent, appD
         const qualiPoints = climberRanking ? climberRanking.quali_points : '-';
         const roundTitle = qualiName.replace(compName, '');
 
-        finalHTML += `<div><div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-3"><h3 class="text-xl font-bold text-gray-200">${roundTitle}</h3><span class="font-bold text-blue-400">${qualiPoints}</span></div>`;
+        finalHTML += `
+            <div>
+                <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-3">
+                    <div class="flex items-center gap-4">
+                        <h3 class="text-xl font-bold text-gray-200">${roundTitle}</h3>
+                        <button class="view-comp-boulder-images-btn w-10 h-10 flex items-center justify-center p-2 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white" data-quali-name="${qualiName}">
+                            <i class="fas fa-images text-xl"></i>
+                        </button>
+                    </div>
+                    <span class="font-bold text-blue-400">${qualiPoints}</span>
+                </div>`;
         
         const qualiBoulders = appData.qBoulders.filter(b => b.quali === qualiName);
         const climberResults = appData.qResults.find(r => r.climber === climberName && r.quali === qualiName);
@@ -140,7 +150,15 @@ export function renderQualiCompResultDetailPage(headerContent, mainContent, appD
         finalHTML += `</div>`;
     });
 
-    finalHTML += '</div>';
+    finalHTML += `
+        </div>
+        <div id="boulder-images-overlay" class="hidden fixed inset-0 bg-black bg-opacity-85 z-50 overflow-y-auto">
+            <button id="close-images-overlay" class="fixed top-4 right-4 text-white text-5xl z-50">&times;</button>
+            <div id="boulder-images-container" class="px-4 pt-20 pb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <!-- Images will be loaded here -->
+            </div>
+        </div>
+    `;
     mainContent.innerHTML = finalHTML;
 
     // Attach event listeners after the HTML has been rendered
@@ -155,4 +173,51 @@ export function renderQualiCompResultDetailPage(headerContent, mainContent, appD
             }
         });
     });
+
+    // Image Overlay Logic
+    const imagesOverlay = mainContent.querySelector('#boulder-images-overlay');
+    const imagesContainer = mainContent.querySelector('#boulder-images-container');
+    const closeOverlayBtn = mainContent.querySelector('#close-images-overlay');
+
+    if(imagesOverlay) {
+        closeOverlayBtn.addEventListener('click', () => {
+            imagesOverlay.classList.add('hidden');
+        });
+
+        mainContent.addEventListener('click', (e) => {
+            const viewImagesButton = e.target.closest('.view-comp-boulder-images-btn');
+            if (viewImagesButton) {
+                e.preventDefault();
+                const selectedQuali = viewImagesButton.dataset.qualiName;
+                const imagesData = appData.qBoulderImages.find(img => img.quali === selectedQuali);
+                imagesContainer.innerHTML = ''; // Clear previous images
+
+                if (imagesData && imagesData.boulder_images) {
+                    const imageUrls = imagesData.boulder_images.split(',').map(url => {
+                        let cleanUrl = url.trim().replace(/^"|"$/g, ''); // Remove quotes
+                        if (cleanUrl.includes('drive.google.com/open?id=')) {
+                            const fileId = cleanUrl.split('id=')[1];
+                            cleanUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
+                        }
+                        return cleanUrl;
+                    }).filter(url => url);
+
+                    if (imageUrls.length > 0) {
+                        imageUrls.forEach(url => {
+                            const img = document.createElement('img');
+                            img.src = url;
+                            img.className = 'w-full h-auto rounded-lg';
+                            imagesContainer.appendChild(img);
+                        });
+                    } else {
+                        imagesContainer.innerHTML = `<p class="text-gray-400 col-span-full text-center">No images found for this quali.</p>`;
+                    }
+                } else {
+                    imagesContainer.innerHTML = `<p class="text-gray-400 col-span-full text-center">No images found for this quali.</p>`;
+                }
+                imagesOverlay.classList.remove('hidden');
+            }
+        });
+    }
 }
+
