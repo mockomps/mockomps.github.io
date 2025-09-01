@@ -48,6 +48,12 @@ export function renderSubmitResultsPage(headerContent, mainContent, appData, nav
 
             </form>
         </div>
+        <div id="boulder-images-overlay" class="hidden fixed inset-0 bg-black bg-opacity-85 z-50 overflow-y-auto">
+            <button id="close-images-overlay" class="fixed top-4 right-4 text-white text-5xl z-50">&times;</button>
+            <div id="boulder-images-container" class="px-4 pt-20 pb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <!-- Images will be loaded here -->
+            </div>
+        </div>
     `;
 
     const climberSelect = mainContent.querySelector('#climber-select');
@@ -101,7 +107,14 @@ export function renderSubmitResultsPage(headerContent, mainContent, appData, nav
             const existingResult = appData.qResults.find(r => r.climber === selectedClimber && r.quali === selectedQuali);
 
             if(boulders.length > 0) {
-                let questionsHTML = `<h3 class="text-lg font-semibold text-gray-200 pt-4 border-t border-gray-800">3. Log Your Results</h3>`;
+                let questionsHTML = `
+                    <div class="flex justify-between items-center pt-4 border-t border-gray-800">
+                        <h3 class="text-lg font-semibold text-gray-200">3. Log Your Results</h3>
+                        <button id="view-boulder-images-btn" class="w-10 h-10 flex items-center justify-center p-2 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white">
+                            <i class="fas fa-images text-xl"></i>
+                        </button>
+                    </div>
+                `;
                 boulders.forEach(boulder => {
                     const boulderNameLower = boulder.name.toLowerCase();
                     const boulderId = `${selectedQuali}-${boulder.name}`;
@@ -133,6 +146,53 @@ export function renderSubmitResultsPage(headerContent, mainContent, appData, nav
             }
         }
     });
+
+    // Image Overlay Logic
+    const imagesOverlay = mainContent.querySelector('#boulder-images-overlay');
+    const imagesContainer = mainContent.querySelector('#boulder-images-container');
+    const closeOverlayBtn = mainContent.querySelector('#close-images-overlay');
+
+    if(imagesOverlay) {
+        closeOverlayBtn.addEventListener('click', () => {
+            imagesOverlay.classList.add('hidden');
+        });
+
+        boulderQuestionsContainer.addEventListener('click', (e) => {
+            const viewImagesButton = e.target.closest('#view-boulder-images-btn');
+            if (viewImagesButton) {
+                e.preventDefault();
+                const selectedQuali = qualiSelect.value;
+                const imagesData = appData.qBoulderImages.find(img => img.quali === selectedQuali);
+                imagesContainer.innerHTML = ''; // Clear previous images
+
+                if (imagesData && imagesData.boulder_images) {
+                    const imageUrls = imagesData.boulder_images.split(',').map(url => {
+                        let cleanUrl = url.trim().replace(/^"|"$/g, ''); // Remove quotes
+                        if (cleanUrl.includes('drive.google.com/open?id=')) {
+                            const fileId = cleanUrl.split('id=')[1];
+                            cleanUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
+                        }
+                        return cleanUrl;
+                    }).filter(url => url);
+
+                    if (imageUrls.length > 0) {
+                        imageUrls.forEach(url => {
+                            const img = document.createElement('img');
+                            img.src = url;
+                            img.className = 'w-full h-auto rounded-lg';
+                            imagesContainer.appendChild(img);
+                        });
+                    } else {
+                        imagesContainer.innerHTML = `<p class="text-gray-400 col-span-full text-center">No images found for this quali.</p>`;
+                    }
+                } else {
+                    imagesContainer.innerHTML = `<p class="text-gray-400 col-span-full text-center">No images found for this quali.</p>`;
+                }
+                imagesOverlay.classList.remove('hidden');
+            }
+        });
+    }
+
 
     form.addEventListener('submit', e => {
         e.preventDefault();
